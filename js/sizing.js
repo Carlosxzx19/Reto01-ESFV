@@ -54,15 +54,18 @@ const PV_SIZING = {
 
     /**
      * Temperature of cell in operation using NOCT model
-     * Tcelda = Ta + ((NOCT - 20) / 800) * G  (with G = 1000 W/m²)
+     * Tc = Ta + ((NOCT - 20) / 800) * G  (with G = 800 W/m² assumed for real operating conditions)
+     * For G = 800 W/m², this simplifies to: Tc = Ta + (NOCT - 20)
      */
-    calcOperatingCellTemp(ambientTemp, noct = 45, irradiance = 1000) {
+    calcOperatingCellTemp(ambientTemp, noct = 45, irradiance = 800) {
         return ambientTemp + ((noct - 20) / 800) * irradiance;
     },
 
     /**
-     * Voc corrected by temperature
-     * Voc(T) = Voc_stc * [ 1 + (beta / 100) * (T - 25) ]
+     * Voc corrected by minimum temperature
+     * Voc_max = [Voc_stc + (Tmin - 25) * beta_Voc] * Ns
+     * Voc_mod(Tmin) = Voc_stc + (Tmin - 25) * beta_Voc
+     * where beta_Voc (V/°C) = Voc_stc * (tempCoefBetaPercent / 100)
      */
     calcVocAtTemp(vocStc, tempCoefBetaPercent, targetTemp) {
         const deltaT = targetTemp - 25;
@@ -71,8 +74,11 @@ const PV_SIZING = {
     },
 
     /**
-     * Vmp corrected by temperature
-     * Vmp(T) = Vmp_stc * [ 1 + (beta / 100) * (T - 25) ]
+     * Vmp corrected by real operating cell temperature
+     * Vmp_operacion = Vmp_stc + [deltaT * Coeficiente] * Ns
+     * where deltaT = Tc - 25 (°C)
+     * and Coeficiente (V/°C) = Vmp_stc * (tempCoefBetaPercent / 100)
+     * and Ns is the number of modules in series per string
      */
     calcVmpAtTemp(vmpStc, tempCoefBetaPercent, targetTemp) {
         const deltaT = targetTemp - 25;
@@ -158,8 +164,9 @@ const PV_SIZING = {
         const excedentW = installedPowerW - peakPowerW;
         const excedentPercent = peakPowerW > 0 ? (excedentW / peakPowerW) * 100 : 0;
 
-        // 6. Cell operating temperature
-        const tCellOp = this.calcOperatingCellTemp(tambOp, module.noct || 45, 1000);
+        // 6. Cell operating temperature with G = 800 W/m² in real operating conditions
+        const tCellOp = this.calcOperatingCellTemp(tambOp, module.noct || 45, 800);
+        const deltaTOp = tCellOp - 25;
 
         // 7. Voltages
         const vocGeneratorTmin = ns * vocTmin;
@@ -194,6 +201,7 @@ const PV_SIZING = {
             vocTmin: Math.round(vocTmin * 100) / 100,
             vocGeneratorTmin: Math.round(vocGeneratorTmin * 10) / 10,
             tCellOp: Math.round(tCellOp * 10) / 10,
+            deltaTOp: Math.round(deltaTOp * 10) / 10,
             vmpModOp: Math.round(vmpModOp * 100) / 100,
             vmpGeneratorOp: Math.round(vmpGeneratorOp * 10) / 10,
             iscGenerator: Math.round(iscGenerator * 100) / 100,

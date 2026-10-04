@@ -160,7 +160,7 @@ function switchStage(stageId) {
     if (stageId === 'dimensionamiento') {
         if (!APP._sizingVisited) {
             APP._sizingVisited = true;
-            if (typeof selectDimensioningCase === 'function') {
+            if (!APP.state.sizing.activeCaseId && typeof selectDimensioningCase === 'function') {
                 selectDimensioningCase('custom', { silent: true });
             }
         }

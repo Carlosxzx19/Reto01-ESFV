@@ -16,7 +16,9 @@ function initSizingUI() {
 
     // 3. Bind default cases navigation (Reto 02 cases tabs)
     bindDimensioningCases();
-    selectDimensioningCase('custom', { silent: true });
+    if (!APP.state.sizing.activeCaseId) {
+        selectDimensioningCase('custom', { silent: true });
+    }
 
     // 4. Bind configuration modal for APIs
     initConfigModal();
@@ -159,6 +161,11 @@ function bindDimensioningCases() {
 
 /** Switch active dimensioning case and automate NASA POWER temperatures */
 async function selectDimensioningCase(caseId, options = {}) {
+    if (typeof loadCase === 'function') {
+        loadCase(caseId, options);
+        return;
+    }
+
     // 1. Update active tab UI
     document.querySelectorAll('.dim-case-btn').forEach(b => b.classList.remove('active'));
     const targetBtn = document.querySelector(`.dim-case-btn[data-case="${caseId}"]`);
@@ -279,6 +286,16 @@ async function handlePVWattsQuery() {
     const btn = document.getElementById('btn-pvwatts-query');
     const badge = document.getElementById('pvwatts-status-badge');
     const isPvgis = s.solarProvider === 'pvgis';
+
+    if (s.isFixedCase && s.solarResource) {
+        updateSizing();
+        if (badge) {
+            badge.className = 'status-badge success';
+            badge.textContent = `🔒 ${s.activeCaseId === 'caso-1' ? 'Caso 1' : 'Caso Fijo'} · PVGIS Fijo`;
+        }
+        showToast('Cálculo solar actualizado con los datos certificados del caso.', 'success');
+        return;
+    }
 
     if (s.lat === null || s.lat === undefined || isNaN(s.lat) || s.lon === null || s.lon === undefined || isNaN(s.lon)) {
         showToast('Por favor ingrese las coordenadas (Latitud y Longitud) antes de calcular.', 'warning');
@@ -690,8 +707,8 @@ function renderModuleCards(evaluated) {
                     <span class="m-label">Excedente</span>
                     <span class="m-val">${excedentSign}${item.excedentPercent.toFixed(1)}%</span>
                 </div>
-                <div class="metric-item">
-                    <span class="m-label">Vmp Sist. (@${s.tambOp}°C)</span>
+                <div class="metric-item" title="Tensión Vmp a temperatura real de operación de la celda Tc (${item.tCellOp.toFixed(1)}°C con G=800 W/m²). Vmp módulo: ${vmpMod.toFixed(2)} V · Ns: ${item.ns}">
+                    <span class="m-label">Vmp Op. (@${item.tCellOp.toFixed(1)}°C)</span>
                     <span class="m-val">${displayVmp}</span>
                 </div>
                 <div class="metric-item">
@@ -841,6 +858,8 @@ function renderGenerationSection() {
             monthlyKwh
         };
     });
+
+    const isMensual = (s.projectionView !== 'anual');
 
     if (isMensual) {
         container.innerHTML = `
