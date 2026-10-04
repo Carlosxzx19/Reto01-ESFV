@@ -359,6 +359,115 @@ function generateReport() {
             <p class="config-note">${t('Costo Unitario CU (COP/kWh)')}: ${unitCost.toLocaleString(exportLang === 'en' ? 'en-US' : 'es-CO')} COP/kWh</p>
         </div>
 
+        <!-- SECCIÓN 6: DIMENSIONAMIENTO DEL GENERADOR FOTOVOLTAICO (RETO 02) -->
+        <div class="section" style="page-break-before: always; margin-top: 15px;">
+            <h2>6. Dimensionamiento del Generador Fotovoltaico (Reto 02)</h2>
+            ${(() => {
+                const sz = APP.state.sizing || {};
+                const res = sz.solarResource || { annualHsp: 5.5, criticalMonthHsp: 5.2, source: 'Base Local' };
+                const isAnual = sz.criterion === 'anual';
+                const activeHsp = isAnual ? res.annualHsp : res.criticalMonthHsp;
+                const ppeak = (typeof PV_SIZING !== 'undefined') ? PV_SIZING.calcPeakPower(ed, activeHsp, sz.pr || 0.8) : (ed / (activeHsp * 0.8));
+                
+                const selectedMod = sz.selectedResult || (typeof PV_SIZING !== 'undefined' && typeof MODULES_DB !== 'undefined' ? PV_SIZING.sizeForModule(MODULES_DB.getById(sz.selectedModuleId || 'panel-550w'), {
+                    edKwh: ed,
+                    hsp: activeHsp,
+                    pr: sz.pr || 0.8,
+                    tmin: sz.tmin || 18,
+                    tambOp: sz.tambOp || 32,
+                    vmaxSystem: sz.vmaxSystem || 600,
+                    availableArea: sz.availableArea || 20
+                }) : null);
+
+                if (!selectedMod) return '<p>Dimensionamiento no disponible.</p>';
+
+                return `
+                <div class="meta-grid" style="margin-bottom: 8px;">
+                    <div><span class="label">Ubicación / Coordenadas:</span> <span class="value">${sz.lat || 12.18}° N, ${Math.abs(sz.lon || -71.28)}° O (Tilt: ${sz.tilt || 12}°, Azimut: ${sz.azimuth || 180}°)</span></div>
+                    <div><span class="label">Montaje / Pérdidas:</span> <span class="value">${sz.arrayType === 1 ? 'Techo (Roof Mounted)' : 'Suelo (Open Rack)'} — Pérdidas: ${sz.losses || 14}%</span></div>
+                    <div><span class="label">Fuente del Recurso:</span> <span class="value">${res.source} (Fecha: ${res.queryDate || '2026-09-20'})</span></div>
+                    <div><span class="label">Criterio Aplicado:</span> <span class="value">${isAnual ? 'Promedio Anual' : 'Mes Crítico (' + (res.criticalMonthName || 'Mínimo') + ')'} (HSP = ${activeHsp.toFixed(2)} h/día)</span></div>
+                    <div><span class="label">Performance Ratio (PR):</span> <span class="value">${((sz.pr || 0.8) * 100).toFixed(0)}%</span></div>
+                    <div><span class="label">Potencia Pico Requerida (Ppico):</span> <span class="value" style="color:#d97706; font-size:1.05em;"><strong>${ppeak.toFixed(2)} kWp</strong></span></div>
+                </div>
+
+                <h3 style="font-size: 0.82rem; margin: 6px 0 4px; color: #0f172a;">Módulo Propuesto: ${selectedMod.module.name} (${selectedMod.module.pmax} Wp — ${selectedMod.module.nominalVoltage})</h3>
+                <div class="kpi-row" style="margin-bottom: 6px;">
+                    <div class="kpi-box">
+                        <div class="kpi-label">Módulos</div>
+                        <div class="kpi-val">${selectedMod.finalModCount}</div>
+                        <div class="kpi-unit">unidades</div>
+                    </div>
+                    <div class="kpi-box">
+                        <div class="kpi-label">P. Instalada</div>
+                        <div class="kpi-val">${selectedMod.installedPowerKwp.toFixed(2)}</div>
+                        <div class="kpi-unit">kWp (${selectedMod.excedentPercent >= 0 ? '+' : ''}${selectedMod.excedentPercent.toFixed(1)}%)</div>
+                    </div>
+                    <div class="kpi-box">
+                        <div class="kpi-label">Cadenas (Strings)</div>
+                        <div class="kpi-val">${selectedMod.np} × ${selectedMod.ns}</div>
+                        <div class="kpi-unit">cadenas × módulos</div>
+                    </div>
+                    <div class="kpi-box">
+                        <div class="kpi-label">Voc @ Tmin (${sz.tmin || 18}°C)</div>
+                        <div class="kpi-val">${selectedMod.vocGeneratorTmin.toFixed(1)}</div>
+                        <div class="kpi-unit">V (Límite: ${sz.vmaxSystem || 600} V)</div>
+                    </div>
+                    <div class="kpi-box">
+                        <div class="kpi-label">I diseño (690-8)</div>
+                        <div class="kpi-val">${selectedMod.idesign.toFixed(1)}</div>
+                        <div class="kpi-unit">A (Factor 1.5625)</div>
+                    </div>
+                    <div class="kpi-box">
+                        <div class="kpi-label">Área Generador</div>
+                        <div class="kpi-val">${selectedMod.totalArea.toFixed(1)}</div>
+                        <div class="kpi-unit">m² (Disp: ${sz.availableArea || 20} m²)</div>
+                    </div>
+                </div>
+
+                <p class="config-note" style="margin-bottom: 8px;">
+                    <strong>Verificación de Área:</strong> ${selectedMod.fitsArea ? '<span style="color:#16a34a; font-weight:600;">✓ Cumple: El generador cabe en el área disponible.</span>' : '<span style="color:#dc2626; font-weight:600;">✗ Alerta: El área ocupada supera el espacio disponible.</span>'} | 
+                    <strong>Vmp en Operación:</strong> ${selectedMod.vmpGeneratorOp.toFixed(1)} V @ ${selectedMod.tCellOp.toFixed(1)}°C | 
+                    <strong>Generación diaria estimada:</strong> ${selectedMod.estimatedDailyKwh.toFixed(2)} kWh/día.
+                </p>
+
+                <h3 style="font-size: 0.82rem; margin: 6px 0 4px; color: #0f172a;">Comparativa de los 3 Modelos Evaluados (RF-23)</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Referencia</th>
+                            <th style="text-align:center;">Pmax</th>
+                            <th style="text-align:center;">N° Mód.</th>
+                            <th style="text-align:center;">P. Inst.</th>
+                            <th style="text-align:center;">Excedente</th>
+                            <th style="text-align:center;">Cadenas</th>
+                            <th style="text-align:right;">Voc @ Tmin</th>
+                            <th style="text-align:right;">I diseño</th>
+                            <th style="text-align:center;">Área</th>
+                            <th style="text-align:center;">Estado Área</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${(sz.evaluatedModules && sz.evaluatedModules.length > 0 ? sz.evaluatedModules : [selectedMod]).map(m => `
+                        <tr style="${m.module.id === selectedMod.module.id ? 'background:#fef3c7; font-weight:600;' : ''}">
+                            <td>${m.module.name}</td>
+                            <td style="text-align:center;">${m.module.pmax} Wp</td>
+                            <td style="text-align:center;">${m.finalModCount}</td>
+                            <td style="text-align:center;">${m.installedPowerKwp.toFixed(2)} kWp</td>
+                            <td style="text-align:center;">${m.excedentPercent >= 0 ? '+' : ''}${m.excedentPercent.toFixed(1)}%</td>
+                            <td style="text-align:center;">${m.np} × ${m.ns}</td>
+                            <td style="text-align:right;">${m.vocGeneratorTmin.toFixed(1)} V</td>
+                            <td style="text-align:right;">${m.idesign.toFixed(1)} A</td>
+                            <td style="text-align:center;">${m.totalArea.toFixed(1)} m²</td>
+                            <td style="text-align:center;">${m.fitsArea ? '<span style="color:#16a34a;">✓ Cabe</span>' : '<span style="color:#dc2626;">✗ No cabe</span>'}</td>
+                        </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+                `;
+            })()}
+        </div>
+
         <div class="footer">
             <p>${t('Generado automáticamente por Planeación Solar Práctica')} — ${new Date().toLocaleDateString(exportLang === 'en' ? 'en-US' : 'es-CO', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
         </div>

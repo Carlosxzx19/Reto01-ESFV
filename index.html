@@ -11,7 +11,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.2/html2pdf.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
-    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/styles.css?v=3.3">
 </head>
 <body>
 
@@ -33,12 +33,38 @@
                     <span class="toggle-icon" id="theme-icon">🌙</span>
                     <span id="theme-label">Modo Claro</span>
                 </button>
+                <button class="theme-toggle" id="btn-config" title="Configuración de APIs" onclick="window.openConfigModal && window.openConfigModal()">
+                    <span class="toggle-icon">⚙️</span>
+                    <span id="config-label">Configuración</span>
+                </button>
             </div>
         </div>
     </header>
 
+    <!-- ═══════════════ MACRO STAGE NAVIGATION (REQUERIMIENTO VS DIMENSIONAMIENTO) ═══════════════ -->
+    <nav class="macro-stage-nav" aria-label="Etapas del Proyecto">
+        <div class="stage-nav-container">
+            <button class="stage-btn active" data-stage="requerimiento" id="stage-btn-req">
+                <span class="stage-icon">⚡</span>
+                <div class="stage-text">
+                    <span class="stage-badge">Etapa 1</span>
+                    <span class="stage-title">Requerimiento</span>
+                    <span class="stage-desc">Caracterización de Demanda (Reto 01)</span>
+                </div>
+            </button>
+            <button class="stage-btn" data-stage="dimensionamiento" id="stage-btn-dim">
+                <span class="stage-icon">☀️</span>
+                <div class="stage-text">
+                    <span class="stage-badge">Etapa 2</span>
+                    <span class="stage-title">Dimensionamiento</span>
+                    <span class="stage-desc">Generador Fotovoltaico (Reto 02)</span>
+                </div>
+            </button>
+        </div>
+    </nav>
+
     <!-- ═══════════════ TAB NAVIGATION ═══════════════ -->
-    <nav class="tab-nav" aria-label="Secciones principales">
+    <nav class="tab-nav" id="main-tab-nav" aria-label="Secciones principales">
         <div class="tab-container">
             <button class="tab-btn active" data-tab="proyecto" id="tab-btn-proyecto">
                 <span class="tab-icon" aria-hidden="true">📋</span>
@@ -60,8 +86,36 @@
         </div>
     </nav>
 
+    <!-- ═══════════════ CASOS NAVIGATION (ETAPA 2: DIMENSIONAMIENTO) ═══════════════ -->
+    <nav class="tab-nav" id="dim-cases-nav" aria-label="Casos de Dimensionamiento" style="display: none;">
+        <div class="tab-container">
+            <button class="tab-btn dim-case-btn" data-case="nazareth-guajira" id="case-btn-nazareth">
+                <span class="tab-label">(Referencia)</span>
+            </button>
+            <button class="tab-btn dim-case-btn" data-case="santa-marta" id="case-btn-santa-marta">
+                <span class="tab-label">Caso 1</span>
+            </button>
+            <button class="tab-btn dim-case-btn" data-case="barranquilla" id="case-btn-barranquilla">
+                <span class="tab-label">Caso 2</span>
+            </button>
+            <button class="tab-btn dim-case-btn" data-case="medellin" id="case-btn-medellin">
+                <span class="tab-label">Caso 3</span>
+            </button>
+            <button class="tab-btn dim-case-btn" data-case="bogota" id="case-btn-bogota">
+                <span class="tab-label">Caso 4</span>
+            </button>
+            <button class="tab-btn active dim-case-btn" data-case="custom" id="case-btn-custom">
+                <span class="tab-label">Coordenadas Libres</span>
+            </button>
+            <div class="tab-indicator"></div>
+        </div>
+    </nav>
+
     <!-- ═══════════════ MAIN CONTENT ═══════════════ -->
     <main class="main-content">
+
+        <!-- ═══════════════ STAGE 1: REQUERIMIENTO (RETO 01) ═══════════════ -->
+        <div id="stage-requerimiento" class="stage-panel active">
 
         <!-- ───── TAB 1: PROYECTO ───── -->
         <section id="tab-proyecto" class="tab-panel active" role="tabpanel">
@@ -70,8 +124,8 @@
                     <h2>Información del Proyecto</h2>
                 </div>
                 <div class="card-body">
-                    <div class="form-grid cols-2">
-                        <div class="form-group">
+                    <div class="form-grid cols-3">
+                        <div class="form-group span-2">
                             <label for="project-name">Nombre del Proyecto</label>
                             <input type="text" id="project-name" placeholder="Ej: Vivienda García – Barranquilla">
                         </div>
@@ -79,13 +133,20 @@
                             <label for="project-id">ID del Proyecto</label>
                             <input type="text" id="project-id" placeholder="Ej: PV-2026-001">
                         </div>
-                        <div class="form-group span-2">
+                        <div class="form-group span-3">
                             <label for="project-members">Integrantes</label>
                             <textarea id="project-members" rows="2" placeholder="Nombres separados por coma"></textarea>
                         </div>
                         <div class="form-group">
                             <label for="project-date">Fecha</label>
                             <input type="date" id="project-date">
+                        </div>
+                        <div class="form-group">
+                            <label for="installation-type">Tipo de Instalación</label>
+                            <select id="installation-type">
+                                <option value="residential" selected>Residencial (Máx. 600 V)</option>
+                                <option value="industrial">Industrial (Máx. 1000 V)</option>
+                            </select>
                         </div>
                         <div class="form-group">
                             <label for="system-type">Tipo de Aplicación</label>
@@ -388,25 +449,877 @@
                     </p>
                 </div>
             </div>
-        </section>
+        </div><!-- /#stage-requerimiento -->
+
+        <!-- ═══════════════ STAGE 2: DIMENSIONAMIENTO (RETO 02) ═══════════════ -->
+        <div id="stage-dimensionamiento" class="stage-panel">
+
+            <!-- 1. BANNER: DATOS HEREDADOS DEL RETO 01 (RF-13) -->
+            <div class="card fade-in inherited-banner">
+                <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+                    <div>
+                        <h2>Datos Heredados de la Caracterización de Demanda</h2>
+                        <p class="card-description">Parámetros transferidos directamente desde el Reto 01 sin reintroducción (RF-13).</p>
+                    </div>
+                    <span class="badge badge-success">✓ Sincronizado en Memoria</span>
+                </div>
+                <div class="card-body">
+                    <div class="kpi-grid">
+                        <div class="kpi-card">
+                            <div class="kpi-icon">🔋</div>
+                            <div class="kpi-info">
+                                <span class="kpi-label">Energía Diaria (Ed)</span>
+                                <span class="kpi-value" id="inh-ed">0.000 kWh/día</span>
+                            </div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-icon">📈</div>
+                            <div class="kpi-info">
+                                <span class="kpi-label">Demanda Máx. (Pmax)</span>
+                                <span class="kpi-value" id="inh-pmax">0 W</span>
+                            </div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-icon">📅</div>
+                            <div class="kpi-info">
+                                <span class="kpi-label">Energía Mensual (Em)</span>
+                                <span class="kpi-value" id="inh-em">0.00 kWh/mes</span>
+                            </div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-icon">🌐</div>
+                            <div class="kpi-info">
+                                <span class="kpi-label">Energía Anual (Ea)</span>
+                                <span class="kpi-value" id="inh-ea">0.00 kWh/año</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Coincidencia Ventana Solar (RF-17) -->
+                    <div class="solar-window-box" style="margin-top: 1.5rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+                            <label style="font-weight: 600; font-size: 0.95rem;">Coincidencia de Demanda en Ventana Solar (06:00 – 18:00 h) — RF-17</label>
+                            <span class="field-hint" style="margin: 0;">Clasificación de energía solar directa vs almacenamiento</span>
+                        </div>
+                        <div class="solar-progress-bar" style="margin: 0.75rem 0;">
+                            <div class="solar-progress-fill" id="win-bar-inside" style="width: 0%;"></div>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; font-size: 0.85rem;">
+                            <span>☀️ <strong>Dentro de Ventana Solar:</strong> <span id="win-inside">0 kWh (0%)</span></span>
+                            <span>🌙 <strong>Fuera de Ventana (Nocturno):</strong> <span id="win-outside">0 kWh (0%)</span></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. RECURSO SOLAR: PVGIS (PREDETERMINADO) / PVWATTS (RF-14, RF-15, RF-16) -->
+            <div class="card fade-in">
+                <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
+                    <div>
+                        <h2 id="solar-resource-main-title">Recurso solar — PVGIS (Comisión Europea)</h2>
+                        <p class="recurso-solar-sub" id="solar-resource-sub-title" style="font-size: 0.92rem; font-weight: 600; margin: 0.25rem 0 0 0;">Recurso solar y ubicación geográfica</p>
+                    </div>
+                    <div style="display: flex; gap: 0.65rem; align-items: center; flex-wrap: wrap;">
+                        <!-- Selector de Proveedor: PVGIS (Default) vs PVWatts -->
+                        <div class="btn-group-toggle" id="solar-provider-toggle" style="background: rgba(15, 23, 42, 0.4); padding: 3px; border-radius: 8px; border: 1px solid var(--border-subtle);">
+                            <button type="button" class="btn btn-sm btn-secondary active" id="btn-provider-pvgis" style="font-weight: 700;">
+                                🌐 PVGIS (Ángulos Óptimos)
+                            </button>
+                            <button type="button" class="btn btn-sm btn-secondary" id="btn-provider-pvwatts" style="font-weight: 700;">
+                                ⚡ NREL PVWatts v8
+                            </button>
+                        </div>
+                        <span class="status-badge info" id="pvwatts-status-badge">Coordenadas Libres</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- Banner de recomendación para PVGIS cuando se selecciona PVWatts -->
+                    <div class="pvwatts-recommendation-banner" id="pvwatts-recommendation-banner" style="display: none; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.75rem; background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.35); border-radius: 8px; padding: 0.5rem 0.85rem; margin-bottom: 1rem; width: fit-content; max-width: 100%;">
+                        <div style="display: flex; align-items: center; gap: 0.55rem;">
+                            <span style="font-size: 1.15rem;">💡</span>
+                            <span class="rec-banner-text" style="font-size: 0.86rem; font-weight: 600; color: #f59e0b;">PVGIS es una opción mucho más precisa y actualizada que PVWatts, se recomienda usar esta</span>
+                        </div>
+                        <button type="button" class="btn btn-sm" id="btn-banner-switch-pvgis" style="background: rgba(245, 158, 11, 0.2); border: 1px solid rgba(245, 158, 11, 0.4); color: #f59e0b; font-weight: 700; padding: 0.25rem 0.55rem; font-size: 0.78rem; cursor: pointer; border-radius: 4px;">
+                            Usar PVGIS
+                        </button>
+                    </div>
+
+                    <!-- Formulario de Coordenadas -->
+                    <div class="form-grid cols-4" id="row-coordinates-angles">
+                        <div class="form-group">
+                            <label for="pvwatts-lat">Latitud (°)</label>
+                            <input type="number" id="pvwatts-lat" step="0.01" value="" placeholder="Ej: 12.18">
+                        </div>
+                        <div class="form-group">
+                            <label for="pvwatts-lon">Longitud (°)</label>
+                            <input type="number" id="pvwatts-lon" step="0.01" value="" placeholder="Ej: -71.28">
+                        </div>
+                        <div class="form-group pvwatts-only-field" id="field-group-tilt" style="display: none;">
+                            <label for="pvwatts-tilt">Inclinación / Tilt (°)</label>
+                            <input type="number" id="pvwatts-tilt" min="0" max="90" step="1" value="" placeholder="Ej: 13">
+                        </div>
+                        <div class="form-group pvwatts-only-field" id="field-group-azimuth" style="display: none;">
+                            <label for="pvwatts-azimuth">Azimut (° Sur = 180°)</label>
+                            <input type="number" id="pvwatts-azimuth" min="0" max="360" step="1" value="" placeholder="Ej: 180">
+                        </div>
+                    </div>
+
+                    <!-- Banner de Optimización Geométrica Automática de PVGIS (Visible por defecto, compacto) -->
+                    <div class="pvgis-optimal-banner" id="pvgis-optimal-banner" style="display: inline-flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.75rem; background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.35); border-radius: 8px; padding: 0.45rem 0.85rem; margin-top: 0.75rem; width: fit-content; max-width: 100%;">
+                        <div style="display: flex; align-items: center; gap: 0.55rem;">
+                            <span style="font-size: 1.15rem;">📐</span>
+                            <div>
+                                <strong style="color: #38bdf8; font-size: 0.86rem;">Optimización Geométrica Automática (PVGIS)</strong>
+                                <div style="font-size: 0.77rem; color: var(--text-secondary); margin-top: 1px;">Inclinación y Azimut son calculados matemáticamente por la API.</div>
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 0.55rem; align-items: center;">
+                            <span class="badge" style="background: rgba(56, 189, 248, 0.2); color: #38bdf8; font-weight: 700; padding: 0.3rem 0.6rem; border: 1px solid rgba(56, 189, 248, 0.35); font-size: 0.8rem;" id="badge-pvgis-tilt">Inclinación: —</span>
+                            <span class="badge" style="background: rgba(56, 189, 248, 0.2); color: #38bdf8; font-weight: 700; padding: 0.3rem 0.6rem; border: 1px solid rgba(56, 189, 248, 0.35); font-size: 0.8rem;" id="badge-pvgis-azimuth">Azimut: —</span>
+                        </div>
+                    </div>
+
+                    <!-- Campos exclusivos de PVWatts (Ocultos en PVGIS) -->
+                    <div class="form-grid cols-2 pvwatts-only-field" id="row-pvwatts-mounting-losses" style="margin-top: 1rem; display: none;">
+                        <div class="form-group">
+                            <label for="pvwatts-array-type">Tipo de Montaje (Array Type)</label>
+                            <select id="pvwatts-array-type">
+                                <option value="1">Techo</option>
+                                <option value="0">Suelo</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="pvwatts-losses">Pérdidas del Sistema (% Losses)</label>
+                            <input type="number" id="pvwatts-losses" min="0" max="50" step="0.5" value="14">
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 1.25rem;">
+                        <button class="btn btn-primary btn-sm" id="btn-pvwatts-query" style="padding: 0.45rem 0.85rem; font-size: 0.85rem; font-weight: 600;">
+                            <span class="btn-icon" style="font-size: 0.9rem;">☀️</span> Cálculo Solar
+                        </button>
+                    </div>
+
+                    <!-- Métricas de Irradiancia y Selector de Criterio -->
+                    <!-- Métricas de Irradiancia y Selector de Criterio -->
+                    <div class="resource-results-grid" style="margin-top: 1.5rem;">
+                        <div class="res-box">
+                            <span class="res-label">HSP Promedio Anual</span>
+                            <span class="res-val" id="disp-hsp-anual">— h/día</span>
+                            <span class="res-hint">Irradiancia media sobre plano inclinado</span>
+                        </div>
+                        <div class="res-box">
+                            <span class="res-label">HSP Mes Crítico (Menor Recurso)</span>
+                            <span class="res-val" id="disp-hsp-critico">— h/día</span>
+                            <span class="res-hint">Mínimo recurso para diseño conservador</span>
+                        </div>
+                        <div class="res-box">
+                            <span class="res-label">HSP Mes Máximo (Mayor Recurso)</span>
+                            <span class="res-val" id="disp-hsp-maximo">— h/día</span>
+                            <span class="res-hint">Máximo recurso mensual disponible</span>
+                        </div>
+                        <div class="res-box highlight">
+                            <span class="res-label">Criterio de Dimensionamiento (RF-16)</span>
+                            <div class="btn-group-toggle" style="margin: 0.5rem 0;">
+                                <button class="btn btn-sm btn-secondary active" id="btn-crit-anual">Promedio Anual</button>
+                                <button class="btn btn-sm btn-secondary" id="btn-crit-critico">Mes Crítico</button>
+                            </div>
+                            <span class="res-hint">HSP de cálculo activo: <strong id="disp-hsp-active" style="color: var(--accent-orange);">— h/día</strong></span>
+                        </div>
+                    </div>
+
+                    <!-- TABLA Y GRÁFICA DE IRRADIANCIA MENSUAL (HSP) -->
+                    <div class="solar-monthly-section" style="margin-top: 1.75rem; border-top: 1px solid var(--border-subtle); padding-top: 1.5rem;">
+                        <div class="solar-monthly-table-wrapper">
+                            <table class="solar-monthly-table" id="solar-monthly-table">
+                                <thead>
+                                    <tr>
+                                        <th>ENE</th><th>FEB</th><th>MAR</th><th>ABR</th><th>MAY</th><th>JUN</th>
+                                        <th>JUL</th><th>AGO</th><th>SEP</th><th>OCT</th><th>NOV</th><th>DIC</th>
+                                        <th class="th-special">ANUAL</th>
+                                        <th class="th-special">MÍN.</th>
+                                        <th class="th-special">MÁX.</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr id="solar-monthly-values-row">
+                                        <td colspan="15" style="text-align: center; color: var(--text-muted); padding: 1.2rem; font-style: italic;">
+                                            Sin datos de radiación. Ingrese coordenadas (Latitud y Longitud) y presione "Cálculo Solar" para consultar el recurso.
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="solar-chart-caption">
+                            <span>Irradiación diaria media en el plano [kWh/m²-día]. En naranja, mes crítico. En gris, no operativos. <em>(Clic en el nombre del mes o en su barra para suspender/activar)</em></span>
+                            <span class="solar-chart-ref-badge" id="solar-chart-ref-badge">Referencia: PVGIS (JRC Comisión Europea · Ángulos Óptimos)</span>
+                        </div>
+
+                        <!-- Gráfica de barras mensual (celeste) -->
+                        <div class="solar-chart-container" style="position: relative; height: 260px; width: 100%;">
+                            <div id="solar-chart-empty-msg" style="display: flex; align-items: center; justify-content: center; height: 100%; color: var(--text-muted); font-size: 0.95rem; font-style: italic; background: rgba(15, 23, 42, 0.25); border: 1px dashed var(--border-subtle); border-radius: 8px;">
+                                Ingrese coordenadas y presione "Cálculo Solar" para generar la gráfica de irradiación mensual (HSP).
+                            </div>
+                            <canvas id="solar-monthly-chart" style="display: none;"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. PARÁMETROS DEL CLIENTE & CONDICIONES DE DISEÑO -->
+            <div class="card fade-in">
+                <div class="card-header">
+                    <h2>Parámetros del Cliente y Restricciones Eléctricas</h2>
+                    <p class="card-description">Establezca el área disponible del cliente y las condiciones térmicas/eléctricas de diseño.</p>
+                </div>
+                <div class="card-body">
+                    <div class="form-grid cols-4">
+                        <div class="form-group">
+                            <label for="sizing-area">Área Disponible (m²) <span class="required">*</span></label>
+                            <input type="number" id="sizing-area" min="1" step="0.5" value="20" placeholder="Ej: 20">
+                            <span class="field-hint">Espacio libre en techo o suelo</span>
+                        </div>
+                        <div class="form-group">
+                            <label for="sizing-pr">Performance Ratio (PR)</label>
+                            <input type="number" id="sizing-pr" min="0.4" max="1.0" step="0.01" value="0.80">
+                            <span class="field-hint">Factor global (0.70 - 0.85)</span>
+                        </div>
+                        <div class="form-group">
+                            <label for="sizing-tmin">Temp. Mínima Tmin (°C)</label>
+                            <input type="number" id="sizing-tmin" min="-20" max="40" step="1" value="18">
+                            <span class="field-hint">Para Voc máx (NTC 2050)</span>
+                        </div>
+                        <div class="form-group">
+                            <label for="sizing-tamb-op">Temp. Ambiente Operación (°C)</label>
+                            <input type="number" id="sizing-tamb-op" min="10" max="50" step="1" value="32">
+                            <span class="field-hint">Para NOCT y Vmp</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4. POTENCIA PICO REQUERIDA (RF-18) -->
+            <div class="card fade-in" style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.12), rgba(30, 41, 59, 0.4)); border: 1px solid rgba(245, 158, 11, 0.3);">
+                <div class="card-body" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                    <div>
+                        <span style="text-transform: uppercase; font-size: 0.8rem; letter-spacing: 0.05em; font-weight: 700; color: var(--accent-orange);">Potencia Pico Requerida del Generador (RF-18)</span>
+                        <div style="font-size: 2.2rem; font-weight: 800; color: #fff; line-height: 1.2;" id="disp-ppeak-kwp">0.00 kWp</div>
+                        <p style="font-size: 0.9rem; color: var(--text-secondary); margin-top: 0.25rem;" id="disp-ppeak-formula">Ppico = Ed / (HSP × PR)</p>
+                    </div>
+                    <div style="text-align: right;">
+                        <span class="badge badge-warning" style="font-size: 0.85rem; padding: 0.4rem 0.8rem;">Cálculo Dinámico Continuo</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 5. COMPARADOR DE LOS 3 MODELOS DE PANELES (RF-19 a RF-23) -->
+            <div class="card fade-in">
+                <div class="card-header">
+                    <h2>Comparador de Módulos Fotovoltaicos Propuestos (Catálogo de 3 Referencias)</h2>
+                </div>
+                <div class="card-body">
+                    <!-- Tarjetas de los 3 Paneles -->
+                    <div class="module-cards-grid" id="module-cards-container">
+                        <!-- Generado dinámicamente por sizing_ui.js -->
+                    </div>
+
+                    <!-- Tabla Técnica Detallada con engranaje para editar características de módulos -->
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 2rem; margin-bottom: 0.8rem; flex-wrap: wrap; gap: 0.6rem;">
+                        <h3 style="margin: 0; font-size: 1.05rem; display: flex; align-items: center; gap: 0.6rem;">
+                            <span>Detalle Técnico Comparativo y Verificación Eléctrica (NTC 2050)</span>
+                            <button id="btn-edit-modules" type="button" class="btn-icon" title="Editar características de módulos fotovoltaicos" style="background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.4); border-radius: var(--radius-sm); padding: 0.25rem 0.55rem; cursor: pointer; font-size: 0.95rem; color: var(--text-primary); transition: all var(--transition);" onclick="window.openModuleEditorModal && window.openModuleEditorModal()">
+                                ⚙️
+                            </button>
+                        </h3>
+                    </div>
+                    <div class="table-wrapper">
+                        <table class="data-table" id="table-modules-catalog" style="width: 100%; table-layout: fixed;">
+                            <colgroup>
+                                <col style="width: 25%;">
+                                <col style="width: 25%;">
+                                <col style="width: 25%;">
+                                <col style="width: 25%;">
+                            </colgroup>
+                            <thead>
+                                <tr>
+                                    <th style="width: 25%; text-align: left;">Parámetro</th>
+                                    <th style="width: 25%; text-align: center;">Módulo 1</th>
+                                    <th style="width: 25%; text-align: center;">Módulo 2</th>
+                                    <th style="width: 25%; text-align: center;">Módulo 3</th>
+                                </tr>
+                            </thead>
+                            <tbody id="modules-comparison-tbody">
+                                <!-- Generado dinámicamente -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 6. PROYECCIÓN DE GENERACIÓN ENERGÉTICA -->
+            <div class="card fade-in">
+                <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
+                    <div>
+                        <h2>Proyección de Generación vs Demanda Energética</h2>
+                        <p class="card-description">Estimación mensual y anual para el módulo actualmente seleccionado.</p>
+                    </div>
+                    <div class="btn-group-toggle">
+                        <button class="btn btn-sm btn-secondary active" id="btn-view-mensual">Vista Mensual (12 Meses)</button>
+                        <button class="btn btn-sm btn-secondary" id="btn-view-anual">Vista Anual Proyectada</button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div id="generation-display">
+                        <!-- Generado dinámicamente -->
+                    </div>
+                    <div class="chart-container" style="margin-top: 1.5rem; height: 320px;">
+                        <canvas id="generation-chart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+        </div><!-- /#stage-dimensionamiento -->
 
     </main>
 
     <!-- ═══════════════ FOOTER ═══════════════ -->
     <footer class="app-footer">
-        <p>Planeación Solar Práctica v1.0 — Energía Solar Fotovoltaica — 2026</p>
+        <p>Planeación Solar Práctica v2.0 — Energía Solar Fotovoltaica (Reto 01 & Reto 02) — 2026</p>
     </footer>
 
+    <!-- ═══════════════ MODAL DE CONFIGURACIÓN DE APIS Y RANGOS ═══════════════ -->
+    <div class="modal-backdrop" id="modal-config" style="display: none;">
+        <div class="modal-container" style="max-width: 580px;">
+            <div class="modal-header">
+                <h3><span style="margin-right: 0.5rem;">⚙️</span> Configuración de APIs y Parámetros</h3>
+                <button class="modal-close-btn" id="btn-close-config" aria-label="Cerrar">&times;</button>
+            </div>
+            <div class="modal-body">
+                <!-- 1. API KEY PVWATTS (NREL) -->
+                <div class="form-group" style="margin-bottom: 1.25rem;">
+                    <label for="modal-pvwatts-api-key" style="font-weight: 600; margin-bottom: 0.4rem; display: block;">Clave de API PVWatts (NREL)</label>
+                    <div style="display: flex; gap: 0.5rem; align-items: center;">
+                        <input type="password" id="modal-pvwatts-api-key" placeholder="••••••••••••••••••••••••" style="flex: 1; font-family: monospace; padding: 0.6rem 0.8rem; border-radius: 6px; border: 1px solid var(--border-input); background: var(--bg-input); color: var(--text-primary); font-size: 0.95rem;">
+                        <button type="button" class="btn btn-ghost btn-sm" id="btn-toggle-pvwatts-key" title="Mostrar/Ocultar Clave" style="padding: 0.6rem;">👁️</button>
+                    </div>
+                    <span class="field-hint" style="margin-top: 0.35rem; display: block; font-size: 0.8rem; color: var(--text-secondary);">
+                        Clave para la consulta en tiempo real de irradiancia y HSP a la API oficial NREL PVWatts v8.
+                    </span>
+                </div>
+
+                <!-- 2. API KEY NASA POWER -->
+                <div class="form-group" style="margin-bottom: 1.25rem;">
+                    <label for="modal-nasa-api-key" style="font-weight: 600; margin-bottom: 0.4rem; display: block;">Clave de API NASA POWER / NASA Open API</label>
+                    <div style="display: flex; gap: 0.5rem; align-items: center;">
+                        <input type="password" id="modal-nasa-api-key" placeholder="•••••••••••••••••••••••• (Opcional)" style="flex: 1; font-family: monospace; padding: 0.6rem 0.8rem; border-radius: 6px; border: 1px solid var(--border-input); background: var(--bg-input); color: var(--text-primary); font-size: 0.95rem;">
+                        <button type="button" class="btn btn-ghost btn-sm" id="btn-toggle-nasa-key" title="Mostrar/Ocultar Clave" style="padding: 0.6rem;">👁️</button>
+                    </div>
+                    <span class="field-hint" style="margin-top: 0.35rem; display: block; font-size: 0.8rem; color: var(--text-secondary);">
+                        Opcional para consultas con autenticación a los servicios de la NASA.
+                    </span>
+                </div>
+
+                <!-- 3. RANGO DE MEDICIONES NASA POWER -->
+                <div style="padding: 1rem; background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.25); border-radius: 8px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; flex-wrap: wrap; gap: 0.5rem;">
+                        <strong style="color: var(--accent); font-size: 0.9rem;">🛰️ Rango de Evaluación de Temperaturas NASA</strong>
+                        <span style="font-size: 0.75rem; color: var(--text-muted);">Límites: 2006-08-30 al 2026-08-30</span>
+                    </div>
+                    <p style="font-size: 0.8rem; color: var(--text-secondary); margin: 0 0 0.75rem 0; line-height: 1.35;">
+                        Defina el período para evaluar la temperatura mínima más extrema y el promedio de operación. Puede acotar a los últimos años para mayor precisión reciente.
+                    </p>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 0.75rem;">
+                        <div class="form-group">
+                            <label for="modal-nasa-start-date" style="font-size: 0.82rem; font-weight: 600; display: block; margin-bottom: 0.25rem;">Fecha Inicio (Mín. hace 20 años)</label>
+                            <input type="date" id="modal-nasa-start-date" min="2006-08-30" max="2026-08-30" value="2006-08-30" style="width: 100%; padding: 0.45rem 0.6rem; border-radius: 6px; border: 1px solid var(--border-input); background: var(--bg-input); color: var(--text-primary); font-size: 0.85rem;">
+                        </div>
+                        <div class="form-group">
+                            <label for="modal-nasa-end-date" style="font-size: 0.82rem; font-weight: 600; display: block; margin-bottom: 0.25rem;">Fecha Fin (Máx. 30 Ago 2026)</label>
+                            <input type="date" id="modal-nasa-end-date" min="2006-08-30" max="2026-08-30" value="2026-08-30" style="width: 100%; padding: 0.45rem 0.6rem; border-radius: 6px; border: 1px solid var(--border-input); background: var(--bg-input); color: var(--text-primary); font-size: 0.85rem;">
+                        </div>
+                    </div>
+
+                    <!-- Presets rápidos -->
+                    <div style="display: flex; gap: 0.35rem; align-items: center; flex-wrap: wrap;">
+                        <span style="font-size: 0.75rem; color: var(--text-muted); margin-right: 0.25rem;">Preajustes:</span>
+                        <button type="button" class="btn btn-ghost btn-sm btn-nasa-preset" data-start="2023-08-30" data-end="2026-08-30" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;">Últimos 3 años (2023–2026)</button>
+                        <button type="button" class="btn btn-ghost btn-sm btn-nasa-preset" data-start="2021-08-30" data-end="2026-08-30" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;">Últimos 5 años (2021–2026)</button>
+                        <button type="button" class="btn btn-ghost btn-sm btn-nasa-preset" data-start="2006-08-30" data-end="2026-08-30" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;">20 años (2006–2026)</button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1.5rem;">
+                <button class="btn btn-secondary btn-sm" id="btn-cancel-config">Cancelar</button>
+                <button class="btn btn-primary btn-sm" id="btn-save-config">Guardar Cambios</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════════ MODAL DE EDICIÓN DE CARACTERÍSTICAS DE MÓDULOS ═══════════════ -->
+    <div class="modal-backdrop" id="modal-module-editor" style="display: none;">
+        <div class="modal-container" style="max-width: 650px; max-height: 90vh; display: flex; flex-direction: column;">
+            <div class="modal-header">
+                <h3><span style="margin-right: 0.5rem;">⚙️</span> Parámetros Técnicos del Módulo Solar</h3>
+                <button class="modal-close-btn" id="btn-close-mod-editor" aria-label="Cerrar">&times;</button>
+            </div>
+            <div class="modal-body" style="overflow-y: auto; padding-right: 0.5rem;">
+                <!-- Selector del Módulo -->
+                <div class="form-group" style="margin-bottom: 1.2rem;">
+                    <label for="mod-editor-select" style="font-weight: 700; margin-bottom: 0.4rem; display: block;">Seleccionar Módulo a Personalizar:</label>
+                    <select id="mod-editor-select" style="width: 100%; padding: 0.6rem 0.8rem; border-radius: 6px; border: 1px solid var(--border-input); background: var(--bg-input); color: var(--text-primary); font-size: 0.95rem; font-weight: 600;">
+                        <!-- Opciones dinámicas -->
+                    </select>
+                    <span class="field-hint" style="margin-top: 0.35rem; display: block; font-size: 0.8rem; color: var(--text-secondary);">
+                        Puede personalizar cualquier característica técnica o coeficiente para ajustar el dimensionamiento.
+                    </span>
+                </div>
+
+                <!-- 1. Tensión y Corriente STC -->
+                <div style="background: rgba(15, 23, 42, 0.4); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 0.85rem 1rem; margin-bottom: 1rem;">
+                    <div style="font-size: 0.8rem; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 0.6rem; display: flex; align-items: center; gap: 0.35rem;">
+                        ⚡ Parámetros Eléctricos STC (1000 W/m², 25°C)
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 0.6rem;">
+                        <div class="form-group">
+                            <label for="mod-edit-voc" style="font-size: 0.82rem; font-weight: 600; display: block; margin-bottom: 0.25rem;">Voc — Tensión Circuito Abierto (V)</label>
+                            <input type="number" id="mod-edit-voc" step="0.01" min="1" placeholder="49.5" style="width: 100%; padding: 0.5rem 0.65rem; border-radius: 6px; border: 1px solid var(--border-input); background: var(--bg-input); color: var(--text-primary); font-size: 0.9rem;">
+                        </div>
+                        <div class="form-group">
+                            <label for="mod-edit-vmp" style="font-size: 0.82rem; font-weight: 600; display: block; margin-bottom: 0.25rem;">Vmp — Tensión Máxima Potencia (V)</label>
+                            <input type="number" id="mod-edit-vmp" step="0.01" min="1" placeholder="41.5" style="width: 100%; padding: 0.5rem 0.65rem; border-radius: 6px; border: 1px solid var(--border-input); background: var(--bg-input); color: var(--text-primary); font-size: 0.9rem;">
+                        </div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+                        <div class="form-group">
+                            <label for="mod-edit-isc" style="font-size: 0.82rem; font-weight: 600; display: block; margin-bottom: 0.25rem;">Isc — Corriente Cortocircuito (A)</label>
+                            <input type="number" id="mod-edit-isc" step="0.01" min="0.1" placeholder="14.0" style="width: 100%; padding: 0.5rem 0.65rem; border-radius: 6px; border: 1px solid var(--border-input); background: var(--bg-input); color: var(--text-primary); font-size: 0.9rem;">
+                        </div>
+                        <div class="form-group">
+                            <label for="mod-edit-imp" style="font-size: 0.82rem; font-weight: 600; display: block; margin-bottom: 0.25rem;">Imp — Corriente Máxima Potencia (A)</label>
+                            <input type="number" id="mod-edit-imp" step="0.01" min="0.1" placeholder="13.3" style="width: 100%; padding: 0.5rem 0.65rem; border-radius: 6px; border: 1px solid var(--border-input); background: var(--bg-input); color: var(--text-primary); font-size: 0.9rem;">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. Potencia y Eficiencia -->
+                <div style="background: rgba(15, 23, 42, 0.4); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 0.85rem 1rem; margin-bottom: 1rem;">
+                    <div style="font-size: 0.8rem; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 0.6rem; display: flex; align-items: center; gap: 0.35rem;">
+                        📊 Potencia y Rendimiento
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 0.6rem;">
+                        <div class="form-group">
+                            <label for="mod-edit-pmax" style="font-size: 0.82rem; font-weight: 600; display: block; margin-bottom: 0.25rem;">Potencia Pico Pmax (Wp)</label>
+                            <input type="number" id="mod-edit-pmax" step="1" min="10" placeholder="550" style="width: 100%; padding: 0.5rem 0.65rem; border-radius: 6px; border: 1px solid var(--border-input); background: var(--bg-input); color: var(--text-primary); font-size: 0.9rem;">
+                        </div>
+                        <div class="form-group">
+                            <label for="mod-edit-pmax-nmot" style="font-size: 0.82rem; font-weight: 600; display: block; margin-bottom: 0.25rem;">Potencia NMOT Pmax (W)</label>
+                            <input type="number" id="mod-edit-pmax-nmot" step="0.1" min="1" placeholder="410" style="width: 100%; padding: 0.5rem 0.65rem; border-radius: 6px; border: 1px solid var(--border-input); background: var(--bg-input); color: var(--text-primary); font-size: 0.9rem;">
+                        </div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr; gap: 0.75rem;">
+                        <div class="form-group">
+                            <label for="mod-edit-eff" style="font-size: 0.82rem; font-weight: 600; display: block; margin-bottom: 0.25rem;">Eficiencia del Módulo (%)</label>
+                            <input type="number" id="mod-edit-eff" step="0.01" min="1" max="40" placeholder="21.5" style="width: 100%; padding: 0.5rem 0.65rem; border-radius: 6px; border: 1px solid var(--border-input); background: var(--bg-input); color: var(--text-primary); font-size: 0.9rem;">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. Coeficientes Térmicos y NOCT -->
+                <div style="background: rgba(15, 23, 42, 0.4); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 0.85rem 1rem; margin-bottom: 1rem;">
+                    <div style="font-size: 0.8rem; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 0.6rem; display: flex; align-items: center; gap: 0.35rem;">
+                        🌡️ Coeficientes Térmicos y NOCT
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 0.6rem;">
+                        <div class="form-group">
+                            <label for="mod-edit-tc-voc" style="font-size: 0.82rem; font-weight: 600; display: block; margin-bottom: 0.25rem;">Coef. Temp. Voc (%/°C)</label>
+                            <input type="number" id="mod-edit-tc-voc" step="0.01" placeholder="-0.27" style="width: 100%; padding: 0.5rem 0.65rem; border-radius: 6px; border: 1px solid var(--border-input); background: var(--bg-input); color: var(--text-primary); font-size: 0.9rem;">
+                        </div>
+                        <div class="form-group">
+                            <label for="mod-edit-tc-isc" style="font-size: 0.82rem; font-weight: 600; display: block; margin-bottom: 0.25rem;">Coef. Temp. Isc (%/°C)</label>
+                            <input type="number" id="mod-edit-tc-isc" step="0.01" placeholder="0.05" style="width: 100%; padding: 0.5rem 0.65rem; border-radius: 6px; border: 1px solid var(--border-input); background: var(--bg-input); color: var(--text-primary); font-size: 0.9rem;">
+                        </div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+                        <div class="form-group">
+                            <label for="mod-edit-tc-pmp" style="font-size: 0.82rem; font-weight: 600; display: block; margin-bottom: 0.25rem;">Coef. Temp. Pmax (%/°C)</label>
+                            <input type="number" id="mod-edit-tc-pmp" step="0.01" placeholder="-0.35" style="width: 100%; padding: 0.5rem 0.65rem; border-radius: 6px; border: 1px solid var(--border-input); background: var(--bg-input); color: var(--text-primary); font-size: 0.9rem;">
+                        </div>
+                        <div class="form-group">
+                            <label for="mod-edit-noct" style="font-size: 0.82rem; font-weight: 600; display: block; margin-bottom: 0.25rem;">NOCT — Temp. Nominal Célula (°C)</label>
+                            <input type="number" id="mod-edit-noct" step="0.5" min="20" max="65" placeholder="45" style="width: 100%; padding: 0.5rem 0.65rem; border-radius: 6px; border: 1px solid var(--border-input); background: var(--bg-input); color: var(--text-primary); font-size: 0.9rem;">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4. Dimensiones y Celdas -->
+                <div style="background: rgba(15, 23, 42, 0.4); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 0.85rem 1rem; margin-bottom: 1rem;">
+                    <div style="font-size: 0.8rem; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 0.6rem; display: flex; align-items: center; gap: 0.35rem;">
+                        📐 Dimensiones y Construcción
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+                        <div class="form-group">
+                            <label for="mod-edit-area" style="font-size: 0.82rem; font-weight: 600; display: block; margin-bottom: 0.25rem;">Área del Módulo (m²)</label>
+                            <input type="number" id="mod-edit-area" step="0.01" min="0.1" placeholder="2.58" style="width: 100%; padding: 0.5rem 0.65rem; border-radius: 6px; border: 1px solid var(--border-input); background: var(--bg-input); color: var(--text-primary); font-size: 0.9rem;">
+                        </div>
+                        <div class="form-group">
+                            <label for="mod-edit-cells" style="font-size: 0.82rem; font-weight: 600; display: block; margin-bottom: 0.25rem;">Celdas en Serie (unidades)</label>
+                            <input type="number" id="mod-edit-cells" step="1" min="12" max="144" placeholder="72" style="width: 100%; padding: 0.5rem 0.65rem; border-radius: 6px; border: 1px solid var(--border-input); background: var(--bg-input); color: var(--text-primary); font-size: 0.9rem;">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 5. URL en la parte inferior -->
+                <div style="padding: 1rem; background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 8px;">
+                    <div class="form-group">
+                        <label for="mod-edit-url" style="font-weight: 700; color: #38bdf8; font-size: 0.85rem; display: flex; align-items: center; gap: 0.4rem; margin-bottom: 0.35rem;">
+                            🔗 URL de Referencia / Enlace del Panel
+                        </label>
+                        <input type="url" id="mod-edit-url" placeholder="https://ejemplo.com/panel-solar.pdf" style="width: 100%; padding: 0.55rem 0.75rem; border-radius: 6px; border: 1px solid var(--border-input); background: var(--bg-input); color: var(--text-primary); font-size: 0.9rem;">
+                        <span class="field-hint" style="margin-top: 0.35rem; display: block; font-size: 0.8rem; color: var(--text-secondary);">
+                            Si se ingresa una URL, se habilitará el botón <strong>"Referencia"</strong> bajo el botón "Seleccionar esta Referencia" en el comparador para abrir este enlace en una nueva ventana.
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center; gap: 0.75rem; margin-top: 1.25rem; flex-wrap: wrap;">
+                <button type="button" class="btn btn-ghost btn-sm" id="btn-reset-mod-defaults" style="color: var(--text-muted);">Restablecer Fábrica</button>
+                <div style="display: flex; gap: 0.5rem;">
+                    <button type="button" class="btn btn-secondary btn-sm" id="btn-cancel-mod-editor">Cancelar</button>
+                    <button type="button" class="btn btn-primary btn-sm" id="btn-save-mod-editor">Guardar Características</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Inline self-contained module editor modal controller -->
+    <script>
+    (function() {
+        var modal = document.getElementById('modal-module-editor');
+        var btnOpen = document.getElementById('btn-edit-modules');
+        var btnClose = document.getElementById('btn-close-mod-editor');
+        var btnCancel = document.getElementById('btn-cancel-mod-editor');
+        var btnSave = document.getElementById('btn-save-mod-editor');
+        var btnReset = document.getElementById('btn-reset-mod-defaults');
+        var select = document.getElementById('mod-editor-select');
+
+        var vocInp = document.getElementById('mod-edit-voc');
+        var vmpInp = document.getElementById('mod-edit-vmp');
+        var iscInp = document.getElementById('mod-edit-isc');
+        var impInp = document.getElementById('mod-edit-imp');
+        var pmaxInp = document.getElementById('mod-edit-pmax');
+        var pmaxNmotInp = document.getElementById('mod-edit-pmax-nmot');
+        var effInp = document.getElementById('mod-edit-eff');
+        var tcVocInp = document.getElementById('mod-edit-tc-voc');
+        var tcIscInp = document.getElementById('mod-edit-tc-isc');
+        var tcPmpInp = document.getElementById('mod-edit-tc-pmp');
+        var noctInp = document.getElementById('mod-edit-noct');
+        var areaInp = document.getElementById('mod-edit-area');
+        var cellsInp = document.getElementById('mod-edit-cells');
+        var urlInp = document.getElementById('mod-edit-url');
+
+        function populateSelect() {
+            if (!select) select = document.getElementById('mod-editor-select');
+            if (!select) return;
+            select.innerHTML = '';
+            var modules = (window.MODULES_DB && MODULES_DB.getAll) ? MODULES_DB.getAll() : [];
+            modules.forEach(function(m) {
+                var cleanName = (m.name || '').replace(/[-_].*$/, '').trim();
+                var opt = document.createElement('option');
+                opt.value = m.id;
+                opt.textContent = cleanName + ' (' + m.pmax + ' Wp)';
+                select.appendChild(opt);
+            });
+        }
+
+        function loadModuleData(modId) {
+            if (!window.MODULES_DB) return;
+            var m = MODULES_DB.getById(modId);
+            if (!m) return;
+            if (!vocInp) vocInp = document.getElementById('mod-edit-voc');
+            if (!vmpInp) vmpInp = document.getElementById('mod-edit-vmp');
+            if (!iscInp) iscInp = document.getElementById('mod-edit-isc');
+            if (!impInp) impInp = document.getElementById('mod-edit-imp');
+            if (!pmaxInp) pmaxInp = document.getElementById('mod-edit-pmax');
+            if (!pmaxNmotInp) pmaxNmotInp = document.getElementById('mod-edit-pmax-nmot');
+            if (!effInp) effInp = document.getElementById('mod-edit-eff');
+            if (!tcVocInp) tcVocInp = document.getElementById('mod-edit-tc-voc');
+            if (!tcIscInp) tcIscInp = document.getElementById('mod-edit-tc-isc');
+            if (!tcPmpInp) tcPmpInp = document.getElementById('mod-edit-tc-pmp');
+            if (!noctInp) noctInp = document.getElementById('mod-edit-noct');
+            if (!areaInp) areaInp = document.getElementById('mod-edit-area');
+            if (!cellsInp) cellsInp = document.getElementById('mod-edit-cells');
+            if (!urlInp) urlInp = document.getElementById('mod-edit-url');
+
+            if (vocInp) vocInp.value = m.voc !== undefined ? m.voc : '';
+            if (vmpInp) vmpInp.value = m.vmp !== undefined ? m.vmp : '';
+            if (iscInp) iscInp.value = m.isc !== undefined ? m.isc : '';
+            if (impInp) impInp.value = m.imp !== undefined ? m.imp : '';
+            if (pmaxInp) pmaxInp.value = m.pmax !== undefined ? m.pmax : '';
+            if (pmaxNmotInp) pmaxNmotInp.value = m.pmaxNmot !== undefined ? m.pmaxNmot : '';
+            if (effInp) effInp.value = m.efficiency !== undefined ? m.efficiency : '';
+            if (tcVocInp) tcVocInp.value = m.tempCoefVoc !== undefined ? m.tempCoefVoc : '';
+            if (tcIscInp) tcIscInp.value = m.tempCoefIsc !== undefined ? m.tempCoefIsc : '';
+            if (tcPmpInp) tcPmpInp.value = m.tempCoefPmp !== undefined ? m.tempCoefPmp : '';
+            if (noctInp) noctInp.value = m.noct !== undefined ? m.noct : '';
+            if (areaInp) areaInp.value = m.area !== undefined ? m.area : '';
+            if (cellsInp) cellsInp.value = m.cellsInSeries !== undefined ? m.cellsInSeries : '';
+            if (urlInp) urlInp.value = m.url || '';
+        }
+
+        function openModal() {
+            if (!modal) modal = document.getElementById('modal-module-editor');
+            if (!modal) return;
+            populateSelect();
+            var activeId = (window.APP && APP.state && APP.state.sizing && APP.state.sizing.selectedModuleId) || (select && select.value) || 'panel-150w';
+            if (select) select.value = activeId;
+            loadModuleData(activeId);
+            modal.style.display = 'flex';
+        }
+
+        function closeModal() {
+            if (!modal) modal = document.getElementById('modal-module-editor');
+            if (modal) modal.style.display = 'none';
+        }
+
+        window.openModuleEditorModal = openModal;
+        window.closeModuleEditorModal = closeModal;
+
+        if (btnOpen) btnOpen.addEventListener('click', function(e) { e.preventDefault(); openModal(); });
+        if (btnClose) btnClose.addEventListener('click', function(e) { e.preventDefault(); closeModal(); });
+        if (btnCancel) btnCancel.addEventListener('click', function(e) { e.preventDefault(); closeModal(); });
+        if (modal) modal.addEventListener('click', function(e) { if (e.target === modal) closeModal(); });
+
+        if (select) {
+            select.addEventListener('change', function() {
+                loadModuleData(this.value);
+            });
+        }
+
+        if (btnSave) {
+            btnSave.addEventListener('click', function(e) {
+                e.preventDefault();
+                if (!window.MODULES_DB || !select) return;
+                var modId = select.value;
+                var voc = parseFloat(vocInp.value);
+                var vmp = parseFloat(vmpInp.value);
+                var isc = parseFloat(iscInp.value);
+                var imp = parseFloat(impInp.value);
+                var pmax = parseFloat(pmaxInp.value);
+                var pmaxNmot = parseFloat(pmaxNmotInp.value);
+                var efficiency = parseFloat(effInp.value);
+                var tempCoefVoc = parseFloat(tcVocInp.value);
+                var tempCoefIsc = parseFloat(tcIscInp.value);
+                var tempCoefPmp = parseFloat(tcPmpInp.value);
+                var noct = parseFloat(noctInp.value);
+                var area = parseFloat(areaInp.value);
+                var cellsInSeries = parseInt(cellsInp.value, 10);
+                var url = urlInp ? urlInp.value.trim() : '';
+
+                if (isNaN(voc) || voc <= 0 || isNaN(vmp) || vmp <= 0 || isNaN(isc) || isc <= 0 || isNaN(imp) || imp <= 0) {
+                    alert('Por favor ingrese valores numéricos válidos y positivos para las tensiones y corrientes.');
+                    return;
+                }
+
+                if (isNaN(pmax) || pmax <= 0) {
+                    pmax = Math.round(vmp * imp);
+                }
+
+                var updateData = {
+                    voc: voc,
+                    vmp: vmp,
+                    isc: isc,
+                    imp: imp,
+                    pmax: pmax,
+                    url: url
+                };
+                if (!isNaN(pmaxNmot) && pmaxNmot > 0) updateData.pmaxNmot = pmaxNmot;
+                if (!isNaN(efficiency) && efficiency > 0) updateData.efficiency = efficiency;
+                if (!isNaN(tempCoefVoc)) updateData.tempCoefVoc = tempCoefVoc;
+                if (!isNaN(tempCoefIsc)) updateData.tempCoefIsc = tempCoefIsc;
+                if (!isNaN(tempCoefPmp)) updateData.tempCoefPmp = tempCoefPmp;
+                if (!isNaN(noct) && noct > 0) updateData.noct = noct;
+                if (!isNaN(area) && area > 0) updateData.area = area;
+                if (!isNaN(cellsInSeries) && cellsInSeries > 0) updateData.cellsInSeries = cellsInSeries;
+
+                MODULES_DB.updateModule(modId, updateData);
+
+                closeModal();
+                if (typeof updateSizing === 'function') {
+                    updateSizing();
+                }
+                if (typeof showToast === 'function') {
+                    showToast('Características del módulo actualizadas exitosamente.', 'success');
+                }
+            });
+        }
+
+        if (btnReset) {
+            btnReset.addEventListener('click', function(e) {
+                e.preventDefault();
+                if (confirm('¿Desea restablecer todas las características a los valores de fábrica?')) {
+                    if (window.MODULES_DB) {
+                        MODULES_DB.resetDefaults();
+                        populateSelect();
+                        if (select) loadModuleData(select.value);
+                        if (typeof updateSizing === 'function') {
+                            updateSizing();
+                        }
+                        if (typeof showToast === 'function') {
+                            showToast('Módulos restablecidos a valores de fábrica.', 'info');
+                        }
+                    }
+                }
+            });
+        }
+    })();
+    </script>
+
+    <!-- Inline self-contained config modal controller (runs immediately, zero dependencies) -->
+    <script>
+    (function() {
+        var modal = document.getElementById('modal-config');
+        var btnConfig = document.getElementById('btn-config');
+        var btnClose = document.getElementById('btn-close-config');
+        var btnCancel = document.getElementById('btn-cancel-config');
+
+        function openModal() {
+            if (!modal) { modal = document.getElementById('modal-config'); }
+            if (!modal) return;
+            // Pre-fill API keys if services are loaded
+            var pvInput = document.getElementById('modal-pvwatts-api-key');
+            var nasaInput = document.getElementById('modal-nasa-api-key');
+            var startDate = document.getElementById('modal-nasa-start-date');
+            var endDate = document.getElementById('modal-nasa-end-date');
+            var togglePv = document.getElementById('btn-toggle-pvwatts-key');
+            var toggleNasa = document.getElementById('btn-toggle-nasa-key');
+            if (pvInput && window.PVWATTS_SERVICE) {
+                pvInput.value = PVWATTS_SERVICE.getApiKey();
+                pvInput.type = 'password';
+                if (togglePv) togglePv.textContent = '\u{1F441}\uFE0F';
+            }
+            if (nasaInput && window.NASA_POWER_SERVICE) {
+                nasaInput.value = NASA_POWER_SERVICE.getApiKey();
+                nasaInput.type = 'password';
+                if (toggleNasa) toggleNasa.textContent = '\u{1F441}\uFE0F';
+            }
+            if (window.NASA_POWER_SERVICE) {
+                var range = NASA_POWER_SERVICE.getDateRange();
+                if (startDate) startDate.value = range.startDate;
+                if (endDate) endDate.value = range.endDate;
+            }
+            modal.style.display = 'flex';
+        }
+
+        function closeModal() {
+            if (!modal) { modal = document.getElementById('modal-config'); }
+            if (modal) modal.style.display = 'none';
+        }
+
+        // Expose globally
+        window.openConfigModal = openModal;
+        window.closeConfigModal = closeModal;
+
+        // Bind click handlers directly
+        if (btnConfig) btnConfig.addEventListener('click', function(e) { e.preventDefault(); openModal(); });
+        if (btnClose) btnClose.addEventListener('click', function(e) { e.preventDefault(); closeModal(); });
+        if (btnCancel) btnCancel.addEventListener('click', function(e) { e.preventDefault(); closeModal(); });
+        if (modal) modal.addEventListener('click', function(e) { if (e.target === modal) closeModal(); });
+
+        // Eye toggles
+        function setupEye(btnId, inputId) {
+            var btn = document.getElementById(btnId);
+            var inp = document.getElementById(inputId);
+            if (btn && inp) {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault(); e.stopPropagation();
+                    var isPw = inp.type === 'password';
+                    inp.type = isPw ? 'text' : 'password';
+                    btn.textContent = isPw ? '\u{1F648}' : '\u{1F441}\uFE0F';
+                });
+            }
+        }
+        setupEye('btn-toggle-pvwatts-key', 'modal-pvwatts-api-key');
+        setupEye('btn-toggle-nasa-key', 'modal-nasa-api-key');
+
+        // Preset buttons
+        var presets = document.querySelectorAll('.btn-nasa-preset');
+        for (var i = 0; i < presets.length; i++) {
+            (function(btn) {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    var sd = document.getElementById('modal-nasa-start-date');
+                    var ed = document.getElementById('modal-nasa-end-date');
+                    if (sd && btn.dataset.start) sd.value = btn.dataset.start;
+                    if (ed && btn.dataset.end) ed.value = btn.dataset.end;
+                });
+            })(presets[i]);
+        }
+
+        // Save button
+        var btnSave = document.getElementById('btn-save-config');
+        if (btnSave) {
+            btnSave.addEventListener('click', function(e) {
+                e.preventDefault();
+                var pvInput = document.getElementById('modal-pvwatts-api-key');
+                var nasaInput = document.getElementById('modal-nasa-api-key');
+                var startDate = document.getElementById('modal-nasa-start-date');
+                var endDate = document.getElementById('modal-nasa-end-date');
+
+                if (pvInput && window.PVWATTS_SERVICE) PVWATTS_SERVICE.setApiKey(pvInput.value.trim());
+                var rangeChanged = false;
+                if (window.NASA_POWER_SERVICE) {
+                    if (nasaInput) NASA_POWER_SERVICE.setApiKey(nasaInput.value.trim());
+                    if (startDate && endDate) {
+                        var oldRange = NASA_POWER_SERVICE.getDateRange();
+                        var ns = startDate.value || '2006-08-30';
+                        var ne = endDate.value || '2026-08-30';
+                        if (oldRange.startDate !== ns || oldRange.endDate !== ne) rangeChanged = true;
+                        NASA_POWER_SERVICE.setDateRange(ns, ne);
+                    }
+                }
+                closeModal();
+                if (typeof showToast === 'function') showToast('Configuración guardada exitosamente.', 'success');
+
+                // Re-query temperatures if range changed
+                if (rangeChanged && window.NASA_POWER_SERVICE && window.APP && APP.state.sizing) {
+                    var s = APP.state.sizing;
+                    if (s.lat && s.lon) {
+                        if (typeof showToast === 'function') showToast('Recalculando temperaturas NASA...', 'info');
+                        NASA_POWER_SERVICE.fetchTemperatures(s.lat, s.lon).then(function(d) {
+                            s.tmin = d.tmin; s.tambOp = d.tambOp;
+                            var et = document.getElementById('sizing-tmin');
+                            var ea = document.getElementById('sizing-tamb-op');
+                            if (et) et.value = s.tmin;
+                            if (ea) ea.value = s.tambOp;
+                            if (typeof updateSizing === 'function') updateSizing();
+                            if (typeof showToast === 'function') showToast('Temperaturas actualizadas: Tmin=' + s.tmin + '°C, Tamb=' + s.tambOp + '°C', 'success');
+                        }).catch(function(err) { console.warn('Error recalculando temperaturas:', err); });
+                    }
+                }
+            });
+        }
+    })();
+    </script>
+
     <!-- ═══════════════ SCRIPTS ═══════════════ -->
-    <script src="js/i18n.js"></script>
-    <script src="js/app.js"></script>
-    <script src="js/project.js"></script>
-    <script src="js/loads.js"></script>
-    <script src="js/calculations.js"></script>
-    <script src="js/chart.js"></script>
-    <script src="js/persistence.js"></script>
-    <script src="js/report.js"></script>
-    <script src="js/excel.js"></script>
+    <script src="js/i18n.js?v=3.3"></script>
+    <script src="js/app.js?v=3.3"></script>
+    <script src="js/solar_db.js?v=3.3"></script>
+    <script src="js/pvwatts_service.js?v=3.3"></script>
+    <script src="js/pvgis_service.js?v=3.3"></script>
+    <script src="js/nasa_power_service.js?v=3.3"></script>
+    <script src="js/modules_db.js?v=3.3"></script>
+    <script src="js/sizing.js?v=3.3"></script>
+    <script src="js/sizing_ui.js?v=3.3"></script>
+    <script src="js/project.js?v=3.3"></script>
+    <script src="js/loads.js?v=3.3"></script>
+    <script src="js/calculations.js?v=3.3"></script>
+    <script src="js/chart.js?v=3.3"></script>
+    <script src="js/persistence.js?v=3.3"></script>
+    <script src="js/report.js?v=3.3"></script>
+    <script src="js/excel.js?v=3.3"></script>
 
 </body>
 </html>
+

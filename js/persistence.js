@@ -15,7 +15,8 @@ function saveProject() {
         exportDate: new Date().toISOString(),
         project: APP.state.project,
         config: APP.state.config,
-        loads: APP.state.loads
+        loads: APP.state.loads,
+        sizing: APP.state.sizing
     };
 
     const json = JSON.stringify(data, null, 2);
@@ -56,6 +57,7 @@ function loadProject(event) {
                 id: data.project.id || '',
                 members: data.project.members || '',
                 date: data.project.date || new Date().toISOString().split('T')[0],
+                installationType: data.project.installationType || 'residential',
                 systemType: data.project.systemType || 'off-grid'
             };
 
@@ -86,12 +88,21 @@ function loadProject(event) {
                 };
             });
 
+            // Restore sizing state if present
+            if (data.sizing) {
+                APP.state.sizing = {
+                    ...APP.state.sizing,
+                    ...data.sizing
+                };
+            }
+
             // Cancel any editing
             APP.editingId = null;
 
             // Restore all UIs
             restoreProjectUI();
             restoreConfigUI();
+            if (typeof restoreSizingUI === 'function') restoreSizingUI();
             renderLoads();
             recalculateAll();
 

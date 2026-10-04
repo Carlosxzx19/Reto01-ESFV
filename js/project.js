@@ -8,17 +8,32 @@ function initProject() {
         id: document.getElementById('project-id'),
         members: document.getElementById('project-members'),
         date: document.getElementById('project-date'),
+        installationType: document.getElementById('installation-type'),
         systemType: document.getElementById('system-type')
     };
 
-    // Set default date
+    // Set default date & installation type
     fields.date.value = APP.state.project.date;
+    if (fields.installationType) {
+        fields.installationType.value = APP.state.project.installationType || 'residential';
+        APP.state.sizing.vmaxSystem = fields.installationType.value === 'industrial' ? 1000 : 600;
+    }
 
     // Bind project fields → state
     fields.name.addEventListener('input', () => APP.state.project.name = fields.name.value.trim());
     fields.id.addEventListener('input', () => APP.state.project.id = fields.id.value.trim());
     fields.members.addEventListener('input', () => APP.state.project.members = fields.members.value.trim());
     fields.date.addEventListener('change', () => APP.state.project.date = fields.date.value);
+    if (fields.installationType) {
+        fields.installationType.addEventListener('change', () => {
+            const val = fields.installationType.value;
+            APP.state.project.installationType = val;
+            APP.state.sizing.vmaxSystem = val === 'industrial' ? 1000 : 600;
+            if (typeof updateSizing === 'function') {
+                updateSizing();
+            }
+        });
+    }
     fields.systemType.addEventListener('change', () => APP.state.project.systemType = fields.systemType.value);
 
     // ───── Day/Night Configuration ─────
@@ -84,9 +99,17 @@ function restoreProjectUI() {
     document.getElementById('project-id').value = APP.state.project.id;
     document.getElementById('project-members').value = APP.state.project.members;
     document.getElementById('project-date').value = APP.state.project.date;
+    const itEl = document.getElementById('installation-type');
+    if (itEl) {
+        itEl.value = APP.state.project.installationType || 'residential';
+        APP.state.sizing.vmaxSystem = itEl.value === 'industrial' ? 1000 : 600;
+    }
     document.getElementById('system-type').value = APP.state.project.systemType;
 
     document.getElementById('day-start').value = APP.state.config.dayStart;
     document.getElementById('day-end').value = APP.state.config.dayEnd;
     updateDayNightBar();
+    if (typeof updateSizing === 'function') {
+        updateSizing();
+    }
 }

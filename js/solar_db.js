@@ -1,0 +1,160 @@
+/* ═══════════════════════════════════════════════
+   solar_db.js — Local Solar Resource Database (Level 1)
+   Documented cases for offline contingency and reproducibility
+   ═══════════════════════════════════════════════ */
+
+const SOLAR_DB = {
+    locations: [
+        {
+            id: 'nazareth-guajira',
+            name: '(Referencia)',
+            shortName: '(Referencia)',
+            department: 'La Guajira',
+            lat: 12.18,
+            lon: -71.28,
+            tilt: 12,
+            azimuth: 180,
+            annualHsp: 5.8,
+            criticalMonthHsp: 5.2,
+            criticalMonthIndex: 9, // Octubre (0-indexed)
+            criticalMonthName: 'Octubre',
+            maxMonthHsp: 6.6,
+            maxMonthIndex: 2, // Marzo
+            maxMonthName: 'Marzo',
+            monthlyHsp: [6.10, 6.50, 6.60, 6.20, 5.60, 5.50, 5.70, 5.60, 5.30, 5.20, 5.40, 5.90],
+            tmin: 20.0,
+            tambOp: 32.0,
+            source: 'IDEAM / Atlas de Radiación Solar & Caso Prueba Reto 02',
+            consultationDate: '2026-09-20',
+            notes: 'Estación de monitoreo ambiental Nazareth — Alta Guajira.'
+        },
+        {
+            id: 'santa-marta',
+            name: 'Caso 1',
+            shortName: 'Caso 1',
+            department: 'Magdalena',
+            lat: 11.24,
+            lon: -74.20,
+            tilt: 11,
+            azimuth: 180,
+            annualHsp: 5.4,
+            criticalMonthHsp: 4.8,
+            criticalMonthIndex: 9,
+            criticalMonthName: 'Octubre',
+            monthlyHsp: [5.7, 5.9, 5.8, 5.5, 5.2, 5.3, 5.6, 5.4, 4.9, 4.8, 5.0, 5.5],
+            tmin: 22.5,
+            tambOp: 29.0,
+            source: 'IDEAM / NREL NSRDB Colombia',
+            consultationDate: '2026-09-20',
+            notes: 'Zona costera caribeña con alto recurso durante el primer trimestre.'
+        },
+        {
+            id: 'barranquilla',
+            name: 'Caso 2',
+            shortName: 'Caso 2',
+            department: 'Atlántico',
+            lat: 10.96,
+            lon: -74.80,
+            tilt: 11,
+            azimuth: 180,
+            annualHsp: 5.3,
+            criticalMonthHsp: 4.7,
+            criticalMonthIndex: 9,
+            criticalMonthName: 'Octubre',
+            monthlyHsp: [5.6, 5.8, 5.7, 5.4, 5.0, 5.2, 5.5, 5.3, 4.8, 4.7, 4.9, 5.4],
+            tmin: 23.0,
+            tambOp: 28.5,
+            source: 'IDEAM / UPME Atlas de Radiación Solar',
+            consultationDate: '2026-09-20',
+            notes: 'Capital del Atlántico. Zona de llanura costera.'
+        },
+        {
+            id: 'medellin',
+            name: 'Caso 3',
+            shortName: 'Caso 3',
+            department: 'Antioquia',
+            lat: 6.25,
+            lon: -75.56,
+            tilt: 10,
+            azimuth: 180,
+            annualHsp: 4.5,
+            criticalMonthHsp: 3.9,
+            criticalMonthIndex: 4,
+            criticalMonthName: 'Mayo',
+            monthlyHsp: [4.8, 4.7, 4.4, 4.1, 3.9, 4.3, 4.7, 4.8, 4.6, 4.2, 4.3, 4.6],
+            tmin: 15.0,
+            tambOp: 22.0,
+            source: 'IDEAM / Estación Olaya Herrera',
+            consultationDate: '2026-09-20',
+            notes: 'Valle de Aburrá, régimen bimodal andino con nubosidad orográfica.'
+        },
+        {
+            id: 'bogota',
+            name: 'Caso 4',
+            shortName: 'Caso 4',
+            department: 'Cundinamarca',
+            lat: 4.71,
+            lon: -74.07,
+            tilt: 10,
+            azimuth: 180,
+            annualHsp: 4.2,
+            criticalMonthHsp: 3.7,
+            criticalMonthIndex: 3,
+            criticalMonthName: 'Abril',
+            monthlyHsp: [4.5, 4.4, 4.0, 3.7, 3.8, 4.1, 4.4, 4.5, 4.3, 3.9, 4.0, 4.3],
+            tmin: 6.0,
+            tambOp: 14.5,
+            source: 'IDEAM / Estación El Dorado',
+            consultationDate: '2026-09-20',
+            notes: 'Sabana de Bogotá a 2600 msnm. Menor temperatura ambiental.'
+        }
+    ],
+
+    monthNames: [
+        'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+        'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+    ],
+
+    /** Try loading external JSON, fallback to embedded array */
+    async init() {
+        try {
+            const resp = await fetch('data/solar_locations.json');
+            if (resp.ok) {
+                const data = await resp.json();
+                if (Array.isArray(data) && data.length > 0) {
+                    this.locations = data;
+                }
+            }
+        } catch (e) {
+            console.info('Usando base local de radiación pre-embebida (modo sin servidor web)');
+        }
+    },
+
+    getAll() {
+        return this.locations;
+    },
+
+    getById(id) {
+        return this.locations.find(loc => loc.id === id) || this.locations[0];
+    },
+
+    getStandardTestCase() {
+        return this.locations[0];
+    },
+
+    /** Find closest location by Euclidean distance */
+    findNearest(lat, lon) {
+        let nearest = this.locations[0];
+        let minDist = Infinity;
+        for (const loc of this.locations) {
+            const d = Math.hypot(loc.lat - lat, loc.lon - lon);
+            if (d < minDist) {
+                minDist = d;
+                nearest = loc;
+            }
+        }
+        return nearest;
+    }
+};
+
+window.SOLAR_DB = SOLAR_DB;
