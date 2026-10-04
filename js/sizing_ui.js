@@ -23,18 +23,51 @@ function initSizingUI() {
     // 4. Bind configuration modal for APIs
     initConfigModal();
 
-    // 5. Bind provider toggle buttons (PVGIS default vs PVWatts)
+    // 5. Bind provider toggle buttons (PVGIS default vs PVWatts vs Base Continental)
     const btnPvgis = document.getElementById('btn-provider-pvgis');
     const btnPvwatts = document.getElementById('btn-provider-pvwatts');
+    const btnContinent = document.getElementById('btn-provider-continent');
     if (btnPvgis && btnPvwatts) {
-        btnPvgis.addEventListener('click', () => setSolarProvider('pvgis'));
-        btnPvwatts.addEventListener('click', () => setSolarProvider('pvwatts'));
+        btnPvgis.addEventListener('click', () => {
+            if (window.CONTINENTS_DB) CONTINENTS_DB.setMode('api');
+            setSolarProvider('pvgis');
+        });
+        btnPvwatts.addEventListener('click', () => {
+            if (window.CONTINENTS_DB) CONTINENTS_DB.setMode('api');
+            setSolarProvider('pvwatts');
+        });
+    }
+    if (btnContinent) {
+        btnContinent.addEventListener('click', () => {
+            if (window.CONTINENTS_DB) CONTINENTS_DB.setMode('manual');
+            setSolarProvider('continent');
+            handlePVWattsQuery();
+        });
+    }
+    const selSizingCont = document.getElementById('sizing-continent-select');
+    if (selSizingCont) {
+        selSizingCont.addEventListener('change', () => {
+            if (window.CONTINENTS_DB) {
+                CONTINENTS_DB.setSelectedContinent(selSizingCont.value);
+                const c = CONTINENTS_DB.get(selSizingCont.value);
+                const title = document.getElementById('continent-banner-title');
+                if (title) title.textContent = `Base de Datos Continental: ${c.name}`;
+                if (APP.state.sizing.solarProvider === 'continent' || (APP.state.sizing.solarResource && APP.state.sizing.solarResource.isFallback)) {
+                    handlePVWattsQuery();
+                }
+            }
+        });
     }
     const btnSwitchPvgis = document.getElementById('btn-banner-switch-pvgis');
     if (btnSwitchPvgis) {
-        btnSwitchPvgis.addEventListener('click', () => setSolarProvider('pvgis'));
+        btnSwitchPvgis.addEventListener('click', () => {
+            if (window.CONTINENTS_DB) CONTINENTS_DB.setMode('api');
+            setSolarProvider('pvgis');
+        });
     }
-    setSolarProvider('pvgis');
+
+    const initMode = (window.CONTINENTS_DB && CONTINENTS_DB.getMode()) || 'api';
+    setSolarProvider(initMode === 'manual' ? 'continent' : 'pvgis');
 
     // 6. Bind calculation buttons
     const btnQuery = document.getElementById('btn-pvwatts-query');
@@ -280,12 +313,13 @@ async function selectDimensioningCase(caseId, options = {}) {
     }
 }
 
-/** Handle query to PVWatts and NASA POWER APIs */
+/** Handle query to PVWatts, PVGIS or Continental Database */
 async function handlePVWattsQuery() {
     const s = APP.state.sizing;
     const btn = document.getElementById('btn-pvwatts-query');
     const badge = document.getElementById('pvwatts-status-badge');
-    const isPvgis = s.solarProvider === 'pvgis';
+    const mode = window.CONTINENTS_DB ? CONTINENTS_DB.getMode() : 'api';
+    const isManualContinental = (mode === 'manual' || s.solarProvider === 'continent');
 
     if (s.isFixedCase && s.solarResource) {
         updateSizing();
@@ -297,17 +331,60 @@ async function handlePVWattsQuery() {
         return;
     }
 
-    if (s.lat === null || s.lat === undefined || isNaN(s.lat) || s.lon === null || s.lon === undefined || isNaN(s.lon)) {
-        showToast('Por favor ingrese las coordenadas (Latitud y Longitud) antes de calcular.', 'warning');
-        return;
-    }
-
     if (btn) {
         btn.disabled = true;
         btn.innerHTML = '<span class="spinner-sm"></span> Calculando...';
     }
 
     try {
+        // A. MODO MANUAL / BASE CONTINENTAL (Sin peticiones de red a APIs)
+        if (isManualContinental) {
+            const contId = window.CONTINENTS_DB ? CONTINENTS_DB.getSelectedContinent() : 'America_del_Sur';
+            const contRes = window.CONTINENTS_DB ? CONTINENTS_DB.toSolarResource(contId, {
+                isFallback: false,
+                lat: s.lat,
+                lon: s.lon,
+                tilt: s.tilt || 0,
+                azimuth: s.azimuth || 180
+            }) : null;
+
+            if (contRes) {
+                s.solarResource = contRes;
+                s.tmin = contRes.tempMinimaExtrema;
+                s.tambOp = contRes.tempAmbientePromedio;
+
+                const elTmin = document.getElementById('sizing-tmin');
+                const elTamb = document.getElementById('sizing-tamb-op');
+                if (elTmin) elTmin.value = s.tmin;
+                if (elTamb) elTamb.value = s.tambOp;
+
+                const contBanner = document.getElementById('continent-active-banner');
+                const contTitle = document.getElementById('continent-banner-title');
+                const contDesc = document.getElementById('continent-banner-desc');
+                const selCont = document.getElementById('sizing-continent-select');
+                if (contBanner) contBanner.style.display = 'flex';
+                if (contTitle) contTitle.textContent = `Base de Datos Continental: ${contRes.continentName}`;
+                if (contDesc) contDesc.innerHTML = '⚠️ <strong>Aviso metodológico:</strong> La irradiancia de esta base es <strong>horizontal (GHI)</strong>, no hacia el plano inclinado.';
+                if (selCont) selCont.value = contRes.continentId;
+
+                if (badge) {
+                    badge.className = 'status-badge info';
+                    badge.textContent = `🌍 ${contRes.continentName} (GHI)`;
+                }
+
+                updateSizing();
+                showToast(`Cálculo cargado con base continental: ${contRes.continentName} (GHI Horizontal).`, 'success');
+                return;
+            }
+        }
+
+        // B. MODO EN LÍNEA POR API (PVGIS / PVWatts)
+        if (s.lat === null || s.lat === undefined || isNaN(s.lat) || s.lon === null || s.lon === undefined || isNaN(s.lon)) {
+            showToast('Por favor ingrese las coordenadas (Latitud y Longitud) antes de calcular.', 'warning');
+            return;
+        }
+
+        const isPvgis = s.solarProvider === 'pvgis';
         let solarPromise;
         if (isPvgis) {
             solarPromise = window.PVGIS_SERVICE
@@ -332,9 +409,12 @@ async function handlePVWattsQuery() {
             window.NASA_POWER_SERVICE ? NASA_POWER_SERVICE.fetchTemperatures(s.lat, s.lon) : Promise.resolve(null)
         ]);
 
+        let isFallbackData = false;
         if (solarResult.status === 'fulfilled' && solarResult.value) {
             s.solarResource = solarResult.value;
-            if (isPvgis) {
+            isFallbackData = !!solarResult.value.isFallback;
+
+            if (isPvgis && !isFallbackData) {
                 s.tilt = solarResult.value.tilt;
                 s.azimuth = solarResult.value.azimuth;
                 const bTilt = document.getElementById('badge-pvgis-tilt');
@@ -353,21 +433,42 @@ async function handlePVWattsQuery() {
             const elTamb = document.getElementById('sizing-tamb-op');
             if (elTmin) elTmin.value = s.tmin;
             if (elTamb) elTamb.value = s.tambOp;
+        } else if (isFallbackData && s.solarResource && s.solarResource.tempMinimaExtrema !== undefined) {
+            // Apply continental temperatures if NASA fails in fallback mode
+            s.tmin = s.solarResource.tempMinimaExtrema;
+            s.tambOp = s.solarResource.tempAmbientePromedio;
+            const elTmin = document.getElementById('sizing-tmin');
+            const elTamb = document.getElementById('sizing-tamb-op');
+            if (elTmin) elTmin.value = s.tmin;
+            if (elTamb) elTamb.value = s.tambOp;
         }
 
-        // Update badge
+        // Update badge and banners
+        const contBanner = document.getElementById('continent-active-banner');
+        const contTitle = document.getElementById('continent-banner-title');
+        const contDesc = document.getElementById('continent-banner-desc');
+        const selCont = document.getElementById('sizing-continent-select');
+
         if (badge) {
             const solOk = solarResult.status === 'fulfilled';
             const providerName = isPvgis ? 'PVGIS' : 'PVWatts';
 
-            if (solOk && !solarResult.value.isFallback) {
+            if (solOk && !isFallbackData) {
                 badge.className = 'status-badge success';
                 badge.textContent = isPvgis ? '🟢 PVGIS en vivo' : '🟢 PVWatts en vivo';
+                if (contBanner) contBanner.style.display = 'none';
                 showToast(`Recurso solar (${providerName}) sincronizado en vivo.`, 'success');
             } else {
+                const contName = (s.solarResource && s.solarResource.continentName) ? s.solarResource.continentName : 'Continental';
                 badge.className = 'status-badge warning';
-                badge.textContent = `🟡 Contingencia ${providerName}`;
-                showToast(`Recurso ${providerName} en modo contingencia.`, 'warning');
+                badge.textContent = `🟡 Respaldo: ${contName}`;
+
+                if (contBanner) contBanner.style.display = 'flex';
+                if (contTitle) contTitle.textContent = `Respaldo Continental: ${contName}`;
+                if (contDesc) contDesc.innerHTML = '⚠️ <strong>APIs remotas no disponibles:</strong> Se activó contingencia continental. Aviso: La irradiancia es <strong>horizontal (GHI)</strong>, no hacia el plano inclinado.';
+                if (selCont && s.solarResource && s.solarResource.continentId) selCont.value = s.solarResource.continentId;
+
+                showToast(`Las APIs no respondieron. Se aplicó contingencia continental (${contName} · GHI Horizontal).`, 'warning');
             }
         }
 
@@ -384,37 +485,58 @@ async function handlePVWattsQuery() {
     }
 }
 
-/** Toggle solar provider between PVGIS (default) and PVWatts */
+/** Toggle solar provider between PVGIS (default), PVWatts and Continental Database */
 function setSolarProvider(provider) {
     const s = APP.state.sizing;
     s.solarProvider = provider;
 
     const btnPvgis = document.getElementById('btn-provider-pvgis');
     const btnPvwatts = document.getElementById('btn-provider-pvwatts');
+    const btnContinent = document.getElementById('btn-provider-continent');
     const titleEl = document.getElementById('solar-resource-main-title');
     const bannerEl = document.getElementById('pvgis-optimal-banner');
     const recBannerEl = document.getElementById('pvwatts-recommendation-banner');
+    const contBannerEl = document.getElementById('continent-active-banner');
     const pvwMountingLosses = document.getElementById('row-pvwatts-mounting-losses');
     const fieldTilt = document.getElementById('field-group-tilt');
     const fieldAzimuth = document.getElementById('field-group-azimuth');
     const refBadge = document.getElementById('solar-chart-ref-badge');
 
-    if (provider === 'pvgis') {
-        if (btnPvgis) btnPvgis.classList.add('active');
-        if (btnPvwatts) btnPvwatts.classList.remove('active');
+    if (btnPvgis) btnPvgis.classList.toggle('active', provider === 'pvgis');
+    if (btnPvwatts) btnPvwatts.classList.toggle('active', provider === 'pvwatts');
+    if (btnContinent) btnContinent.classList.toggle('active', provider === 'continent');
+
+    if (provider === 'continent') {
+        if (titleEl) titleEl.textContent = 'Recurso solar — Base Continental (GHI Horizontal)';
+        if (bannerEl) bannerEl.style.display = 'none';
+        if (recBannerEl) recBannerEl.style.display = 'none';
+        if (contBannerEl) contBannerEl.style.display = 'flex';
+        if (pvwMountingLosses) pvwMountingLosses.style.display = 'none';
+        if (fieldTilt) fieldTilt.style.display = 'none';
+        if (fieldAzimuth) fieldAzimuth.style.display = 'none';
+        if (refBadge) refBadge.textContent = 'Referencia: Base de Datos Continental (GHI Horizontal)';
+
+        const selCont = document.getElementById('sizing-continent-select');
+        if (selCont && window.CONTINENTS_DB) {
+            selCont.value = CONTINENTS_DB.getSelectedContinent();
+            const contData = CONTINENTS_DB.get(selCont.value);
+            const bannerTitle = document.getElementById('continent-banner-title');
+            if (bannerTitle) bannerTitle.textContent = `Base de Datos Continental: ${contData.name}`;
+        }
+    } else if (provider === 'pvgis') {
         if (titleEl) titleEl.textContent = 'Recurso solar — PVGIS (Comisión Europea)';
         if (bannerEl) bannerEl.style.display = 'inline-flex';
         if (recBannerEl) recBannerEl.style.display = 'none';
+        if (contBannerEl && (!s.solarResource || !s.solarResource.isFallback)) contBannerEl.style.display = 'none';
         if (pvwMountingLosses) pvwMountingLosses.style.display = 'none';
         if (fieldTilt) fieldTilt.style.display = 'none';
         if (fieldAzimuth) fieldAzimuth.style.display = 'none';
         if (refBadge) refBadge.textContent = 'Referencia: PVGIS (JRC Comisión Europea · Ángulos Óptimos)';
     } else {
-        if (btnPvwatts) btnPvwatts.classList.add('active');
-        if (btnPvgis) btnPvgis.classList.remove('active');
         if (titleEl) titleEl.textContent = 'Recurso solar — NREL PVWatts v8';
         if (bannerEl) bannerEl.style.display = 'none';
         if (recBannerEl) recBannerEl.style.display = 'inline-flex';
+        if (contBannerEl && (!s.solarResource || !s.solarResource.isFallback)) contBannerEl.style.display = 'none';
         if (pvwMountingLosses) pvwMountingLosses.style.display = 'grid';
         if (fieldTilt) fieldTilt.style.display = 'block';
         if (fieldAzimuth) fieldAzimuth.style.display = 'block';

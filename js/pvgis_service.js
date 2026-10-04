@@ -5,7 +5,7 @@
    ═══════════════════════════════════════════════ */
 
 const PVGIS_SERVICE = {
-    baseUrl: 'https://re.jrc.ec.europa.eu/api/PVcalc',
+    baseUrl: 'https://re.jrc.ec.europa.eu/api/v5_2/PVcalc',
 
     /** Generate cache key for sessionStorage */
     getCacheKey(lat, lon) {
@@ -151,8 +151,19 @@ const PVGIS_SERVICE = {
             return result;
         }
 
-        // 3. Contingency with realistic PVGIS precomputed data
-        console.warn('Activando contingencia local con perfil PVGIS para ubicación');
+        // 3. Contingency: Use Continental Database if available, otherwise documented profile
+        console.warn('Activando contingencia solar continental / local');
+        if (typeof CONTINENTS_DB !== 'undefined') {
+            const contId = CONTINENTS_DB.getSelectedContinent();
+            const contRes = CONTINENTS_DB.toSolarResource(contId, {
+                isFallback: true,
+                fallbackReason: 'Sin conexión directa a PVGIS',
+                lat,
+                lon
+            });
+            return contRes;
+        }
+
         const monthNames = (typeof SOLAR_DB !== 'undefined' && SOLAR_DB.monthNames)
             ? SOLAR_DB.monthNames
             : ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];

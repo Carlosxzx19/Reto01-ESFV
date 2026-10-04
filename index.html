@@ -547,13 +547,16 @@
                         <p class="recurso-solar-sub" id="solar-resource-sub-title" style="font-size: 0.92rem; font-weight: 600; margin: 0.25rem 0 0 0;">Recurso solar y ubicación geográfica</p>
                     </div>
                     <div style="display: flex; gap: 0.65rem; align-items: center; flex-wrap: wrap;">
-                        <!-- Selector de Proveedor: PVGIS (Default) vs PVWatts -->
+                        <!-- Selector de Proveedor: PVGIS (Default), PVWatts y Base Continental -->
                         <div class="btn-group-toggle" id="solar-provider-toggle" style="background: rgba(15, 23, 42, 0.4); padding: 3px; border-radius: 8px; border: 1px solid var(--border-subtle);">
                             <button type="button" class="btn btn-sm btn-secondary active" id="btn-provider-pvgis" style="font-weight: 700;">
                                 🌐 PVGIS (Ángulos Óptimos)
                             </button>
                             <button type="button" class="btn btn-sm btn-secondary" id="btn-provider-pvwatts" style="font-weight: 700;">
                                 ⚡ NREL PVWatts v8
+                            </button>
+                            <button type="button" class="btn btn-sm btn-secondary" id="btn-provider-continent" style="font-weight: 700;">
+                                🌍 Base Continental
                             </button>
                         </div>
                         <span class="status-badge info" id="pvwatts-status-badge">Coordenadas Libres</span>
@@ -572,6 +575,30 @@
                             </div>
                         </div>
                         <span class="badge" style="background: rgba(56, 189, 248, 0.25); color: #38bdf8; font-weight: 700; padding: 0.35rem 0.65rem; border-radius: 6px; font-size: 0.8rem;">Parámetros Fijos</span>
+                    </div>
+
+                    <!-- Banner de Modo Base Continental / Contingencia -->
+                    <div id="continent-active-banner" style="display: none; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.75rem; background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.35); border-radius: 8px; padding: 0.65rem 1rem; margin-bottom: 1rem; width: 100%;">
+                        <div style="display: flex; align-items: center; gap: 0.65rem;">
+                            <span style="font-size: 1.3rem;">🌍</span>
+                            <div>
+                                <strong style="color: #38bdf8; font-size: 0.9rem;" id="continent-banner-title">Base de Datos Continental: América del Sur</strong>
+                                <div style="font-size: 0.8rem; color: #fbbf24; margin-top: 2px;" id="continent-banner-desc">
+                                    ⚠️ <strong>Aviso metodológico:</strong> La irradiancia de esta base es <strong>horizontal (GHI)</strong>, no hacia el plano inclinado.
+                                </div>
+                            </div>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            <label for="sizing-continent-select" style="font-size: 0.8rem; color: var(--text-secondary); font-weight: 600;">Continente:</label>
+                            <select id="sizing-continent-select" style="padding: 0.35rem 0.6rem; border-radius: 6px; border: 1px solid var(--border-input); background: var(--bg-input); color: var(--text-primary); font-size: 0.82rem; font-weight: 600;">
+                                <option value="America_del_Sur">América del Sur</option>
+                                <option value="America_del_Norte">América del Norte</option>
+                                <option value="Europa">Europa</option>
+                                <option value="Africa">África</option>
+                                <option value="Asia">Asia</option>
+                                <option value="Oceanía">Oceanía</option>
+                            </select>
+                        </div>
                     </div>
 
                     <!-- Banner de recomendación para PVGIS cuando se selecciona PVWatts -->
@@ -855,6 +882,60 @@
             <div class="modal-body" style="overflow-y: auto; padding: 1.25rem 1.5rem; flex: 1;">
                 <!-- PESTAÑA 1: APIS Y SERVICIOS -->
                 <div class="config-tab-panel" id="config-tab-apis">
+                    <!-- 0. MODO DE ORIGEN DE DATOS DEL RECURSO SOLAR -->
+                    <div style="background: rgba(15, 23, 42, 0.55); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 1.1rem; margin-bottom: 1.35rem;">
+                        <label style="font-weight: 700; margin-bottom: 0.65rem; display: block; font-size: 0.92rem; color: var(--text-primary);">
+                            🌐 Modo de Obtención del Recurso Solar
+                        </label>
+                        <div style="display: flex; flex-direction: column; gap: 0.65rem; margin-bottom: 1rem;">
+                            <label style="display: flex; align-items: flex-start; gap: 0.65rem; cursor: pointer; padding: 0.65rem 0.85rem; border-radius: 6px; background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-subtle);">
+                                <input type="radio" name="config-data-source-mode" id="config-mode-api" value="api" checked style="margin-top: 0.2rem;">
+                                <div>
+                                    <strong style="color: var(--accent); font-size: 0.88rem;">📡 Consultar datos en línea por API (PVGIS / PVWatts)</strong>
+                                    <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.2rem;">
+                                        Calcula la irradiancia incidente en plano inclinado (POA) según coordenadas geográficas. Si la conexión a la API falla, aplicará automáticamente el respaldo del continente seleccionado.
+                                    </div>
+                                </div>
+                            </label>
+                            <label style="display: flex; align-items: flex-start; gap: 0.65rem; cursor: pointer; padding: 0.65rem 0.85rem; border-radius: 6px; background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-subtle);">
+                                <input type="radio" name="config-data-source-mode" id="config-mode-manual" value="manual" style="margin-top: 0.2rem;">
+                                <div>
+                                    <strong style="color: #38bdf8; font-size: 0.88rem;">🌍 Desactivar búsqueda por API y usar Base de Datos Manual Continental</strong>
+                                    <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.2rem;">
+                                        Desactiva cualquier consulta web a servidores remotos. Utiliza directamente la base de datos precomputada del continente seleccionado.
+                                    </div>
+                                </div>
+                            </label>
+                        </div>
+
+                        <!-- Selector de Continente y Advertencia Metodológica Obligatoria -->
+                        <div id="config-continent-block" style="padding-top: 0.85rem; border-top: 1px solid var(--border-subtle);">
+                            <div class="form-group" style="margin-bottom: 0.85rem;">
+                                <label for="config-select-continent" style="font-weight: 600; font-size: 0.85rem; margin-bottom: 0.35rem; display: block;">
+                                    Continente para la Instalación (Base de Datos Continental)
+                                </label>
+                                <select id="config-select-continent" style="width: 100%; padding: 0.55rem 0.75rem; border-radius: 6px; border: 1px solid var(--border-input); background: var(--bg-input); color: var(--text-primary); font-size: 0.88rem;">
+                                    <option value="America_del_Sur">América del Sur (Tamb: 25.0°C | Tmin: 12.0°C)</option>
+                                    <option value="America_del_Norte">América del Norte (Tamb: 15.0°C | Tmin: -15.0°C)</option>
+                                    <option value="Europa">Europa (Tamb: 12.0°C | Tmin: -10.0°C)</option>
+                                    <option value="Africa">África (Tamb: 26.0°C | Tmin: 10.0°C)</option>
+                                    <option value="Asia">Asia (Tamb: 20.0°C | Tmin: -8.0°C)</option>
+                                    <option value="Oceanía">Oceanía (Tamb: 23.0°C | Tmin: 5.0°C)</option>
+                                </select>
+                            </div>
+
+                            <!-- Aclaración: Irradiancia Horizontal GHI vs H_POA Plano Inclinado -->
+                            <div style="padding: 0.75rem 1rem; background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.35); border-radius: 6px;">
+                                <div style="display: flex; gap: 0.55rem; align-items: flex-start;">
+                                    <span style="font-size: 1.15rem; line-height: 1.2;">⚠️</span>
+                                    <div style="font-size: 0.82rem; color: #fbbf24; line-height: 1.45;">
+                                        <strong>Nota técnica aclaratoria sobre la irradiancia:</strong><br>
+                                        La irradiancia de la base de datos local es <strong>horizontal (GHI)</strong>, no hacia el plano inclinado. A diferencia de las APIs (como PVGIS o PVWatts) que calculan la radiación incidente con los módulos inclinados y orientados de forma óptima, los valores de esta base representan la radiación captada en una superficie totalmente horizontal.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                     <!-- 1. API KEY PVWATTS (NREL) -->
                     <div class="form-group" style="margin-bottom: 1.25rem;">
                         <label for="modal-pvwatts-api-key" style="font-weight: 600; margin-bottom: 0.4rem; display: block;">Clave de API PVWatts (NREL)</label>
@@ -1504,6 +1585,20 @@
                 if (startDate) startDate.value = range.startDate;
                 if (endDate) endDate.value = range.endDate;
             }
+            if (window.CONTINENTS_DB) {
+                var curMode = CONTINENTS_DB.getMode();
+                var rApi = document.getElementById('config-mode-api');
+                var rManual = document.getElementById('config-mode-manual');
+                if (curMode === 'manual') {
+                    if (rManual) rManual.checked = true;
+                } else {
+                    if (rApi) rApi.checked = true;
+                }
+                var selCont = document.getElementById('config-select-continent');
+                if (selCont) {
+                    selCont.value = CONTINENTS_DB.getSelectedContinent();
+                }
+            }
             modal.style.display = 'flex';
         }
 
@@ -1582,13 +1677,47 @@
                         NASA_POWER_SERVICE.setDateRange(ns, ne);
                     }
                 }
+
+                // Save Solar Data Mode & Continent
+                var modeRadio = document.querySelector('input[name="config-data-source-mode"]:checked');
+                var continentSelect = document.getElementById('config-select-continent');
+                var modeChanged = false;
+                var contChanged = false;
+                var newMode = 'api';
+
+                if (window.CONTINENTS_DB) {
+                    newMode = modeRadio ? modeRadio.value : 'api';
+                    var oldMode = CONTINENTS_DB.getMode();
+                    if (newMode !== oldMode) {
+                        CONTINENTS_DB.setMode(newMode);
+                        modeChanged = true;
+                    }
+                    if (continentSelect) {
+                        var oldCont = CONTINENTS_DB.getSelectedContinent();
+                        var newCont = continentSelect.value;
+                        if (newCont !== oldCont) {
+                            CONTINENTS_DB.setSelectedContinent(newCont);
+                            contChanged = true;
+                        }
+                    }
+                }
+
                 closeModal();
                 if (typeof showToast === 'function') showToast('Configuración guardada exitosamente.', 'success');
+
+                // Apply changes to stage 2 provider if mode changed or continent changed in manual mode
+                if (newMode === 'manual') {
+                    if (typeof setSolarProvider === 'function') setSolarProvider('continent');
+                    if (typeof handlePVWattsQuery === 'function') handlePVWattsQuery();
+                } else if (modeChanged && newMode === 'api') {
+                    if (typeof setSolarProvider === 'function') setSolarProvider('pvgis');
+                    if (typeof handlePVWattsQuery === 'function') handlePVWattsQuery();
+                }
 
                 // Re-query temperatures if range changed
                 if (rangeChanged && window.NASA_POWER_SERVICE && window.APP && APP.state.sizing) {
                     var s = APP.state.sizing;
-                    if (s.lat && s.lon) {
+                    if (s.lat && s.lon && newMode === 'api') {
                         if (typeof showToast === 'function') showToast('Recalculando temperaturas NASA...', 'info');
                         NASA_POWER_SERVICE.fetchTemperatures(s.lat, s.lon).then(function(d) {
                             s.tmin = d.tmin; s.tambOp = d.tambOp;
@@ -1610,6 +1739,7 @@
     <script src="js/i18n.js?v=3.3"></script>
     <script src="js/app.js?v=3.3"></script>
     <script src="js/solar_db.js?v=3.3"></script>
+    <script src="js/continents_db.js?v=3.5"></script>
     <script src="js/pvwatts_service.js?v=3.3"></script>
     <script src="js/pvgis_service.js?v=3.3"></script>
     <script src="js/nasa_power_service.js?v=3.3"></script>

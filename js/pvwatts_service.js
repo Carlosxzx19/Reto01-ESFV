@@ -150,9 +150,21 @@ const PVWATTS_SERVICE = {
             return result;
 
         } catch (err) {
-            console.warn('Fallo en consulta PVWatts API, activando contingencia local:', err.message);
+            console.warn('Fallo en consulta PVWatts API, activando contingencia local / continental:', err.message);
 
-            // 3. Fallback to Local Database
+            // 3. Fallback to Continental Database if available, otherwise local SOLAR_DB
+            if (typeof CONTINENTS_DB !== 'undefined') {
+                const contId = CONTINENTS_DB.getSelectedContinent();
+                return CONTINENTS_DB.toSolarResource(contId, {
+                    isFallback: true,
+                    fallbackReason: 'Falla en consulta API PVWatts: ' + err.message,
+                    lat,
+                    lon,
+                    tilt,
+                    azimuth
+                });
+            }
+
             const localLoc = (typeof SOLAR_DB !== 'undefined') ? SOLAR_DB.findNearest(lat, lon) : null;
             if (!localLoc) throw err;
 

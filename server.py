@@ -27,7 +27,7 @@ class ProxyHandler(http.server.SimpleHTTPRequestHandler):
             params = urllib.parse.parse_qs(query)
             lat = params.get('lat', ['12.18'])[0]
             lon = params.get('lon', ['-71.28'])[0]
-            pvgis_url = f"https://re.jrc.ec.europa.eu/api/PVcalc?lat={lat}&lon={lon}&peakpower=1&optimalangles=1&loss=0&outputformat=json"
+            pvgis_url = f"https://re.jrc.ec.europa.eu/api/v5_2/PVcalc?lat={lat}&lon={lon}&peakpower=1&optimalangles=1&loss=0&outputformat=json"
             try:
                 req = urllib.request.Request(pvgis_url, headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'})
                 with urllib.request.urlopen(req, timeout=12) as response:

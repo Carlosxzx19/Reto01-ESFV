@@ -1,0 +1,44 @@
+{
+  "America_del_Sur": {
+    "id": "America_del_Sur",
+    "name": "América del Sur",
+    "hsp_mensual": [4.2, 4.4, 4.7, 4.9, 4.6, 4.4, 4.5, 4.8, 5.0, 4.7, 4.3, 4.1],
+    "temp_ambiente_promedio": 25.0,
+    "temp_minima_extrema": 12.0
+  },
+  "America_del_Norte": {
+    "id": "America_del_Norte",
+    "name": "América del Norte",
+    "hsp_mensual": [3.0, 3.6, 4.8, 5.6, 6.2, 6.5, 6.2, 5.5, 4.5, 3.7, 3.1, 2.8],
+    "temp_ambiente_promedio": 15.0,
+    "temp_minima_extrema": -15.0
+  },
+  "Europa": {
+    "id": "Europa",
+    "name": "Europa",
+    "hsp_mensual": [1.8, 2.6, 3.9, 5.1, 6.0, 6.3, 6.0, 5.0, 3.8, 2.6, 1.8, 1.5],
+    "temp_ambiente_promedio": 12.0,
+    "temp_minima_extrema": -10.0
+  },
+  "Africa": {
+    "id": "Africa",
+    "name": "África",
+    "hsp_mensual": [5.2, 5.6, 6.0, 6.4, 6.6, 6.5, 6.4, 6.5, 6.3, 5.8, 5.4, 5.0],
+    "temp_ambiente_promedio": 26.0,
+    "temp_minima_extrema": 10.0
+  },
+  "Asia": {
+    "id": "Asia",
+    "name": "Asia",
+    "hsp_mensual": [3.2, 3.9, 4.8, 5.5, 5.8, 5.6, 5.4, 5.5, 5.0, 4.2, 3.5, 3.0],
+    "temp_ambiente_promedio": 20.0,
+    "temp_minima_extrema": -8.0
+  },
+  "Oceanía": {
+    "id": "Oceanía",
+    "name": "Oceanía",
+    "hsp_mensual": [5.8, 5.5, 5.0, 4.4, 3.9, 3.7, 3.9, 4.4, 5.0, 5.5, 5.8, 6.0],
+    "temp_ambiente_promedio": 23.0,
+    "temp_minima_extrema": 5.0
+  }
+}
