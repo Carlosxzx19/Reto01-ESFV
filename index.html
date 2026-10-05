@@ -25,7 +25,7 @@
                 </div>
             </div>
             <div class="header-actions" style="display: flex; gap: 0.5rem; align-items: center;">
-                <button class="theme-toggle" id="btn-lang" title="Cambiar idioma">
+                <button class="theme-toggle" id="btn-lang" title="Cambiar idioma" onclick="window.toggleLanguage && window.toggleLanguage()">
                     <span class="toggle-icon">🌐</span>
                     <span id="lang-label">ES</span>
                 </button>
@@ -862,6 +862,77 @@
                     </div>
                     <div class="chart-container" style="margin-top: 1.5rem; height: 320px;">
                         <canvas id="generation-chart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 7. GESTIÓN DEL PROYECTO E INFORME EJECUTIVO -->
+            <div class="card fade-in" id="card-dim-report">
+                <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
+                    <div>
+                        <h2>Gestión del Proyecto e Informe Ejecutivo</h2>
+                        <p class="card-description">Genere el informe ejecutivo o gestione la persistencia del proyecto sin salir de la etapa de dimensionamiento.</p>
+                    </div>
+                    <span class="badge badge-success">✓ Reto 01 & Reto 02</span>
+                </div>
+                <div class="card-body">
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.25rem;">
+                        <!-- Columna 1: Informe Ejecutivo -->
+                        <div style="background: rgba(15, 23, 42, 0.4); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 1.25rem; display: flex; flex-direction: column; justify-content: space-between;">
+                            <div>
+                                <h3 style="font-size: 1.05rem; margin-bottom: 0.4rem; display: flex; align-items: center; gap: 0.5rem;">
+                                    <span>📄</span> Informe Ejecutivo (PDF)
+                                </h3>
+                                <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1.25rem; line-height: 1.45;">
+                                    Genera un informe integral con todos los datos del proyecto, cuadro de cargas, perfil 24 h, dimensionamiento solar e indicadores clave de ambos retos.
+                                </p>
+                            </div>
+                            <button class="btn btn-primary" id="btn-report-dim" style="width: 100%; justify-content: center;">
+                                <span class="btn-icon">📄</span> Generar Informe PDF
+                            </button>
+                        </div>
+
+                        <!-- Columna 2: Persistencia JSON -->
+                        <div style="background: rgba(15, 23, 42, 0.4); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 1.25rem; display: flex; flex-direction: column; justify-content: space-between;">
+                            <div>
+                                <h3 style="font-size: 1.05rem; margin-bottom: 0.4rem; display: flex; align-items: center; gap: 0.5rem;">
+                                    <span>💾</span> Persistencia (.json)
+                                </h3>
+                                <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1.25rem; line-height: 1.45;">
+                                    Guarde o recupere el estado completo del proyecto (cargas, configuración y dimensionamiento) en un archivo local JSON.
+                                </p>
+                            </div>
+                            <div class="persistence-actions" style="display: flex; gap: 0.6rem; flex-wrap: wrap;">
+                                <button class="btn btn-primary" id="btn-save-dim" style="flex: 1; justify-content: center; min-width: 120px;">
+                                    <span class="btn-icon">💾</span> Guardar
+                                </button>
+                                <label class="btn btn-secondary file-label" tabindex="0" style="flex: 1; justify-content: center; min-width: 120px; margin: 0;">
+                                    <span class="btn-icon">📂</span> Cargar
+                                    <input type="file" id="btn-load-dim" accept=".json" hidden>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Columna 3: Cuadro de Cargas Excel -->
+                        <div style="background: rgba(15, 23, 42, 0.4); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 1.25rem; display: flex; flex-direction: column; justify-content: space-between;">
+                            <div>
+                                <h3 style="font-size: 1.05rem; margin-bottom: 0.4rem; display: flex; align-items: center; gap: 0.5rem;">
+                                    <span>📊</span> Cuadro de Cargas (.xlsx)
+                                </h3>
+                                <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1.25rem; line-height: 1.45;">
+                                    Exporte las cargas en formato Excel estructurado o importe una planilla existente con franjas horarias.
+                                </p>
+                            </div>
+                            <div class="persistence-actions" style="display: flex; gap: 0.6rem; flex-wrap: wrap;">
+                                <button class="btn btn-secondary" id="btn-excel-export-dim" style="flex: 1; justify-content: center; min-width: 120px;">
+                                    <span class="btn-icon">📃</span> Exportar Excel
+                                </button>
+                                <label class="btn btn-secondary file-label" tabindex="0" style="flex: 1; justify-content: center; min-width: 120px; margin: 0;">
+                                    <span class="btn-icon">📂</span> Importar Excel
+                                    <input type="file" id="btn-excel-import-dim" accept=".xlsx,.xls" hidden>
+                                </label>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

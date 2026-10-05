@@ -3,8 +3,15 @@
    ═══════════════════════════════════════════════ */
 
 function initPersistence() {
-    document.getElementById('btn-save').addEventListener('click', saveProject);
-    document.getElementById('btn-load').addEventListener('change', loadProject);
+    const btnSave = document.getElementById('btn-save');
+    const btnSaveDim = document.getElementById('btn-save-dim');
+    const btnLoad = document.getElementById('btn-load');
+    const btnLoadDim = document.getElementById('btn-load-dim');
+
+    if (btnSave) btnSave.addEventListener('click', saveProject);
+    if (btnSaveDim) btnSaveDim.addEventListener('click', saveProject);
+    if (btnLoad) btnLoad.addEventListener('change', loadProject);
+    if (btnLoadDim) btnLoadDim.addEventListener('change', loadProject);
 }
 
 /** Export the full state as a downloadable JSON file */

@@ -357,7 +357,8 @@ function renderLoads() {
     const badge = document.getElementById('load-count-badge');
 
     const loads = APP.state.loads;
-    badge.textContent = `${loads.length} carga${loads.length !== 1 ? 's' : ''}`;
+    const loadWord = window.APP_LANG === 'en' ? (loads.length === 1 ? 'load' : 'loads') : (loads.length === 1 ? 'carga' : 'cargas');
+    badge.textContent = `${loads.length} ${loadWord}`;
 
     if (loads.length === 0) {
         table.style.display = 'none';
@@ -394,6 +395,10 @@ function renderLoads() {
         else if (classification === 'Nocturna') badgeClass += ' badge-night';
         else if (classification === 'Mixta') badgeClass += ' badge-mixed';
 
+        const transClass = window.translateText ? window.translateText(classification) : classification;
+        const transEdit = window.translateText ? window.translateText('Editar') : 'Editar';
+        const transDel = window.translateText ? window.translateText('Eliminar') : 'Eliminar';
+
         return `<tr>
             <td>${idx + 1}</td>
             <td>${escapeHtml(load.description)}</td>
@@ -403,10 +408,10 @@ function renderLoads() {
             <td class="text-muted" style="font-size:0.78rem;">${hoursDisplay}</td>
             <td>${hoursPerDay}</td>
             <td>${freqDisplay}</td>
-            <td><span class="${badgeClass}">${classification}</span></td>
+            <td><span class="${badgeClass}">${transClass}</span></td>
             <td class="actions-cell">
-                <button class="action-btn" onclick="editLoad('${escapeHtml(String(load.id))}')" title="Editar">✏️</button>
-                <button class="action-btn delete" onclick="deleteLoad('${escapeHtml(String(load.id))}')" title="Eliminar">🗑️</button>
+                <button class="action-btn" onclick="editLoad('${escapeHtml(String(load.id))}')" title="${transEdit}">✏️</button>
+                <button class="action-btn delete" onclick="deleteLoad('${escapeHtml(String(load.id))}')" title="${transDel}">🗑️</button>
             </td>
         </tr>`;
     }).join('');

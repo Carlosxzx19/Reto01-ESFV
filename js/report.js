@@ -3,7 +3,10 @@
    ═══════════════════════════════════════════════ */
 
 function initReport() {
-    document.getElementById('btn-report').addEventListener('click', generateReport);
+    const btn1 = document.getElementById('btn-report');
+    const btn2 = document.getElementById('btn-report-dim');
+    if (btn1) btn1.addEventListener('click', generateReport);
+    if (btn2) btn2.addEventListener('click', generateReport);
 }
 
 function generateReport() {

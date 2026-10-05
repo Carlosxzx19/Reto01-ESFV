@@ -4,8 +4,15 @@
    ═══════════════════════════════════════════════ */
 
 function initExcel() {
-    document.getElementById('btn-excel-export').addEventListener('click', exportExcel);
-    document.getElementById('btn-excel-import').addEventListener('change', importExcel);
+    const btnExp1 = document.getElementById('btn-excel-export');
+    const btnExp2 = document.getElementById('btn-excel-export-dim');
+    const btnImp1 = document.getElementById('btn-excel-import');
+    const btnImp2 = document.getElementById('btn-excel-import-dim');
+
+    if (btnExp1) btnExp1.addEventListener('click', exportExcel);
+    if (btnExp2) btnExp2.addEventListener('click', exportExcel);
+    if (btnImp1) btnImp1.addEventListener('change', importExcel);
+    if (btnImp2) btnImp2.addEventListener('change', importExcel);
 }
 
 // ───── EXPORT ─────
