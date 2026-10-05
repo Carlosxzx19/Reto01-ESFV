@@ -5,6 +5,157 @@
 
 const CASES_DB = {
     cases: {
+        'caso-estandar': {
+            id: 'caso-estandar',
+            name: 'Caso Estándar: Estación de Monitoreo Ambiental de la Alta Guajira',
+            shortName: 'Caso Estándar',
+            description: 'Estación de Monitoreo - Nazareth, Alta Guajira (12.18° N, 71.28° O)',
+            isPreset: true,
+            isPlaceholder: false,
+            lockedModule: true,
+            selectedModuleId: 'panel-estandar',
+
+            // Reto 01: Información del Proyecto
+            project: {
+                name: 'Estación de Monitoreo Ambiental de la Alta Guajira',
+                id: 'EMA-GUAJIRA-01',
+                members: 'Caso Estándar de Referencia (Reto 01 & Reto 02)',
+                date: '2026-08-30',
+                installationType: 'residential', // Restricción: Tensión máx. 600 V
+                systemType: 'off-grid' // Aislado
+            },
+
+            // Reto 01: Configuración Día / Noche y Tarifaria
+            config: {
+                dayStart: 6,
+                dayEnd: 18,
+                daysPerMonth: 30,
+                monthsPerYear: 12,
+                unitCost: 1200 // Resulta en Costo diario: $9,096 COP, Costo mensual: $272,800 COP, Costo anual: $3,274,560 COP
+            },
+
+            // Reto 01: 8 Cargas del Caso de Prueba (Apéndice B.1)
+            loads: [
+                {
+                    id: 'std-1',
+                    description: 'Sensor meteorológico',
+                    quantity: 1,
+                    power: 15,
+                    timeSlots: [{ start: 0, end: 0 }],
+                    hours: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23],
+                    daysPerMonth: 30,
+                    monthsPerYear: 12
+                },
+                {
+                    id: 'std-2',
+                    description: 'Datalogger',
+                    quantity: 1,
+                    power: 25,
+                    timeSlots: [{ start: 0, end: 0 }],
+                    hours: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23],
+                    daysPerMonth: 30,
+                    monthsPerYear: 12
+                },
+                {
+                    id: 'std-3',
+                    description: 'Computador portátil',
+                    quantity: 1,
+                    power: 350,
+                    timeSlots: [{ start: 8, end: 12 }, { start: 14, end: 17 }],
+                    hours: [8, 9, 10, 11, 14, 15, 16],
+                    daysPerMonth: 30,
+                    monthsPerYear: 12
+                },
+                {
+                    id: 'std-4',
+                    description: 'Radio VHF',
+                    quantity: 1,
+                    power: 120,
+                    timeSlots: [{ start: 7, end: 9 }, { start: 16, end: 18 }],
+                    hours: [7, 8, 16, 17],
+                    daysPerMonth: 30,
+                    monthsPerYear: 12
+                },
+                {
+                    id: 'std-5',
+                    description: 'Iluminación LED exterior',
+                    quantity: 2,
+                    power: 60,
+                    timeSlots: [{ start: 18, end: 6 }],
+                    hours: [18, 19, 20, 21, 22, 23, 0, 1, 2, 3, 4, 5],
+                    daysPerMonth: 30,
+                    monthsPerYear: 12
+                },
+                {
+                    id: 'std-6',
+                    description: 'Ventilador de gabinete',
+                    quantity: 1,
+                    power: 45,
+                    timeSlots: [{ start: 10, end: 16 }],
+                    hours: [10, 11, 12, 13, 14, 15],
+                    daysPerMonth: 30,
+                    monthsPerYear: 12
+                },
+                {
+                    id: 'std-7',
+                    description: 'Cargador de baterías portátiles',
+                    quantity: 1,
+                    power: 80,
+                    timeSlots: [{ start: 22, end: 4 }],
+                    hours: [22, 23, 0, 1, 2, 3],
+                    daysPerMonth: 30,
+                    monthsPerYear: 12
+                },
+                {
+                    id: 'std-8',
+                    description: 'Bomba de agua',
+                    quantity: 1,
+                    power: 750,
+                    timeSlots: [{ start: 6, end: 7 }, { start: 17, end: 18 }],
+                    hours: [6, 17],
+                    daysPerMonth: 30,
+                    monthsPerYear: 12
+                }
+            ],
+
+            // Reto 02: Parámetros del Caso Estándar Oficial
+            sizing: {
+                lat: 12.18,
+                lon: -71.28,
+                tilt: 12,
+                azimuth: 0,
+                arrayType: 0,
+                losses: 0,
+                tmin: 20,
+                tambOp: 32,
+                vmaxSystem: 600,
+                solarProvider: 'pvgis',
+                availableArea: 20,
+                pr: 0.70,
+                selectedModuleId: 'panel-estandar',
+                lockedModule: true,
+                solarResource: {
+                    source: 'Caso Estándar Declarado (Nazareth, Alta Guajira)',
+                    isFixedCase: true,
+                    isFallback: false,
+                    isCached: true,
+                    lat: 12.18,
+                    lon: -71.28,
+                    tilt: 12,
+                    azimuth: 0,
+                    annualHsp: 5.80,
+                    criticalMonthHsp: 5.20,
+                    criticalMonthIndex: 10, // Noviembre
+                    criticalMonthName: 'Noviembre',
+                    maxMonthHsp: 6.30,
+                    maxMonthIndex: 2, // Marzo
+                    maxMonthName: 'Marzo',
+                    monthlyHsp: [5.80, 6.10, 6.30, 6.00, 5.70, 5.60, 5.80, 5.90, 6.00, 5.40, 5.20, 5.80],
+                    notes: 'Irradiación declarada oficial del caso de prueba: 5.8 kWh/m²·día anual, 5.2 kWh/m²·día mes crítico.'
+                }
+            }
+        },
+
         'caso-1': {
             id: 'caso-1',
             name: 'Caso 1: Laboratorio de Electrónica Analoga y Digital-Hangar A',
@@ -1280,7 +1431,13 @@ function loadCase(rawCaseId, options = {}) {
     // 1. Sincronizar botones activos en toda la aplicación
     document.querySelectorAll('.dim-case-btn').forEach(btn => {
         const c = btn.dataset.case;
-        const isActive = (c === caseId) || (caseId === 'caso-1' && c === 'santa-marta') || (caseId === 'caso-2' && c === 'barranquilla') || (caseId === 'caso-3' && c === 'medellin') || (caseId === 'caso-4' && c === 'bogota') || (caseId === 'caso-5' && c === 'pasto');
+        const isActive = (c === caseId) || 
+            (caseId === 'caso-estandar' && (c === 'estandar' || c === 'caso-estandar')) ||
+            (caseId === 'caso-1' && c === 'santa-marta') || 
+            (caseId === 'caso-2' && c === 'barranquilla') || 
+            (caseId === 'caso-3' && c === 'medellin') || 
+            (caseId === 'caso-4' && c === 'bogota') || 
+            (caseId === 'caso-5' && c === 'pasto');
         btn.classList.toggle('active', isActive);
     });
 
@@ -1290,6 +1447,10 @@ function loadCase(rawCaseId, options = {}) {
     if (caseId === 'custom') {
         s.isFixedCase = false;
         s.activeCaseId = 'custom';
+        s.lockedModule = false;
+        if (s.selectedModuleId === 'panel-estandar') {
+            s.selectedModuleId = 'panel-150w';
+        }
 
         // Desbloquear campos para edición libre
         setFieldsLockState(false);
@@ -1314,7 +1475,7 @@ function loadCase(rawCaseId, options = {}) {
         return;
     }
 
-    // 3. Caso Predeterminado (Caso 1)
+    // 3. Caso Predeterminado
     s.isFixedCase = true;
     s.activeCaseId = caseId;
 
@@ -1356,6 +1517,13 @@ function loadCase(rawCaseId, options = {}) {
         s.tmin = caseData.sizing.tmin;
         s.tambOp = caseData.sizing.tambOp;
         s.vmaxSystem = caseData.sizing.vmaxSystem || 1000;
+        s.lockedModule = !!caseData.sizing.lockedModule;
+
+        if (caseData.sizing.selectedModuleId) {
+            s.selectedModuleId = caseData.sizing.selectedModuleId;
+        } else if (s.selectedModuleId === 'panel-estandar') {
+            s.selectedModuleId = 'panel-150w';
+        }
 
         if (caseData.sizing.availableArea) {
             s.availableArea = caseData.sizing.availableArea;
@@ -1397,7 +1565,9 @@ function loadCase(rawCaseId, options = {}) {
         const badge = document.getElementById('pvwatts-status-badge');
         if (badge) {
             badge.className = 'status-badge success';
-            badge.textContent = `🔒 ${caseData.shortName} · PVGIS Fijo`;
+            badge.textContent = caseData.id === 'caso-estandar'
+                ? `⭐ Caso Estándar · Datos Oficiales`
+                : `🔒 ${caseData.shortName} · PVGIS Fijo`;
         }
 
         // Mostrar banner explicativo
@@ -1466,11 +1636,16 @@ function updateCaseBanner(caseData) {
     const titleEl = document.getElementById('case-lock-title');
     const descEl = document.getElementById('case-lock-desc');
 
-    if (titleEl) {
-        titleEl.textContent = `🔒 ${caseData.name}`;
-    }
-    if (descEl) {
-        descEl.innerHTML = `Coordenadas (<strong>${caseData.sizing.lat}°, ${caseData.sizing.lon}°</strong>), Inclinación (<strong>${caseData.sizing.tilt}°</strong>), Temperaturas (Tmin: <strong>${caseData.sizing.tmin}°C</strong>, Tamb: <strong>${caseData.sizing.tambOp}°C</strong>) e Irradiancia fija de PVGIS. <strong>Área Disponible y PR son variables para dimensionamiento.</strong>`;
+    if (caseData.id === 'caso-estandar') {
+        if (titleEl) titleEl.textContent = `⭐ ${caseData.name}`;
+        if (descEl) {
+            descEl.innerHTML = `Ubicación (<strong>12.18° N, 71.28° O - Nazareth, Alta Guajira</strong>), Inclinación (<strong>12° al sur</strong>), Temperaturas (Tmin: <strong>20°C</strong>, Tamb: <strong>32°C</strong>), HSP Mes Crítico: <strong>5.2 kWh/m²·día</strong>, HSP Anual: <strong>5.8 kWh/m²·día</strong>. Módulo oficial exclusivo: <strong>550 Wp (72 celdas, 2.58 m²)</strong>. Restricción de diseño: <strong>600 V máx.</strong>`;
+        }
+    } else {
+        if (titleEl) titleEl.textContent = `🔒 ${caseData.name}`;
+        if (descEl) {
+            descEl.innerHTML = `Coordenadas (<strong>${caseData.sizing.lat}°, ${caseData.sizing.lon}°</strong>), Inclinación (<strong>${caseData.sizing.tilt}°</strong>), Temperaturas (Tmin: <strong>${caseData.sizing.tmin}°C</strong>, Tamb: <strong>${caseData.sizing.tambOp}°C</strong>) e Irradiancia fija de PVGIS. <strong>Área Disponible y PR son variables para dimensionamiento.</strong>`;
+        }
     }
 
     banner.style.display = 'flex';

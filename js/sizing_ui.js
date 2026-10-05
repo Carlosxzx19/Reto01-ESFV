@@ -723,8 +723,19 @@ function updateSizing() {
         }
     }
 
-    // 5. Evaluate all 3 modules (RF-19, RF-20, RF-21, RF-22, RF-23)
-    const modules = MODULES_DB.getAll();
+    // 5. Evaluate modules (RF-19, RF-20, RF-21, RF-22, RF-23)
+    const isEstandar = !!(s.lockedModule || s.activeCaseId === 'caso-estandar');
+    let modules;
+    if (isEstandar) {
+        modules = [MODULES_DB.getStandardModule()];
+        s.selectedModuleId = 'panel-estandar';
+    } else {
+        modules = MODULES_DB.getAll().filter(m => m.id !== 'panel-estandar');
+        if (s.selectedModuleId === 'panel-estandar') {
+            s.selectedModuleId = 'panel-150w';
+        }
+    }
+
     const evaluated = PV_SIZING.evaluateAllModules(modules, {
         edKwh,
         hsp: activeHsp,
@@ -736,7 +747,7 @@ function updateSizing() {
     });
 
     s.evaluatedModules = evaluated;
-    s.selectedResult = evaluated.find(r => r.module.id === s.selectedModuleId) || evaluated[evaluated.length - 1];
+    s.selectedResult = evaluated.find(r => r.module.id === s.selectedModuleId) || evaluated[0];
 
     // Update dynamic Voc/Vmp table headers
     const thVoc = document.getElementById('th-voc-tmin');
@@ -768,20 +779,39 @@ function updateSizing() {
     renderGenerationSection();
 }
 
-/** Render the 3 module summary cards */
+/** Render the module summary cards (1 for Caso Estándar, 3 for general cases) */
 function renderModuleCards(evaluated) {
     const container = document.getElementById('module-cards-container');
     if (!container) return;
 
     const s = APP.state.sizing;
+    const isEstandar = !!(s.lockedModule || s.activeCaseId === 'caso-estandar');
+
+    // Gear icon button for editing catalog
+    const btnEditMod = document.getElementById('btn-edit-modules');
+    if (btnEditMod) {
+        btnEditMod.style.display = isEstandar ? 'none' : 'inline-flex';
+    }
+
+    if (isEstandar) {
+        container.style.gridTemplateColumns = 'minmax(320px, 460px)';
+        container.style.justifyContent = 'center';
+    } else {
+        container.style.gridTemplateColumns = '';
+        container.style.justifyContent = '';
+    }
 
     container.innerHTML = evaluated.map(item => {
-        const isSelected = item.module.id === s.selectedModuleId;
+        const isSelected = item.module.id === s.selectedModuleId || isEstandar;
         const fitClass = item.fitsArea ? 'status-ok' : 'status-danger';
         const fitText = item.fitsArea ? '✓ Cabe en el área' : '✗ No cabe (insuficiente)';
         const excedentSign = item.excedentPercent >= 0 ? '+' : '';
-        const fallbackName = item.module.id === 'panel-150w' ? 'Módulo 1' : item.module.id === 'panel-330w' ? 'Módulo 2' : 'Módulo 3';
-        const cleanName = (item.module.name || '').replace(/[-_].*$/, '').trim() || fallbackName;
+        const fallbackName = item.module.id === 'panel-estandar'
+            ? 'Módulo de Referencia Oficial'
+            : (item.module.id === 'panel-150w' ? 'Módulo 1' : item.module.id === 'panel-330w' ? 'Módulo 2' : 'Módulo 3');
+        const cleanName = isEstandar
+            ? 'Módulo de Referencia Declarado (Caso Estándar)'
+            : ((item.module.name || '').replace(/[-_].*$/, '').trim() || fallbackName);
         const hasGen = item.finalModCount > 0;
 
         const vocMod = item.vocTmin;
@@ -796,8 +826,25 @@ function renderModuleCards(evaluated) {
         const displayImp = hasGen ? `${item.impGenerator.toFixed(1)} A` : `${impMod.toFixed(1)} A`;
         const displayStrings = hasGen ? `${item.np}PX${item.ns}S` : `0PX0S`;
 
+        const badgeLockedHtml = isEstandar ? `
+            <div style="margin-bottom: 0.6rem; padding: 0.35rem 0.6rem; background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.35); border-radius: 6px; font-size: 0.76rem; color: #38bdf8; display: flex; align-items: center; justify-content: center; gap: 0.4rem; font-weight: 600;">
+                <span>🔒</span> Referencia Oficial Exclusiva — No modificable
+            </div>
+        ` : '';
+
+        const buttonHtml = isEstandar ? `
+            <button class="btn btn-sm btn-primary btn-select-mod" style="margin-top: 0.8rem; width: 100%; cursor: default; opacity: 0.95;" onclick="event.stopPropagation();">
+                ★ Módulo Oficial Único (Caso Estándar)
+            </button>
+        ` : `
+            <button class="btn btn-sm ${isSelected ? 'btn-primary' : 'btn-ghost'} btn-select-mod" style="margin-top: 0.8rem; width: 100%;">
+                ${isSelected ? '★ Módulo Seleccionado' : 'Seleccionar esta Referencia'}
+            </button>
+        `;
+
         return `
         <div class="module-card ${isSelected ? 'selected' : ''}" onclick="selectModule('${item.module.id}')">
+            ${badgeLockedHtml}
             <div class="module-card-header" style="justify-content: flex-end;">
                 <span class="module-pmax">${item.module.pmax} Wp</span>
             </div>
@@ -855,9 +902,7 @@ function renderModuleCards(evaluated) {
                 ${fitText} (${item.totalArea.toFixed(1)} m² de ${item.availableArea} m²)
             </div>
 
-            <button class="btn btn-sm ${isSelected ? 'btn-primary' : 'btn-ghost'} btn-select-mod" style="margin-top: 0.8rem; width: 100%;">
-                ${isSelected ? '★ Módulo Seleccionado' : 'Seleccionar esta Referencia'}
-            </button>
+            ${buttonHtml}
             ${item.module.url && item.module.url.trim() !== '' ? `
             <a href="${item.module.url}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation();" class="btn btn-sm btn-module-ref" style="margin-top: 0.4rem; width: 100%; display: flex; align-items: center; justify-content: center; gap: 0.35rem; background: #0284c7; color: #ffffff !important; font-size: 0.8rem; font-weight: 600; text-decoration: none; border-radius: var(--radius-sm); padding: 0.42rem 0.6rem; border: none; cursor: pointer; transition: all 0.2s ease;">
                 🔗 Referencia
@@ -870,16 +915,12 @@ function renderModuleCards(evaluated) {
 
 /** Render detailed technical comparison table (blue catalog table) */
 function renderModuleTable(evaluated) {
+    const table = document.getElementById('table-modules-catalog');
     const tbody = document.getElementById('modules-comparison-tbody');
-    if (!tbody) return;
+    if (!tbody || !table) return;
 
-    const modules = (evaluated && evaluated.length === 3)
-        ? evaluated.map(e => e.module)
-        : MODULES_DB.getAll();
-
-    const m1 = modules[0] || {};
-    const m2 = modules[1] || {};
-    const m3 = modules[2] || {};
+    const s = APP.state.sizing;
+    const isEstandar = !!(s.lockedModule || s.activeCaseId === 'caso-estandar');
 
     const formatVal = (val, unit = '') => {
         if (val === undefined || val === null || val === '' || isNaN(val)) return '—';
@@ -892,6 +933,82 @@ function renderModuleTable(evaluated) {
         const sign = num > 0 ? '+' : '';
         return `${sign}${val}${unit ? ' ' + unit : ''}`;
     };
+
+    if (isEstandar) {
+        // Adapt table layout to 2 columns (Parámetro and Módulo de Referencia 550 Wp)
+        const colgroup = table.querySelector('colgroup');
+        if (colgroup) {
+            colgroup.innerHTML = `
+                <col style="width: 45%;">
+                <col style="width: 55%;">
+            `;
+        }
+        const thead = table.querySelector('thead');
+        if (thead) {
+            thead.innerHTML = `
+                <tr>
+                    <th style="width: 45%; text-align: left;">Parámetro (Tabla 7.2 Módulo de referencia)</th>
+                    <th style="width: 55%; text-align: center;">Módulo de Referencia Declarado (550 Wp)</th>
+                </tr>
+            `;
+        }
+
+        const m = (evaluated && evaluated.length > 0) ? evaluated[0].module : MODULES_DB.getStandardModule();
+
+        const rows = [
+            { label: 'Potencia pico (Pmax)', val: formatVal(m.pmax, 'Wp') },
+            { label: 'Celdas en serie', val: `${m.cellsInSeries || 72}` },
+            { label: 'Tensión de circuito abierto (Voc)', val: formatVal(m.voc, 'V') },
+            { label: 'Corriente de cortocircuito (Isc)', val: formatVal(m.isc, 'A') },
+            { label: 'Tensión en punto de máxima potencia (Vmp)', val: formatVal(m.vmp, 'V') },
+            { label: 'Corriente en punto de máxima potencia (Imp)', val: formatVal(m.imp, 'A') },
+            { label: 'Área del módulo', val: formatVal(m.area, 'm²') },
+            { label: 'Coeficiente de temperatura de Voc (β)', val: formatSign(m.tempCoefVoc, '%/°C') },
+            { label: 'Coeficiente de temperatura de Isc (α)', val: formatSign(m.tempCoefIsc, '%/°C') },
+            { label: 'Coeficiente de temperatura de Pmp (γ)', val: formatSign(m.tempCoefPmp, '%/°C') },
+            { label: 'Temperatura de operación nominal de celda (NOCT)', val: formatVal(m.noct, '°C') },
+            { label: 'Eficiencia declarada', val: formatVal(m.efficiency, '%') }
+        ];
+
+        tbody.innerHTML = rows.map(r => `
+            <tr>
+                <td style="font-weight: 600; text-align: left; padding: 0.52rem 1rem 0.52rem 1.25rem;">${r.label}</td>
+                <td style="text-align: center; font-weight: 700; color: var(--accent); padding: 0.52rem 1rem;">${r.val}</td>
+            </tr>
+        `).join('');
+        return;
+    }
+
+    // Normal 3 modules table
+    const colgroup = table.querySelector('colgroup');
+    if (colgroup) {
+        colgroup.innerHTML = `
+            <col style="width: 25%;">
+            <col style="width: 25%;">
+            <col style="width: 25%;">
+            <col style="width: 25%;">
+        `;
+    }
+    const thead = table.querySelector('thead');
+    if (thead) {
+        thead.innerHTML = `
+            <tr>
+                <th style="width: 25%; text-align: left;">Parámetro</th>
+                <th style="width: 25%; text-align: center;">Módulo 1</th>
+                <th style="width: 25%; text-align: center;">Módulo 2</th>
+                <th style="width: 25%; text-align: center;">Módulo 3</th>
+            </tr>
+        `;
+    }
+
+    const regularModules = MODULES_DB.getAll().filter(m => m.id !== 'panel-estandar');
+    const modules = (evaluated && evaluated.length === 3)
+        ? evaluated.map(e => e.module)
+        : regularModules;
+
+    const m1 = modules[0] || {};
+    const m2 = modules[1] || {};
+    const m3 = modules[2] || {};
 
     const rows = [
         { label: 'Potencia Pico (Pmax)', v1: formatVal(m1.pmax ?? 210, 'Wp'), v2: formatVal(m2.pmax ?? 340, 'Wp'), v3: formatVal(m3.pmax ?? 550, 'Wp') },
@@ -921,9 +1038,18 @@ function renderModuleTable(evaluated) {
 
 /** Select a module as preferred proposed solution */
 function selectModule(id) {
-    APP.state.sizing.selectedModuleId = id;
+    const s = APP.state.sizing;
+    if (s.lockedModule || s.activeCaseId === 'caso-estandar') {
+        if (typeof showToast === 'function') {
+            showToast('En el Caso Estándar solo se utiliza el módulo de referencia oficial de 550 Wp.', 'warning');
+        }
+        return;
+    }
+    s.selectedModuleId = id;
     updateSizing();
-    showToast(`Módulo ${id} seleccionado para el informe`, 'info');
+    if (typeof showToast === 'function') {
+        showToast(`Módulo ${id} seleccionado para el informe`, 'info');
+    }
 }
 
 /** Render monthly or annual generation section */

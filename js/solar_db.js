@@ -135,7 +135,7 @@ const SOLAR_DB = {
     },
 
     getById(id) {
-        return this.locations.find(loc => loc.id === id) || this.locations[0];
+        return this.locations.find(loc => loc.id === id || (id === 'caso-estandar' && loc.id === 'nazareth-guajira')) || this.locations[0];
     },
 
     getStandardTestCase() {

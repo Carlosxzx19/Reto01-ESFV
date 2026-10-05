@@ -75,11 +75,39 @@ const DEFAULT_MODULES = [
         datasheetSource: 'Ficha técnica oficial AutoSolar',
         datasheetDate: '2026-10-01',
         url: 'https://autosolar.co/paneles-solares-24v/panel-solar-550w-24v-monocristalino-perc-ecogreen'
+    },
+    {
+        id: 'panel-estandar',
+        name: 'Módulo Estándar (550 Wp)',
+        manufacturer: 'Caso Estándar Oficial',
+        model: 'REF-550W-72C',
+        pmax: 550,
+        cellsInSeries: 72,
+        voc: 49.5,
+        isc: 14.0,
+        pmaxNmot: 412,
+        vmp: 41.5,
+        imp: 13.3,
+        tempCoefVoc: -0.27,
+        tempCoefIsc: 0.05,
+        tempCoefPmp: -0.35,
+        noct: 45,
+        area: 2.58,
+        efficiency: 21.3,
+        nominalVoltage: '24V / 600V',
+        notes: 'Módulo de referencia oficial declarado para el Caso Estándar',
+        datasheetSource: 'Reto 02 - Tabla 7.2 Módulo de referencia del caso',
+        datasheetDate: '2026-10-04',
+        url: ''
     }
 ];
 
 const MODULES_DB = {
     modules: JSON.parse(JSON.stringify(DEFAULT_MODULES)),
+
+    getStandardModule() {
+        return this.modules.find(m => m.id === 'panel-estandar') || DEFAULT_MODULES.find(m => m.id === 'panel-estandar') || DEFAULT_MODULES[3];
+    },
 
     async init() {
         const DB_VERSION = 'v2_nmot_autosolar';

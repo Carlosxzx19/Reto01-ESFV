@@ -114,6 +114,7 @@ Haga clic en la pestaña **⚡ Cuadro de Cargas**. Aquí registrará cada artefa
 
 ### 2.6 Casos de Ejemplo Predefinidos
 En la barra superior de casos encontrará accesos directos certificados:
+- **⭐ Caso Estándar (Nazareth, Alta Guajira):** Estación de Monitoreo Ambiental de la Alta Guajira (12.18° N, 71.28° O). Caso de referencia oficial canónico (Reto 01 & Reto 02) con 8 cargas continuas y cíclicas (Sensor meteorológico, Datalogger, Computador portátil, Radio VHF, Iluminación LED exterior, Ventilador de gabinete, Cargador de baterías y Bomba de agua). Produce exactamente $E_d = 7,580\text{ kWh/día}$ ($5,180\text{ kWh/día}$ en ventana solar 06–18 h y $2,400\text{ kWh/día}$ fuera de ventana), potencia instalada total de $1505\text{ W}$, demanda máxima simultánea de $910\text{ W}$ a las 17:00 h, consumo mensual de $227.40\text{ kWh/mes}$, y costos de $\$9,096\text{ COP/día}$ ($\$272,800/\text{mes}$ con $CU = 1,200\text{ COP/kWh}$).
 - **Caso 1 (Santa Marta):** Laboratorio de Electrónica Análoga y Digital - Hangar A (11.225°, -74.185°). Carga automáticamente la lista real de computadores, iluminación y equipos de laboratorio.
 - **Caso 2 (Villavicencio):** Cargas típicas residenciales/comerciales en el piedemonte llanero (4.127°, -73.636°).
 - **Caso 3 (Bogotá):** Perfil de consumo en clima frío de sabana (4.670°, -74.120°).
@@ -203,11 +204,15 @@ A continuación se detallan las implicaciones técnicas y diferencias de cada pl
 ---
 
 ### 3.5 Casos de Estudio con Parámetros Fijos vs. Coordenadas Libres
-- Cuando selecciona **Caso 1, Caso 2, Caso 3, Caso 4 o Caso 5**:
-  - Los campos de coordenadas (Latitud, Longitud), Inclinación, Azimut y Temperaturas quedan **bloqueados y protegidos** (aparece un banner azul con el ícono 🔒).
+- **⭐ Caso Estándar (Nazareth, Alta Guajira):**
+  - **Módulo de Referencia Oficial Exclusivo:** En este caso se utiliza **únicamente el módulo declarado de 550 Wp** (72 celdas en serie, $2.58\text{ m}^2$, $V_{oc} = 49.5\text{ V}$, $I_{sc} = 14.0\text{ A}$, $V_{mp} = 41.5\text{ V}$, $I_{mp} = 13.3\text{ A}$, $\beta = -0.27\%/^\circ\text{C}$, $\alpha = +0.05\%/^\circ\text{C}$, $\gamma = -0.35\%/^\circ\text{C}$, $\text{NOCT} = 45^\circ\text{C}$, Eficiencia $21.3\%$). **No se da opción de elegir otros módulos ni modificar la ficha técnica**, garantizando que todos los estudiantes y grupos evalúen exactamente la misma base canónica.
+  - Parámetros certificados: Latitud $12.18^\circ\text{ N}$, Longitud $-71.28^\circ\text{ O}$, Inclinación $12^\circ$ al sur, Azimut $0^\circ$, Irradiación anual declarada $5.8\text{ kWh/m}^2\cdot\text{día}$, Irradiación mes crítico $5.2\text{ kWh/m}^2\cdot\text{día}$, $PR = 0.70$, Tensión máxima $600\text{ V}$ (Residencial NTC 2050), $T_{min} = 20^\circ\text{C}$, $T_{amb,op} = 32^\circ\text{C}$ y Área disponible de $20\text{ m}^2$.
+- **Casos 1, 2, 3, 4 y 5:**
+  - Los campos de coordenadas (Latitud, Longitud), Inclinación, Azimut y Temperaturas quedan **bloqueados y protegidos** (aparece un banner informativo 🔒).
   - Esto garantiza que los casos didácticos conserven los valores certificados de referencia.
-  - **Variables de diseño:** En estos casos, el usuario tiene completa libertad para ajustar el **Área Disponible en Techo ($m^2$)**, el **Performance Ratio ($PR$)** y seleccionar el panel solar a instalar.
-- Si desea realizar un estudio en cualquier otra parte del mundo, haga clic en el botón **🌐 Coordenadas Libres**, lo cual desbloqueará todos los controles de entrada.
+  - **Variables de diseño:** En estos casos, el usuario tiene completa libertad para ajustar el **Área Disponible en Techo ($m^2$)**, el **Performance Ratio ($PR$)** y seleccionar el panel solar a instalar entre las 3 referencias de catálogo disponibles.
+- **🌐 Coordenadas Libres:**
+  - Si desea realizar un estudio en cualquier otra parte del mundo, haga clic en el botón **🌐 Coordenadas Libres**, lo cual desbloqueará todos los controles de entrada y permitirá modificar coordenadas, orientación, temperaturas e inclinación libremente.
 
 ---
 

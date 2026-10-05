@@ -34,6 +34,8 @@ const translations = {
 
         // Example Cases Bar
         'Casos de Ejemplo:': 'Example Cases:',
+        'Caso Estándar': 'Standard Case',
+        'Caso Estándar (Nazareth)': 'Standard Case (Nazareth)',
         'Caso 1 (Santa Marta)': 'Case 1 (Santa Marta)',
         'Caso 2 (Villavicencio)': 'Case 2 (Villavicencio)',
         'Caso 3 (Bogotá)': 'Case 3 (Bogota)',
