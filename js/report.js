@@ -39,7 +39,8 @@ function generateReport() {
     const loadRows = APP.state.loads.map((l, i) => {
         const total = l.quantity * l.power;
         const cls = t(classifyLoad(l.hours));
-        const hrs = formatHourRanges(l.hours);
+        const hrs = l.timeDisplay || formatHourRanges(l.hours);
+        const hpd = (l.hoursPerDay !== undefined && l.hoursPerDay !== null) ? l.hoursPerDay : l.hours.length;
         return `<tr>
             <td>${i + 1}</td>
             <td>${escapeHtml(l.description)}</td>
@@ -47,7 +48,7 @@ function generateReport() {
             <td style="text-align:right">${l.power.toLocaleString(exportLang === 'en' ? 'en-US' : 'es-CO')}</td>
             <td style="text-align:right"><strong>${total.toLocaleString(exportLang === 'en' ? 'en-US' : 'es-CO')}</strong></td>
             <td style="font-size:0.8em">${hrs}</td>
-            <td style="text-align:center">${l.hours.length}</td>
+            <td style="text-align:center">${hpd}</td>
             <td style="text-align:center">${cls}</td>
         </tr>`;
     }).join('');

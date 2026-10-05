@@ -377,8 +377,13 @@ function renderLoads() {
 
         const totalPower = load.quantity * load.power;
         const classification = classifyLoad(load.hours || []);
-        const hoursDisplay = formatHourRanges(load.hours || []);
-        const hoursPerDay = (load.hours || []).length;
+        const hoursDisplay = load.timeDisplay || formatHourRanges(load.hours || []);
+        const hpdRaw = (load.hoursPerDay !== undefined && load.hoursPerDay !== null)
+            ? load.hoursPerDay
+            : (load.hours || []).length;
+        const hoursPerDay = typeof hpdRaw === 'number'
+            ? (Number.isInteger(hpdRaw) ? hpdRaw : hpdRaw.toFixed(2).replace('.', ','))
+            : hpdRaw;
         
         const dpm = load.daysPerMonth || APP.state.config.daysPerMonth;
         const mpy = load.monthsPerYear || APP.state.config.monthsPerYear;
@@ -400,8 +405,8 @@ function renderLoads() {
             <td>${freqDisplay}</td>
             <td><span class="${badgeClass}">${classification}</span></td>
             <td class="actions-cell">
-                <button class="action-btn" onclick="editLoad(${load.id})" title="Editar">✏️</button>
-                <button class="action-btn delete" onclick="deleteLoad(${load.id})" title="Eliminar">🗑️</button>
+                <button class="action-btn" onclick="editLoad('${escapeHtml(String(load.id))}')" title="Editar">✏️</button>
+                <button class="action-btn delete" onclick="deleteLoad('${escapeHtml(String(load.id))}')" title="Eliminar">🗑️</button>
             </td>
         </tr>`;
     }).join('');

@@ -53,15 +53,16 @@ const PVGIS_SERVICE = {
             }
         }
 
-        // 2. Prepare endpoints: try local proxy first if on localhost, then direct PVGIS endpoint
-        const isLocalHost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+        // 2. Prepare endpoints:
+        // Tier 1: Serverless proxy (/api/pvgis) — works on Vercel (api/pvgis.js) and localhost (server.py), avoids CORS
+        // Tier 2: Direct PVGIS endpoint (fallback)
         const proxyUrl = `/api/pvgis?lat=${lat}&lon=${lon}`;
         const directUrl = `${this.baseUrl}?lat=${lat}&lon=${lon}&peakpower=1&optimalangles=1&loss=0&outputformat=json`;
 
         let data = null;
         let fetchSuccess = false;
 
-        const endpointsToTry = isLocalHost ? [proxyUrl, directUrl] : [directUrl];
+        const endpointsToTry = [proxyUrl, directUrl];
 
         for (const url of endpointsToTry) {
             try {

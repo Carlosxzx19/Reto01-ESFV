@@ -96,7 +96,7 @@ function formatHourRanges(hours) {
 
 /** Format a number as COP currency (no decimals) */
 function formatCOP(value) {
-    const rounded = Math.round(value);
+    const rounded = Math.round(value + 1e-6);
     return `$ ${rounded.toLocaleString('es-CO')} COP`;
 }
 

@@ -42,11 +42,18 @@ function calcMaxDemand(profile) {
 /** Load-specific Energy Getters */
 function getLoadEd(load) {
     const pTotal = load.quantity * load.power;
-    return (pTotal * load.hours.length) / 1000;
+    const hpd = (load.hoursPerDay !== undefined && load.hoursPerDay !== null)
+        ? load.hoursPerDay
+        : (load.hours ? load.hours.length : 0);
+    return (pTotal * hpd) / 1000;
 }
 
-/** RF-06: Daily Energy — Ed = Σ P(h) · Δt / 1000, Δt = 1h */
+/** RF-06: Daily Energy — Ed = Σ P(h) · Δt / 1000, Δt = 1h (o suma de Ed por carga si tienen factor de operación) */
 function calcDailyEnergy(profile) {
+    const hasExplicitHpd = APP.state.loads.some(l => l.hoursPerDay !== undefined && l.hoursPerDay !== null);
+    if (hasExplicitHpd) {
+        return APP.state.loads.reduce((sum, l) => sum + getLoadEd(l), 0);
+    }
     return profile.reduce((sum, p) => sum + p, 0) / 1000;
 }
 
@@ -84,13 +91,15 @@ function updateCalculations() {
     const ea = calcAnnualEnergy();
 
     // KPI Cards
+    const pinstKw = (Math.round((pinst / 1000 + 1e-6) * 100) / 100).toFixed(2);
+    const pmaxKw = (Math.round((pmax / 1000 + 1e-6) * 100) / 100).toFixed(2);
     document.getElementById('kpi-pinst').textContent = `${pinst.toLocaleString('es-CO')} W`;
-    document.getElementById('kpi-pinst-kw').textContent = `${(pinst / 1000).toFixed(2)} kW`;
+    document.getElementById('kpi-pinst-kw').textContent = `${pinstKw} kW`;
     document.getElementById('kpi-pmax').textContent = `${pmax.toLocaleString('es-CO')} W`;
-    document.getElementById('kpi-pmax-kw').textContent = `${(pmax / 1000).toFixed(2)} kW`;
+    document.getElementById('kpi-pmax-kw').textContent = `${pmaxKw} kW`;
     document.getElementById('kpi-ed').textContent = `${ed.toFixed(2)} kWh/día`;
     document.getElementById('kpi-em').textContent = `${em.toFixed(2)} kWh/mes`;
-    document.getElementById('kpi-ea').textContent = `${ea.toFixed(2)} kWh/año`;
+    document.getElementById('kpi-ea').textContent = `${ea.toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} kWh/año`;
 
     // Cost estimates
     document.getElementById('cost-daily').textContent = formatCOP(calcCost(ed));

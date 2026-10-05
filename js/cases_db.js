@@ -224,20 +224,1014 @@ const CASES_DB = {
 
         'caso-2': {
             id: 'caso-2',
-            name: 'Caso 2',
+            name: 'Caso 2: Local Comercial - Villavicencio, Meta',
             shortName: 'Caso 2',
+            description: 'Local Comercial - Villavicencio (4.127197°, -73.636011°)',
             isPreset: true,
-            isPlaceholder: true,
-            notes: 'Pendiente por definir'
+            isPlaceholder: false,
+
+            // Reto 01: Información del Proyecto
+            project: {
+                name: 'Local Comercial - Villavicencio, Meta',
+                id: 'C-2',
+                members: 'Carlos Forero, Sebastián Martínez, Esteban Romero, Mario Celedón',
+                date: '2026-10-04',
+                installationType: 'residential',
+                systemType: 'hybrid-on-grid'
+            },
+
+            // Reto 01: Configuración Día / Noche y Tarifaria
+            config: {
+                dayStart: 6,
+                dayEnd: 18, // Inicio de la noche: 18:00
+                daysPerMonth: 30,
+                monthsPerYear: 12,
+                unitCost: 1000 // 1000 COP/kWh
+            },
+
+            // Reto 01: 15 Cargas del Caso 2
+            loads: [
+                {
+                    id: 'c2-1',
+                    description: 'Neveras exhibidoras de bebidas',
+                    quantity: 2,
+                    power: 350,
+                    timeSlots: [{ start: 0, end: 0 }],
+                    hours: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23],
+                    hoursPerDay: 10.0,
+                    timeDisplay: '00:00–24:00',
+                    daysPerMonth: 30,
+                    monthsPerYear: 12
+                },
+                {
+                    id: 'c2-2',
+                    description: 'Congelador de helados',
+                    quantity: 1,
+                    power: 250,
+                    timeSlots: [{ start: 0, end: 0 }],
+                    hours: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23],
+                    hoursPerDay: 10.0,
+                    timeDisplay: '00:00–24:00',
+                    daysPerMonth: 30,
+                    monthsPerYear: 12
+                },
+                {
+                    id: 'c2-3',
+                    description: 'Congelador de alimentos',
+                    quantity: 1,
+                    power: 300,
+                    timeSlots: [{ start: 0, end: 0 }],
+                    hours: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23],
+                    hoursPerDay: 12.0,
+                    timeDisplay: '00:00–24:00',
+                    daysPerMonth: 30,
+                    monthsPerYear: 12
+                },
+                {
+                    id: 'c2-4',
+                    description: 'Vitrina refrigerada de lácteos',
+                    quantity: 1,
+                    power: 400,
+                    timeSlots: [{ start: 0, end: 0 }],
+                    hours: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23],
+                    hoursPerDay: 12.0,
+                    timeDisplay: '00:00–24:00',
+                    daysPerMonth: 30,
+                    monthsPerYear: 12
+                },
+                {
+                    id: 'c2-5',
+                    description: 'Luces LED de local',
+                    quantity: 10,
+                    power: 18,
+                    timeSlots: [{ start: 7, end: 21 }],
+                    hours: [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20],
+                    hoursPerDay: 14.0,
+                    timeDisplay: '07:00–21:00',
+                    daysPerMonth: 30,
+                    monthsPerYear: 12
+                },
+                {
+                    id: 'c2-6',
+                    description: 'Aviso luminoso LED',
+                    quantity: 1,
+                    power: 60,
+                    timeSlots: [{ start: 18, end: 22 }],
+                    hours: [18, 19, 20, 21],
+                    hoursPerDay: 4.0,
+                    timeDisplay: '18:00–22:00',
+                    daysPerMonth: 30,
+                    monthsPerYear: 12
+                },
+                {
+                    id: 'c2-7',
+                    description: 'Ventiladores',
+                    quantity: 3,
+                    power: 75,
+                    timeSlots: [{ start: 10, end: 20 }],
+                    hours: [10, 11, 12, 13, 14, 15, 16, 17, 18, 19],
+                    hoursPerDay: 10.0,
+                    timeDisplay: '10:00–20:00',
+                    daysPerMonth: 30,
+                    monthsPerYear: 12
+                },
+                {
+                    id: 'c2-8',
+                    description: 'Terminal de venta',
+                    quantity: 1,
+                    power: 100,
+                    timeSlots: [{ start: 7, end: 21 }],
+                    hours: [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20],
+                    hoursPerDay: 14.0,
+                    timeDisplay: '07:00–21:00',
+                    daysPerMonth: 30,
+                    monthsPerYear: 12
+                },
+                {
+                    id: 'c2-9',
+                    description: 'Router y datáfono',
+                    quantity: 1,
+                    power: 25,
+                    timeSlots: [{ start: 0, end: 0 }],
+                    hours: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23],
+                    hoursPerDay: 24.0,
+                    timeDisplay: '00:00–24:00',
+                    daysPerMonth: 30,
+                    monthsPerYear: 12
+                },
+                {
+                    id: 'c2-10',
+                    description: 'Cámaras y grabador',
+                    quantity: 1,
+                    power: 50,
+                    timeSlots: [{ start: 0, end: 0 }],
+                    hours: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23],
+                    hoursPerDay: 24.0,
+                    timeDisplay: '00:00–24:00',
+                    daysPerMonth: 30,
+                    monthsPerYear: 12
+                },
+                {
+                    id: 'c2-11',
+                    description: 'Báscula electrónica',
+                    quantity: 1,
+                    power: 15,
+                    timeSlots: [{ start: 7, end: 21 }],
+                    hours: [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20],
+                    hoursPerDay: 14.0,
+                    timeDisplay: '07:00–21:00',
+                    daysPerMonth: 30,
+                    monthsPerYear: 12
+                },
+                {
+                    id: 'c2-12',
+                    description: 'Microondas',
+                    quantity: 1,
+                    power: 1200,
+                    timeSlots: [{ start: 12, end: 13 }],
+                    hours: [12],
+                    hoursPerDay: 0.5,
+                    timeDisplay: '12:00–12:30',
+                    daysPerMonth: 30,
+                    monthsPerYear: 12
+                },
+                {
+                    id: 'c2-13',
+                    description: 'Cafetera',
+                    quantity: 1,
+                    power: 800,
+                    timeSlots: [{ start: 7, end: 8 }],
+                    hours: [7],
+                    hoursPerDay: 1.0,
+                    timeDisplay: '07:00–08:00',
+                    daysPerMonth: 30,
+                    monthsPerYear: 12
+                },
+                {
+                    id: 'c2-14',
+                    description: 'Selladora de bolsas',
+                    quantity: 1,
+                    power: 300,
+                    timeSlots: [{ start: 14, end: 15 }],
+                    hours: [14],
+                    hoursPerDay: 0.5,
+                    timeDisplay: '14:00–14:30',
+                    daysPerMonth: 26,
+                    monthsPerYear: 12
+                },
+                {
+                    id: 'c2-15',
+                    description: 'Cargadores de celulares',
+                    quantity: 3,
+                    power: 10,
+                    timeSlots: [{ start: 18, end: 20 }],
+                    hours: [18, 19],
+                    hoursPerDay: 2.0,
+                    timeDisplay: '18:00–20:00',
+                    daysPerMonth: 30,
+                    monthsPerYear: 12
+                }
+            ],
+
+            // Reto 02: Dimensionamiento con Parámetros Fijos Certificados (PVGIS Villavicencio)
+            sizing: {
+                lat: 4.127197,
+                lon: -73.636011,
+                tilt: 4,
+                azimuth: 180,
+                arrayType: 0,
+                losses: 0,
+                tmin: 11.9,
+                tambOp: 19.1,
+                vmaxSystem: 600,
+                solarProvider: 'pvgis',
+                availableArea: 100,
+                pr: 0.80,
+                solarResource: {
+                    source: 'PVGIS (Villavicencio - Certificado Fijo)',
+                    isFixedCase: true,
+                    isFallback: false,
+                    isCached: true,
+                    lat: 4.127197,
+                    lon: -73.636011,
+                    tilt: 4,
+                    azimuth: 180,
+                    annualHsp: 2.52,
+                    criticalMonthHsp: 2.33,
+                    criticalMonthIndex: 11, // Diciembre
+                    criticalMonthName: 'Diciembre',
+                    maxMonthHsp: 2.65,
+                    maxMonthIndex: 2, // Marzo
+                    maxMonthName: 'Marzo',
+                    monthlyHsp: [2.34, 2.59, 2.65, 2.65, 2.61, 2.42, 2.43, 2.52, 2.49, 2.63, 2.55, 2.33],
+                    notes: 'Recurso solar promedio PVGIS para Villavicencio (4.127197°, -73.636011°). Datos fijos de caso de estudio.'
+                }
+            }
         },
 
         'caso-3': {
             id: 'caso-3',
-            name: 'Caso 3',
+            name: 'Caso 3: Casa familiar de siete personas - Bogotá D. C.',
             shortName: 'Caso 3',
+            description: 'Casa familiar de siete personas - Bogotá D. C. (4.669660°, -74.119860°)',
             isPreset: true,
-            isPlaceholder: true,
-            notes: 'Pendiente por definir'
+            isPlaceholder: false,
+
+            // Reto 01: Información del Proyecto
+            project: {
+                name: 'Casa familiar de siete personas',
+                id: 'C-3',
+                members: 'Carlos Forero, Sebastián Martínez, Esteban Romero, Mario Celedón',
+                date: '2026-10-04',
+                installationType: 'residential',
+                systemType: 'hybrid-on-grid'
+            },
+
+            // Reto 01: Configuración Día / Noche y Tarifaria
+            config: {
+                dayStart: 6,
+                dayEnd: 16, // Inicio de la noche: 16:00
+                daysPerMonth: 30,
+                monthsPerYear: 12,
+                unitCost: 850 // 850 COP/kWh
+            },
+
+            // Reto 01: 17 Cargas del Caso 3
+            loads: [
+                {
+                    id: 'c3-1',
+                    description: 'Refrigerador familiar',
+                    quantity: 1,
+                    power: 180,
+                    timeSlots: [{ start: 0, end: 0 }],
+                    hours: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23],
+                    hoursPerDay: 8.0,
+                    timeDisplay: '00:00–24:00',
+                    daysPerMonth: 30,
+                    monthsPerYear: 12
+                },
+                {
+                    id: 'c3-2',
+                    description: 'Congelador pequeño',
+                    quantity: 1,
+                    power: 120,
+                    timeSlots: [{ start: 0, end: 0 }],
+                    hours: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23],
+                    hoursPerDay: 6.0,
+                    timeDisplay: '00:00–24:00',
+                    daysPerMonth: 30,
+                    monthsPerYear: 12
+                },
+                {
+                    id: 'c3-3',
+                    description: 'Luces LED interiores',
+                    quantity: 14,
+                    power: 9,
+                    timeSlots: [{ start: 5, end: 6 }, { start: 18, end: 22 }],
+                    hours: [5, 18, 19, 20, 21],
+                    hoursPerDay: 5.0,
+                    timeDisplay: '05:00–06:00, 18:00–22:00',
+                    daysPerMonth: 30,
+                    monthsPerYear: 12
+                },
+                {
+                    id: 'c3-4',
+                    description: 'Luces exteriores',
+                    quantity: 3,
+                    power: 12,
+                    timeSlots: [{ start: 0, end: 5 }, { start: 18, end: 0 }],
+                    hours: [0, 1, 2, 3, 4, 18, 19, 20, 21, 22, 23],
+                    hoursPerDay: 12.0,
+                    timeDisplay: '00:00–05:00, 18:00–24:00',
+                    daysPerMonth: 30,
+                    monthsPerYear: 12
+                },
+                {
+                    id: 'c3-5',
+                    description: 'Televisores LED',
+                    quantity: 2,
+                    power: 100,
+                    timeSlots: [{ start: 18, end: 22 }],
+                    hours: [18, 19, 20, 21],
+                    hoursPerDay: 4.0,
+                    timeDisplay: '18:00–22:00',
+                    daysPerMonth: 30,
+                    monthsPerYear: 12
+                },
+                {
+                    id: 'c3-6',
+                    description: 'Computadores portátiles',
+                    quantity: 3,
+                    power: 65,
+                    timeSlots: [{ start: 18, end: 22 }],
+                    hours: [18, 19, 20, 21],
+                    hoursPerDay: 4.0,
+                    timeDisplay: '18:00–22:00',
+                    daysPerMonth: 30,
+                    monthsPerYear: 12
+                },
+                {
+                    id: 'c3-7',
+                    description: 'Router Wi-Fi',
+                    quantity: 1,
+                    power: 15,
+                    timeSlots: [{ start: 0, end: 0 }],
+                    hours: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23],
+                    hoursPerDay: 24.0,
+                    timeDisplay: '00:00–24:00',
+                    daysPerMonth: 30,
+                    monthsPerYear: 12
+                },
+                {
+                    id: 'c3-8',
+                    description: 'Lavadora',
+                    quantity: 1,
+                    power: 500,
+                    timeSlots: [{ start: 9, end: 10 }],
+                    hours: [9],
+                    hoursPerDay: 1.0,
+                    timeDisplay: '09:00–10:00',
+                    daysPerMonth: 16,
+                    monthsPerYear: 12
+                },
+                {
+                    id: 'c3-9',
+                    description: 'Plancha',
+                    quantity: 1,
+                    power: 1200,
+                    timeSlots: [{ start: 10, end: 11 }],
+                    hours: [10],
+                    hoursPerDay: 0.5,
+                    timeDisplay: '10:00–10:30',
+                    daysPerMonth: 12,
+                    monthsPerYear: 12
+                },
+                {
+                    id: 'c3-10',
+                    description: 'Microondas',
+                    quantity: 1,
+                    power: 1200,
+                    timeSlots: [{ start: 6, end: 7 }],
+                    hours: [6],
+                    hoursPerDay: 0.5,
+                    timeDisplay: '06:00–06:30',
+                    daysPerMonth: 30,
+                    monthsPerYear: 12
+                },
+                {
+                    id: 'c3-11',
+                    description: 'Freidora de aire',
+                    quantity: 1,
+                    power: 1500,
+                    timeSlots: [{ start: 19, end: 20 }],
+                    hours: [19],
+                    hoursPerDay: 0.5,
+                    timeDisplay: '19:00–19:30',
+                    daysPerMonth: 20,
+                    monthsPerYear: 12
+                },
+                {
+                    id: 'c3-12',
+                    description: 'Licuadora',
+                    quantity: 1,
+                    power: 400,
+                    timeSlots: [{ start: 6, end: 7 }],
+                    hours: [6],
+                    hoursPerDay: 0.5,
+                    timeDisplay: '06:30–07:00',
+                    daysPerMonth: 30,
+                    monthsPerYear: 12
+                },
+                {
+                    id: 'c3-13',
+                    description: 'Cafetera',
+                    quantity: 1,
+                    power: 800,
+                    timeSlots: [{ start: 5, end: 6 }],
+                    hours: [5],
+                    hoursPerDay: 0.5,
+                    timeDisplay: '05:30–06:00',
+                    daysPerMonth: 30,
+                    monthsPerYear: 12
+                },
+                {
+                    id: 'c3-14',
+                    description: 'Cargadores de celulares',
+                    quantity: 7,
+                    power: 10,
+                    timeSlots: [{ start: 20, end: 22 }],
+                    hours: [20, 21],
+                    hoursPerDay: 2.0,
+                    timeDisplay: '20:00–22:00',
+                    daysPerMonth: 30,
+                    monthsPerYear: 12
+                },
+                {
+                    id: 'c3-15',
+                    description: 'Bomba de agua',
+                    quantity: 1,
+                    power: 370,
+                    timeSlots: [{ start: 6, end: 7 }],
+                    hours: [6],
+                    hoursPerDay: 0.5,
+                    timeDisplay: '06:30–07:00',
+                    daysPerMonth: 30,
+                    monthsPerYear: 12
+                },
+                {
+                    id: 'c3-16',
+                    description: 'Consola de videojuegos',
+                    quantity: 1,
+                    power: 120,
+                    timeSlots: [{ start: 19, end: 21 }],
+                    hours: [19, 20],
+                    hoursPerDay: 2.0,
+                    timeDisplay: '19:00–21:00',
+                    daysPerMonth: 20,
+                    monthsPerYear: 12
+                },
+                {
+                    id: 'c3-17',
+                    description: 'Aspiradora',
+                    quantity: 1,
+                    power: 900,
+                    timeSlots: [{ start: 11, end: 12 }],
+                    hours: [11],
+                    hoursPerDay: 0.5,
+                    timeDisplay: '11:00–11:30',
+                    daysPerMonth: 8,
+                    monthsPerYear: 12
+                }
+            ],
+
+            // Reto 02: Dimensionamiento con Parámetros Fijos Certificados (PVGIS Bogotá)
+            sizing: {
+                lat: 4.669660,
+                lon: -74.119860,
+                tilt: 6,
+                azimuth: -25,
+                arrayType: 0,
+                losses: 0,
+                tmin: 9.6,
+                tambOp: 18.9,
+                vmaxSystem: 600,
+                solarProvider: 'pvgis',
+                availableArea: 80,
+                pr: 0.80,
+                solarResource: {
+                    source: 'PVGIS (Bogotá D. C. - Certificado Fijo)',
+                    isFixedCase: true,
+                    isFallback: false,
+                    isCached: true,
+                    lat: 4.669660,
+                    lon: -74.119860,
+                    tilt: 6,
+                    azimuth: -25,
+                    annualHsp: 4.54,
+                    criticalMonthHsp: 3.99,
+                    criticalMonthIndex: 3, // Abril
+                    criticalMonthName: 'Abril',
+                    maxMonthHsp: 5.31,
+                    maxMonthIndex: 0, // Enero
+                    maxMonthName: 'Enero',
+                    monthlyHsp: [5.31, 5.20, 4.44, 3.99, 4.10, 4.41, 4.47, 4.44, 4.41, 4.42, 4.38, 4.91],
+                    notes: 'Recurso solar promedio PVGIS para Bogotá D. C. (4.669660°, -74.119860°). Datos fijos de caso de estudio.'
+                }
+            }
+        },
+
+        'caso-4': {
+            id: 'caso-4',
+            name: 'Caso 4: Colegio de jornada diurna - Barranquilla',
+            shortName: 'Caso 4',
+            description: 'Colegio de jornada diurna - Barranquilla, Atlántico (10.932840°, -74.778010°)',
+            isPreset: true,
+            isPlaceholder: false,
+
+            // Reto 01: Información del Proyecto
+            project: {
+                name: 'Colegio de jornada diurna',
+                id: 'C-4',
+                members: 'Carlos Forero, Sebastián Martínez, Esteban Romero, Mario Celedón',
+                date: '2026-10-04',
+                installationType: 'residential',
+                systemType: 'on-grid'
+            },
+
+            // Reto 01: Configuración Día / Noche y Tarifaria
+            config: {
+                dayStart: 6,
+                dayEnd: 16, // Inicio de la noche: 16:00
+                daysPerMonth: 22,
+                monthsPerYear: 10,
+                unitCost: 950 // 950 COP/kWh
+            },
+
+            // Reto 01: 15 Cargas del Caso 4
+            loads: [
+                {
+                    id: 'c4-1',
+                    description: 'Luces LED de aulas',
+                    quantity: 48,
+                    power: 18,
+                    timeSlots: [{ start: 7, end: 15 }],
+                    hours: [7, 8, 9, 10, 11, 12, 13, 14],
+                    hoursPerDay: 8.0,
+                    timeDisplay: '07:00–15:00',
+                    daysPerMonth: 22,
+                    monthsPerYear: 10
+                },
+                {
+                    id: 'c4-2',
+                    description: 'Luces LED de oficinas',
+                    quantity: 12,
+                    power: 18,
+                    timeSlots: [{ start: 7, end: 15 }],
+                    hours: [7, 8, 9, 10, 11, 12, 13, 14],
+                    hoursPerDay: 8.0,
+                    timeDisplay: '07:00–15:00',
+                    daysPerMonth: 22,
+                    monthsPerYear: 10
+                },
+                {
+                    id: 'c4-3',
+                    description: 'Ventiladores de aulas',
+                    quantity: 24,
+                    power: 70,
+                    timeSlots: [{ start: 8, end: 15 }],
+                    hours: [8, 9, 10, 11, 12, 13, 14],
+                    hoursPerDay: 7.0,
+                    timeDisplay: '08:00–15:00',
+                    daysPerMonth: 22,
+                    monthsPerYear: 10
+                },
+                {
+                    id: 'c4-4',
+                    description: 'Aire acondicionado de informática',
+                    quantity: 2,
+                    power: 1500,
+                    timeSlots: [{ start: 8, end: 14 }],
+                    hours: [8, 9, 10, 11, 12, 13],
+                    hoursPerDay: 6.0,
+                    timeDisplay: '08:00–14:00',
+                    daysPerMonth: 22,
+                    monthsPerYear: 10
+                },
+                {
+                    id: 'c4-5',
+                    description: 'Computadores de informática',
+                    quantity: 24,
+                    power: 180,
+                    timeSlots: [{ start: 8, end: 12 }],
+                    hours: [8, 9, 10, 11],
+                    hoursPerDay: 4.0,
+                    timeDisplay: '08:00–12:00',
+                    daysPerMonth: 22,
+                    monthsPerYear: 10
+                },
+                {
+                    id: 'c4-6',
+                    description: 'Computadores administrativos',
+                    quantity: 5,
+                    power: 150,
+                    timeSlots: [{ start: 7, end: 15 }],
+                    hours: [7, 8, 9, 10, 11, 12, 13, 14],
+                    hoursPerDay: 8.0,
+                    timeDisplay: '07:00–15:00',
+                    daysPerMonth: 22,
+                    monthsPerYear: 10
+                },
+                {
+                    id: 'c4-7',
+                    description: 'Videoproyectores',
+                    quantity: 4,
+                    power: 250,
+                    timeSlots: [{ start: 9, end: 12 }],
+                    hours: [9, 10, 11],
+                    hoursPerDay: 3.0,
+                    timeDisplay: '09:00–12:00',
+                    daysPerMonth: 22,
+                    monthsPerYear: 10
+                },
+                {
+                    id: 'c4-8',
+                    description: 'Impresora multifunción',
+                    quantity: 1,
+                    power: 500,
+                    timeSlots: [{ start: 10, end: 11 }],
+                    hours: [10],
+                    hoursPerDay: 0.5,
+                    timeDisplay: '10:00–10:30',
+                    daysPerMonth: 22,
+                    monthsPerYear: 10
+                },
+                {
+                    id: 'c4-9',
+                    description: 'Router y red',
+                    quantity: 2,
+                    power: 15,
+                    timeSlots: [{ start: 6, end: 16 }],
+                    hours: [6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
+                    hoursPerDay: 10.0,
+                    timeDisplay: '06:00–16:00',
+                    daysPerMonth: 22,
+                    monthsPerYear: 10
+                },
+                {
+                    id: 'c4-10',
+                    description: 'Equipo de sonido',
+                    quantity: 1,
+                    power: 150,
+                    timeSlots: [{ start: 7, end: 8 }],
+                    hours: [7],
+                    hoursPerDay: 1.0,
+                    timeDisplay: '07:00–08:00',
+                    daysPerMonth: 22,
+                    monthsPerYear: 10
+                },
+                {
+                    id: 'c4-11',
+                    description: 'Bomba de agua',
+                    quantity: 1,
+                    power: 750,
+                    timeSlots: [{ start: 6, end: 7 }, { start: 13, end: 14 }],
+                    hours: [6, 13],
+                    hoursPerDay: 1.0,
+                    timeDisplay: '06:00–06:30, 13:00–13:30',
+                    daysPerMonth: 22,
+                    monthsPerYear: 10
+                },
+                {
+                    id: 'c4-12',
+                    description: 'Refrigerador de cafetería',
+                    quantity: 1,
+                    power: 180,
+                    timeSlots: [{ start: 7, end: 15 }],
+                    hours: [7, 8, 9, 10, 11, 12, 13, 14],
+                    hoursPerDay: 3.0,
+                    timeDisplay: '07:00–15:00',
+                    daysPerMonth: 22,
+                    monthsPerYear: 10
+                },
+                {
+                    id: 'c4-13',
+                    description: 'Dispensador de agua fría',
+                    quantity: 2,
+                    power: 100,
+                    timeSlots: [{ start: 7, end: 15 }],
+                    hours: [7, 8, 9, 10, 11, 12, 13, 14],
+                    hoursPerDay: 2.0,
+                    timeDisplay: '07:00–15:00',
+                    daysPerMonth: 22,
+                    monthsPerYear: 10
+                },
+                {
+                    id: 'c4-14',
+                    description: 'Luces exteriores',
+                    quantity: 6,
+                    power: 20,
+                    timeSlots: [{ start: 6, end: 7 }, { start: 18, end: 19 }],
+                    hours: [6, 18],
+                    hoursPerDay: 2.0,
+                    timeDisplay: '06:00–07:00, 18:00–19:00',
+                    daysPerMonth: 22,
+                    monthsPerYear: 10
+                },
+                {
+                    id: 'c4-15',
+                    description: 'Cargadores de portátiles',
+                    quantity: 8,
+                    power: 65,
+                    timeSlots: [{ start: 10, end: 12 }],
+                    hours: [10, 11],
+                    hoursPerDay: 2.0,
+                    timeDisplay: '10:00–12:00',
+                    daysPerMonth: 22,
+                    monthsPerYear: 10
+                }
+            ],
+
+            // Reto 02: Dimensionamiento con Parámetros Fijos Certificados (PVGIS Barranquilla)
+            sizing: {
+                lat: 10.932840,
+                lon: -74.778010,
+                tilt: 14,
+                azimuth: -12,
+                arrayType: 0,
+                losses: 0,
+                tmin: 23.0,
+                tambOp: 28.2,
+                vmaxSystem: 600,
+                solarProvider: 'pvgis',
+                availableArea: 250,
+                pr: 0.80,
+                solarResource: {
+                    source: 'PVGIS (Barranquilla - Certificado Fijo)',
+                    isFixedCase: true,
+                    isFallback: false,
+                    isCached: true,
+                    lat: 10.932840,
+                    lon: -74.778010,
+                    tilt: 14,
+                    azimuth: -12,
+                    annualHsp: 5.72,
+                    criticalMonthHsp: 4.87,
+                    criticalMonthIndex: 9, // Octubre
+                    criticalMonthName: 'Octubre',
+                    maxMonthHsp: 7.07,
+                    maxMonthIndex: 1, // Febrero
+                    maxMonthName: 'Febrero',
+                    monthlyHsp: [6.83, 7.07, 6.58, 5.78, 5.14, 5.12, 5.42, 5.25, 5.18, 4.87, 5.20, 6.21],
+                    notes: 'Recurso solar promedio PVGIS para Barranquilla (10.932840°, -74.778010°). Datos fijos de caso de estudio.'
+                }
+            }
+        },
+
+        'caso-5': {
+            id: 'caso-5',
+            name: 'Caso 5: Finca lechera con bombeo - Pasto, Nariño',
+            shortName: 'Caso 5',
+            description: 'Finca lechera con bombeo - Pasto, Nariño (1.158028°, -77.276472°)',
+            isPreset: true,
+            isPlaceholder: false,
+
+            // Reto 01: Información del Proyecto
+            project: {
+                name: 'Finca lechera con bombeo',
+                id: 'C-5',
+                members: 'Carlos Forero, Sebastián Martínez, Esteban Romero, Mario Celedón',
+                date: '2026-10-04',
+                installationType: 'residential',
+                systemType: 'off-grid'
+            },
+
+            // Reto 01: Configuración Día / Noche y Tarifaria
+            config: {
+                dayStart: 6,
+                dayEnd: 16, // Inicio de la noche: 16:00
+                daysPerMonth: 30,
+                monthsPerYear: 12,
+                unitCost: 800 // 800 COP/kWh
+            },
+
+            // Reto 01: 15 Cargas del Caso 5
+            loads: [
+                {
+                    id: 'c5-1',
+                    description: 'Bomba de vacío de ordeño',
+                    quantity: 1,
+                    power: 1100,
+                    timeSlots: [{ start: 4, end: 5.5 }, { start: 16, end: 17.5 }],
+                    hours: [4, 16],
+                    hoursPerDay: 3.0,
+                    timeDisplay: '04:00–05:30, 16:00–17:30',
+                    daysPerMonth: 30,
+                    monthsPerYear: 12
+                },
+                {
+                    id: 'c5-2',
+                    description: 'Compresor de tanque de leche',
+                    quantity: 1,
+                    power: 900,
+                    timeSlots: [{ start: 0, end: 0 }],
+                    hours: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23],
+                    hoursPerDay: 8.0,
+                    timeDisplay: '00:00–24:00',
+                    daysPerMonth: 30,
+                    monthsPerYear: 12
+                },
+                {
+                    id: 'c5-3',
+                    description: 'Agitador del tanque de leche',
+                    quantity: 1,
+                    power: 100,
+                    timeSlots: [{ start: 5.5, end: 7.5 }, { start: 17.5, end: 19.5 }],
+                    hours: [5, 6, 7, 17, 18, 19],
+                    hoursPerDay: 4.0,
+                    timeDisplay: '05:30–07:30, 17:30–19:30',
+                    daysPerMonth: 30,
+                    monthsPerYear: 12
+                },
+                {
+                    id: 'c5-4',
+                    description: 'Bomba de pozo',
+                    quantity: 1,
+                    power: 1500,
+                    timeSlots: [{ start: 10, end: 12 }],
+                    hours: [10, 11],
+                    hoursPerDay: 2.0,
+                    timeDisplay: '10:00–12:00',
+                    daysPerMonth: 30,
+                    monthsPerYear: 12
+                },
+                {
+                    id: 'c5-5',
+                    description: 'Bomba de riego',
+                    quantity: 1,
+                    power: 1100,
+                    timeSlots: [{ start: 12, end: 14 }],
+                    hours: [12, 13],
+                    hoursPerDay: 2.0,
+                    timeDisplay: '12:00–14:00',
+                    daysPerMonth: 20,
+                    monthsPerYear: 8
+                },
+                {
+                    id: 'c5-6',
+                    description: 'Luces LED de sala de ordeño',
+                    quantity: 8,
+                    power: 18,
+                    timeSlots: [{ start: 4, end: 6 }, { start: 18, end: 19 }],
+                    hours: [4, 5, 18],
+                    hoursPerDay: 3.0,
+                    timeDisplay: '04:00–06:00, 18:00–19:00',
+                    daysPerMonth: 30,
+                    monthsPerYear: 12
+                },
+                {
+                    id: 'c5-7',
+                    description: 'Luces exteriores',
+                    quantity: 4,
+                    power: 20,
+                    timeSlots: [{ start: 0, end: 6 }, { start: 18, end: 0 }],
+                    hours: [0, 1, 2, 3, 4, 5, 18, 19, 20, 21, 22, 23],
+                    hoursPerDay: 12.0,
+                    timeDisplay: '00:00–06:00, 18:00–24:00',
+                    daysPerMonth: 30,
+                    monthsPerYear: 12
+                },
+                {
+                    id: 'c5-8',
+                    description: 'Cerca eléctrica',
+                    quantity: 1,
+                    power: 10,
+                    timeSlots: [{ start: 0, end: 0 }],
+                    hours: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23],
+                    hoursPerDay: 24.0,
+                    timeDisplay: '00:00–24:00',
+                    daysPerMonth: 30,
+                    monthsPerYear: 12
+                },
+                {
+                    id: 'c5-9',
+                    description: 'Router de comunicaciones',
+                    quantity: 1,
+                    power: 15,
+                    timeSlots: [{ start: 0, end: 0 }],
+                    hours: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23],
+                    hoursPerDay: 24.0,
+                    timeDisplay: '00:00–24:00',
+                    daysPerMonth: 30,
+                    monthsPerYear: 12
+                },
+                {
+                    id: 'c5-10',
+                    description: 'Cámaras y grabador',
+                    quantity: 1,
+                    power: 30,
+                    timeSlots: [{ start: 0, end: 0 }],
+                    hours: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23],
+                    hoursPerDay: 24.0,
+                    timeDisplay: '00:00–24:00',
+                    daysPerMonth: 30,
+                    monthsPerYear: 12
+                },
+                {
+                    id: 'c5-11',
+                    description: 'Hidrolavadora',
+                    quantity: 1,
+                    power: 1600,
+                    timeSlots: [{ start: 8, end: 9 }],
+                    hours: [8],
+                    hoursPerDay: 0.5,
+                    timeDisplay: '08:00–08:30',
+                    daysPerMonth: 30,
+                    monthsPerYear: 12
+                },
+                {
+                    id: 'c5-12',
+                    description: 'Picadora de forraje',
+                    quantity: 1,
+                    power: 2200,
+                    timeSlots: [{ start: 9, end: 10 }],
+                    hours: [9],
+                    hoursPerDay: 1.0,
+                    timeDisplay: '09:00–10:00',
+                    daysPerMonth: 26,
+                    monthsPerYear: 12
+                },
+                {
+                    id: 'c5-13',
+                    description: 'Herramientas eléctricas',
+                    quantity: 1,
+                    power: 600,
+                    timeSlots: [{ start: 14, end: 15 }],
+                    hours: [14],
+                    hoursPerDay: 0.5,
+                    timeDisplay: '14:00–14:30',
+                    daysPerMonth: 8,
+                    monthsPerYear: 12
+                },
+                {
+                    id: 'c5-14',
+                    description: 'Cargadores de celulares',
+                    quantity: 3,
+                    power: 10,
+                    timeSlots: [{ start: 18, end: 20 }],
+                    hours: [18, 19],
+                    hoursPerDay: 2.0,
+                    timeDisplay: '18:00–20:00',
+                    daysPerMonth: 30,
+                    monthsPerYear: 12
+                },
+                {
+                    id: 'c5-15',
+                    description: 'Computador portátil',
+                    quantity: 1,
+                    power: 65,
+                    timeSlots: [{ start: 19, end: 21 }],
+                    hours: [19, 20],
+                    hoursPerDay: 2.0,
+                    timeDisplay: '19:00–21:00',
+                    daysPerMonth: 26,
+                    monthsPerYear: 12
+                }
+            ],
+
+            // Reto 02: Dimensionamiento con Parámetros Fijos Certificados (PVGIS Pasto)
+            sizing: {
+                lat: 1.158028,
+                lon: -77.276472,
+                tilt: 0,
+                azimuth: 0,
+                arrayType: 0,
+                losses: 0,
+                tmin: 6.2,
+                tambOp: 13.3,
+                vmaxSystem: 600,
+                solarProvider: 'pvgis',
+                availableArea: 150,
+                pr: 0.80,
+                solarResource: {
+                    source: 'PVGIS (Pasto - Certificado Fijo)',
+                    isFixedCase: true,
+                    isFallback: false,
+                    isCached: true,
+                    lat: 1.158028,
+                    lon: -77.276472,
+                    tilt: 0,
+                    azimuth: 0,
+                    annualHsp: 4.12,
+                    criticalMonthHsp: 3.95,
+                    criticalMonthIndex: 2, // Marzo
+                    criticalMonthName: 'Marzo',
+                    maxMonthHsp: 4.45,
+                    maxMonthIndex: 9, // Octubre
+                    maxMonthName: 'Octubre',
+                    monthlyHsp: [4.13, 4.00, 3.95, 4.10, 4.16, 4.00, 4.06, 4.04, 4.05, 4.45, 4.44, 4.08],
+                    notes: 'Recurso solar promedio PVGIS para Pasto, Nariño (1.158028°, -77.276472°). Datos fijos de caso de estudio.'
+                }
+            }
         },
 
         'custom': {
@@ -254,6 +1248,8 @@ const CASES_DB = {
         if (id === 'santa-marta') id = 'caso-1';
         if (id === 'barranquilla') id = 'caso-2';
         if (id === 'medellin') id = 'caso-3';
+        if (id === 'bogota') id = 'caso-4';
+        if (id === 'pasto') id = 'caso-5';
         return this.cases[id] || null;
     }
 };
@@ -268,6 +1264,8 @@ function loadCase(rawCaseId, options = {}) {
     if (caseId === 'santa-marta') caseId = 'caso-1';
     if (caseId === 'barranquilla') caseId = 'caso-2';
     if (caseId === 'medellin') caseId = 'caso-3';
+    if (caseId === 'bogota') caseId = 'caso-4';
+    if (caseId === 'pasto') caseId = 'caso-5';
 
     const caseData = CASES_DB.getById(caseId);
     if (!caseData) return;
@@ -282,7 +1280,7 @@ function loadCase(rawCaseId, options = {}) {
     // 1. Sincronizar botones activos en toda la aplicación
     document.querySelectorAll('.dim-case-btn').forEach(btn => {
         const c = btn.dataset.case;
-        const isActive = (c === caseId) || (caseId === 'caso-1' && c === 'santa-marta');
+        const isActive = (c === caseId) || (caseId === 'caso-1' && c === 'santa-marta') || (caseId === 'caso-2' && c === 'barranquilla') || (caseId === 'caso-3' && c === 'medellin') || (caseId === 'caso-4' && c === 'bogota') || (caseId === 'caso-5' && c === 'pasto');
         btn.classList.toggle('active', isActive);
     });
 
@@ -359,11 +1357,14 @@ function loadCase(rawCaseId, options = {}) {
         s.tambOp = caseData.sizing.tambOp;
         s.vmaxSystem = caseData.sizing.vmaxSystem || 1000;
 
-        if (caseData.sizing.availableArea && (!s.availableArea || s.availableArea === 20)) {
+        if (caseData.sizing.availableArea) {
             s.availableArea = caseData.sizing.availableArea;
         }
         if (caseData.sizing.pr) {
             s.pr = caseData.sizing.pr;
+        }
+        if (caseData.sizing.solarProvider && typeof setSolarProvider === 'function') {
+            setSolarProvider(caseData.sizing.solarProvider);
         }
 
         // Asignar recurso solar certificado directamente (evita dependencias de red o fallas externas)

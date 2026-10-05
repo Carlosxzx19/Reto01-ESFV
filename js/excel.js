@@ -41,8 +41,8 @@ function exportExcel() {
         const totalPower = load.quantity * load.power;
         const hours = load.hours || computeHoursFromSlots(load.timeSlots || []);
         const classification = classifyLoad(hours);
-        const hoursDisplay = formatHourRanges(hours);
-        const hoursPerDay = hours.length;
+        const hoursDisplay = load.timeDisplay || formatHourRanges(hours);
+        const hoursPerDay = (load.hoursPerDay !== undefined && load.hoursPerDay !== null) ? load.hoursPerDay : hours.length;
         const dpm = load.daysPerMonth || APP.state.config.daysPerMonth;
         const mpy = load.monthsPerYear || APP.state.config.monthsPerYear;
 
