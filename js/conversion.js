@@ -354,7 +354,8 @@ const CONVERSION_CALC = {
         const effInv = Math.max(0.01, inputs.inverterEfficiency);
         const edCCWh = inputs.edWh / effInv; // Wh/día en CC
         const days = Math.max(0.1, inputs.autonomyDays);
-        const dod = Math.max(0.01, Math.min(1.0, inputs.dodDesign || bat.dod || 0.50));
+        // Cada batería se dimensiona según su DoD de diseño de catálogo/especificación técnica (bat.dod)
+        const dod = Math.max(0.01, Math.min(1.0, inputs.overrideDod || (bat && Number.isFinite(bat.dod) ? bat.dod : (inputs.dodDesign || 0.50))));
         const ft = Math.max(0.01, Math.min(1.0, inputs.tempFactor));
 
         // Capacidad nominal requerida
@@ -456,6 +457,7 @@ const CONVERSION_CALC = {
             battery: bat,
             verdict,
             failureReasons,
+            dodDesign: dod,
             edCCWh,
             cnWh,
             cnAh,
@@ -543,7 +545,7 @@ window.CONVERSION = {
                 ns: b.nsBat,
                 np: b.npBat,
                 totalUnits: b.totalBatteries,
-                cUsefulAh: b.ahInst * (inp.dodDesign || b.battery.dod || 0.5),
+                cUsefulAh: b.ahInst * (b.dodDesign || b.battery.dod || 0.5),
                 cInstalledAh: b.ahInst,
                 eInstalledKwh: b.kwhInst,
                 dodFinal: b.dodFin * 100,

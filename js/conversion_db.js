@@ -4,7 +4,7 @@
    Predefined TdR reference items + Commercial AutoSolar models
    ═══════════════════════════════════════════════ */
 
-const CONVERSION_STORAGE_KEY = 'solarcalc-conversion-devices-v1';
+const CONVERSION_STORAGE_KEY = 'solarcalc-conversion-devices-v2';
 
 const DEFAULT_CONVERSION_DEVICES = {
     version: '1.0',
@@ -226,7 +226,7 @@ const DEFAULT_CONVERSION_DEVICES = {
             model: 'GEL 12V 250Ah',
             voltage: 12,
             ah: 250,
-            dod: 0.50,
+            dod: 0.95,
             roundTrip: 0.80,
             maxChargeC: 0.40,
             maxDischargeC: 0.50,
@@ -278,11 +278,16 @@ const CONVERSION_DB = {
 
     init() {
         try {
-            const raw = localStorage.getItem(CONVERSION_STORAGE_KEY);
+            let raw = localStorage.getItem(CONVERSION_STORAGE_KEY);
+            if (!raw) {
+                // Migrar desde v1 si existe
+                raw = localStorage.getItem('solarcalc-conversion-devices-v1');
+            }
             if (raw) {
                 const parsed = JSON.parse(raw);
                 if (Array.isArray(parsed.controllers) && Array.isArray(parsed.inverters) && Array.isArray(parsed.batteries)) {
                     this.devices = this._mergeWithDefaults(parsed);
+                    this.save();
                     return;
                 }
             }
@@ -290,6 +295,7 @@ const CONVERSION_DB = {
             console.warn('Error reading conversion catalog from localStorage:', e);
         }
         this.devices = JSON.parse(JSON.stringify(DEFAULT_CONVERSION_DEVICES));
+        this.save();
     },
 
     _mergeWithDefaults(saved) {
@@ -300,6 +306,16 @@ const CONVERSION_DB = {
             savedList.forEach(savedItem => {
                 const existingIdx = merged[category].findIndex(d => d.id === savedItem.id);
                 if (existingIdx !== -1) {
+                    // Correcciones de integridad técnica para especificaciones oficiales
+                    if (savedItem.id === 'BAT-2' && savedItem.dod === 0.50) {
+                        savedItem.dod = 0.95;
+                    }
+                    if (savedItem.id === 'LFP' && savedItem.dod !== 0.80) {
+                        savedItem.dod = 0.80;
+                    }
+                    if ((savedItem.id === 'BAT-3' || savedItem.id === 'BAT-4') && savedItem.dod === 0.50) {
+                        savedItem.dod = 0.95;
+                    }
                     merged[category][existingIdx] = { ...merged[category][existingIdx], ...savedItem };
                 } else {
                     merged[category].push(savedItem);

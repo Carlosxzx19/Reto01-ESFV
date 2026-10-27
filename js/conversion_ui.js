@@ -518,7 +518,7 @@
                     </td>
                     <td style="white-space: nowrap;">
                         <div style="font-size: 0.8rem; font-weight: 700; color: ${be.dodExceeded ? 'var(--warning)' : 'var(--success)'};">
-                            DoD: ${num(be.dodFin * 100, 1)}% <span style="font-size: 0.72rem; font-weight: 500; color: var(--text-muted);">(Diseño ${Math.round((inputs.dodDesign || 0.5) * 100)}%)</span>
+                            DoD: ${num(be.dodFin * 100, 1)}% <span style="font-size: 0.72rem; font-weight: 500; color: var(--text-muted);">(Diseño ${Math.round((be.dodDesign || bat.dod || inputs.dodDesign || 0.5) * 100)}%)</span>
                         </div>
                         <div style="font-size: 0.74rem; color: ${be.chargeRateOk ? 'var(--text-secondary)' : 'var(--error)'}; font-weight: 600; margin-top: 0.15rem;">
                             Carga: ${num(be.cCharge, 3)} C <span style="font-size: 0.72rem; font-weight: 500; color: var(--text-muted);">(Máx ${bat.maxChargeC || 0.20}C)</span>
@@ -598,7 +598,7 @@
                     <div class="kpi-info">
                         <span class="kpi-label">DoD al Fin de Autonomía</span>
                         <span class="kpi-value" style="color: ${active.dodExceeded ? 'var(--warning)' : 'var(--success)'};">${num(active.dodFin * 100, 1)} %</span>
-                        <small>Diseño: ${Math.round(inputs.dodDesign * 100)}% | Diario: ${num(active.dodDiario * 100, 1)}%</small>
+                        <small>Diseño: ${Math.round((active.dodDesign || active.battery.dod || inputs.dodDesign || 0.5) * 100)}% | Diario: ${num(active.dodDiario * 100, 1)}%</small>
                     </div>
                 </div>
             `;
@@ -1485,9 +1485,14 @@
         selectBattery: id => {
             if (window.APP?.state?.conversion) {
                 APP.state.conversion.selectedBatteryId = id;
+                const bat = window.CONVERSION_DB ? CONVERSION_DB.getBattery(id) : null;
+                if (bat && Number.isFinite(bat.dod)) {
+                    APP.state.conversion.dodDesign = bat.dod;
+                    const dodInput = document.getElementById('conv-dod');
+                    if (dodInput) dodInput.value = Math.round(bat.dod * 100);
+                }
                 renderConversion();
                 if (typeof showToast === 'function') {
-                    const bat = window.CONVERSION_DB ? CONVERSION_DB.getBattery(id) : null;
                     if (bat) showToast(`Batería seleccionada: ${bat.name}`, 'info');
                 }
             }

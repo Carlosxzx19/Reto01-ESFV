@@ -219,7 +219,7 @@
       "model": "GEL 12V 250Ah",
       "voltage": 12,
       "ah": 250,
-      "dod": 0.50,
+      "dod": 0.95,
       "roundTrip": 0.80,
       "maxChargeC": 0.40,
       "maxDischargeC": 0.50,
