@@ -1,5 +1,28 @@
 [
   {
+    "id": "san-andres",
+    "name": "Escenario Grupo A: San Andrés (Insular)",
+    "shortName": "Grupo A (San Andrés)",
+    "department": "Archipiélago de San Andrés",
+    "lat": 12.58,
+    "lon": -81.70,
+    "tilt": 13,
+    "azimuth": 0,
+    "annualHsp": 5.32,
+    "criticalMonthHsp": 4.75,
+    "criticalMonthIndex": 10,
+    "criticalMonthName": "Noviembre",
+    "maxMonthHsp": 6.15,
+    "maxMonthIndex": 2,
+    "maxMonthName": "Marzo",
+    "monthlyHsp": [5.25, 5.70, 6.15, 5.95, 5.40, 5.10, 5.30, 5.35, 5.15, 4.80, 4.75, 4.90],
+    "tmin": 22.0,
+    "tambOp": 31.0,
+    "source": "PVGIS-SARAH2 / IDEAM Insular (Contingencia Local)",
+    "consultationDate": "2026-10-27",
+    "notes": "Vivienda Residencial San Andrés (12.58° N, 81.70° O). Segunda fuente NASA POWER: 5.48 kWh/m²·día (|Δ| = 3.01% <= ±15%)."
+  },
+  {
     "id": "nazareth-guajira",
     "name": "(Referencia)",
     "shortName": "(Referencia)",

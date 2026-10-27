@@ -324,3 +324,75 @@ La solución está construida bajo una arquitectura web moderna y desacoplada:
   - *NASA POWER API* para climatología histórica satelital.
   - *NREL PVWatts v8* para simulación solar alternativa.
 - **Despliegue en la Nube:** Preparado para despliegue sin servidor en **Vercel** (`vercel.json` y `api/pvgis.js`), garantizando HTTPS estricto y resolución de políticas de CORS sin restricciones de origen.
+
+---
+
+## 6. Reto 03: Conversión y Almacenamiento
+
+La **Etapa 3** cubre el acondicionamiento de potencia eléctrica, la regulación de carga y el almacenamiento electroquímico bajo dos ramas operativas:
+
+### 6.1 Rama con Almacenamiento (Off-Grid / Aislado / Híbrido)
+- **Comparador Interactivo de Reguladores MPPT e Inversores Híbridos:** Evalúa la tensión máxima de entrada $V_{oc}(T_{min})$, el rango de arranque MPPT $[V_{mppt,min}, V_{mppt,max}]$ y la corriente máxima de carga hacia la batería. Los inversores híbridos (INV-1, INV-2 e INV-3) están integrados en el catálogo de almacenamiento.
+- **Dimensionamiento de Baterías (GEL, AGM, Litio LFP):**
+  - Capacidad nominal requerida en Ah y kWh útiles.
+  - Configuración serie/paralelo ($N_s \times N_p$) adaptada a la tensión de bus (12V, 24V o 48V).
+  - Profundidad de descarga real ($DoD_{fin}$) ante la demanda nocturna.
+  - Verificación de tasas de carga ($C$-rate de recarga solar) y descarga ($C$-rate ante $P_{max}$).
+  - Tiempo de recuperación ($T_{rec}$) del banco con el excedente solar diario.
+  - Diagrama visual dinámico con conexiones serie/paralelo y rotulado de terminales.
+- **Balance Energético de Cierre:** Cálculo del superávit o déficit del generador para recuperar el banco en $\le 3$ días, con sugerencia automática de módulos adicionales ($\Delta N$).
+
+### 6.2 Rama sin Almacenamiento (On-Grid / Conectado a Red)
+- **Comparador de Inversores de Conexión a Red:**
+  - Verificación de ventana MPPT en frío y caliente.
+  - Relación $DC/AC$ ($P_{dc,gen} / P_{ac,inv}$) con umbrales recomendados de $1,0$ a $1,35$ para prevenir sobrecargas o recortes excesivos (*clipping*).
+  - Cumplimiento de corrientes de entrada según la NTC 2050 Sección 690-8.
+
+---
+
+## 7. Reto 04: Cierre del Sistema, Ficha Técnica y Escenario Grupo A
+
+La **Etapa 4** consolida la entrega final de ingeniería según las especificaciones del periodo 2026-II:
+
+### 7.1 Escenario Oficial del Grupo A (San Andrés Isla)
+- **Ubicación:** $12,58^\circ\text{ N}, 81,70^\circ\text{ O}$ (Archipiélago de San Andrés, Providencia y Santa Catalina).
+- **Régimen:** Conectado a Red (On-Grid) con tarifa regulada de **$1.200 COP/kWh** (SOPESA).
+- **Área Disponible:** $30\text{ m}^2$ en cubierta.
+- **8 Cargas Obligatorias:**
+  - $P_{inst} = 2.530\text{ W}$
+  - $E_d = 12.865\text{ Wh/día}$ ($5.390\text{ Wh}$ diurna en ventana solar 06–18 h y $7.475\text{ Wh}$ nocturna).
+  - $P_{max} = 1.215\text{ W}$ a las 22:00–23:00 h (con desempate horario automático).
+- **Carga Inductiva Crítica:** Bomba de agua de cisterna de 0,5 HP ($600\text{ W}$ nominales, arranque $\sim 1.800\text{ W}$).
+
+### 7.2 Justificación Técnica del Transitorio de Arranque (Bomba 0,5 HP)
+- **Modo On-Grid (Oficial):** La red pública de SOPESA actúa como bus de impedancia despreciable (fuente infinita), suministrando la corriente transitoria de arranque sin sobrecargar el generador solar ni disparar el inversor.
+- **Modo Off-Grid (Respaldo):** El inversor seleccionado de 3.000 W nominales cuenta con capacidad de sobrecarga de 200% (6.000 W pico durante 5 segundos), absorbiendo holgadamente la potencia combinada simultánea ($615\text{ W} - 600\text{ W} + 1.800\text{ W} = 1.815\text{ W} \ll 6.000\text{ W}$).
+
+### 7.3 Validación de Doble Fuente del Recurso Solar (RF-41)
+- **Fuente 1 (PVGIS SARAH2 / Base Local):** $\text{HSP} = 5,32\text{ kWh/m}^2\cdot\text{d}$ (mes crítico noviembre: $4,75\text{ kWh/m}^2\cdot\text{d}$).
+- **Fuente 2 (NASA POWER MERRA-2 / Atlas UPME):** $\text{HSP} = 5,48\text{ kWh/m}^2\cdot\text{d}$ (mes crítico: $4,92\text{ kWh/m}^2\cdot\text{d}$).
+- **Diferencia Relativa:** $|\Delta\%| = 3,01\% \le \pm 15\%$, cumpliendo el criterio de aceptación del pliego de condiciones.
+- **Contingencia Offline:** Base de datos local precargada para operación sin conexión a internet.
+
+### 7.4 Persistencia, Exportación y Suite de Pruebas
+- **Exportación Tabular CSV (RF-40):** Descarga de planilla con metadatos, cuadro de cargas, perfil horario de 24 h, indicadores globales y fichas de equipos con delimitador `;` y codificación UTF-8 BOM.
+- **Informe Ejecutivo PDF de 2 Páginas:** Reporte completo con gráficos, cuadros comparativos, anexo técnico de componentes y notas metodológicas.
+- **Suite de Pruebas Automáticas (RF-45):** Ejecución interactiva de 5 casos canónicos con verificación 5/5 PASS:
+  1. Reto 01A (Solo Diurno: 100% solar).
+  2. Reto 01B (Solo Nocturno: 100% noche).
+  3. Reto 01C (Cruce de medianoche: 22:00–04:00 continuo).
+  4. Caso Estandarizado (Alta Guajira: 7,58 kWh/d).
+  5. Escenario Grupo A (San Andrés: 8 cargas, 2.530 W Pinst, 12.865 Wh/d, 1.215 W Pmax).
+- **Manual de Usuario Integrado (RF-47):** Modal interactivo de 2 páginas con guía operativa y marco normativo.
+
+---
+
+## 8. Despliegue en Vercel y Política de Cero Secretos (RF-37, RF-42)
+
+La plataforma está diseñada como una Single Page Application (SPA) estática optimizada para su despliegue inmediato en Vercel:
+1. Conecte el repositorio a su cuenta de Vercel.
+2. Framework Preset: `Other` (sitio estático HTML/JS/CSS).
+3. Build Command: vacío (no requiere compilación).
+4. Output Directory: `./` (raíz).
+5. **Cero Secretos Expuestos (RF-42):** La aplicación no incluye API keys codificadas en el repositorio ni en el frontend. Si se utilizan APIs públicas (como NASA POWER o PVWatts), las peticiones se realizan de forma anónima o a través del proxy serverless en `/api/pvgis.js`.
+

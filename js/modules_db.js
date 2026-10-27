@@ -158,6 +158,10 @@ const MODULES_DB = {
         return this.modules.find(m => m.id === id) || this.modules[0];
     },
 
+    getModule(id) {
+        return this.getById(id);
+    },
+
     updateModule(id, updatedFields) {
         const idx = this.modules.findIndex(m => m.id === id);
         if (idx !== -1) {

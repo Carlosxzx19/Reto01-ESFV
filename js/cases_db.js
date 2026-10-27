@@ -5,6 +5,186 @@
 
 const CASES_DB = {
     cases: {
+        'caso-grupo-a': {
+            id: 'caso-grupo-a',
+            name: 'Escenario Grupo A: Vivienda Residencial en San Andrés (Región Insular)',
+            shortName: 'Grupo A (San Andrés)',
+            description: 'Vivienda Residencial On-Grid - San Andrés (12.58° N, 81.70° O)',
+            isPreset: true,
+            isPlaceholder: false,
+            lockedModule: false,
+            selectedModuleId: 'panel-550w',
+
+            // Reto 01: Información del Proyecto
+            project: {
+                name: 'Vivienda Residencial San Andrés - Grupo A',
+                id: 'PV-SANANDRES-01',
+                members: 'Grupo A · Energía Solar Fotovoltaica 2026-II',
+                date: '2026-10-27',
+                installationType: 'residential', // Restricción: Tensión máx. 600 V
+                systemType: 'on-grid' // On-grid, sin almacenamiento
+            },
+
+            // Reto 01: Configuración Día / Noche y Tarifaria
+            config: {
+                dayStart: 6,
+                dayEnd: 18,
+                daysPerMonth: 30,
+                monthsPerYear: 12,
+                unitCost: 1200 // CU = 1 200 $/kWh, 365 días/año
+            },
+
+            // Reto 01: 8 Cargas Oficiales del Grupo A (TdR Reto 04)
+            loads: [
+                {
+                    id: 'ga-1',
+                    description: 'Aire acondicionado inverter 12 000 BTU/h',
+                    quantity: 1,
+                    power: 900,
+                    timeSlots: [{ start: 14, end: 17 }, { start: 22, end: 4 }],
+                    hours: [14, 15, 16, 22, 23, 0, 1, 2, 3],
+                    hoursPerDay: 9,
+                    timeDisplay: '14:00–17:00 y 22:00–04:00 (cruza medianoche)',
+                    daysPerMonth: 30,
+                    monthsPerYear: 12
+                },
+                {
+                    id: 'ga-2',
+                    description: 'Bomba de cisterna 0,5 HP',
+                    quantity: 1,
+                    power: 600,
+                    timeSlots: [{ start: 6, end: 7 }, { start: 17, end: 18 }],
+                    hours: [6, 17],
+                    hoursPerDay: 2,
+                    timeDisplay: '06:00–07:00 y 17:00–18:00',
+                    daysPerMonth: 30,
+                    monthsPerYear: 12
+                },
+                {
+                    id: 'ga-3',
+                    description: 'Nevera',
+                    quantity: 1,
+                    power: 150,
+                    timeSlots: [{ start: 8, end: 12 }, { start: 18, end: 22 }],
+                    hours: [8, 9, 10, 11, 18, 19, 20, 21],
+                    hoursPerDay: 8,
+                    timeDisplay: '08:00–12:00 y 18:00–22:00',
+                    daysPerMonth: 30,
+                    monthsPerYear: 12
+                },
+                {
+                    id: 'ga-4',
+                    description: 'Iluminación LED',
+                    quantity: 8,
+                    power: 10,
+                    timeSlots: [{ start: 18, end: 23 }],
+                    hours: [18, 19, 20, 21, 22],
+                    hoursPerDay: 5,
+                    timeDisplay: '18:00–23:00',
+                    daysPerMonth: 30,
+                    monthsPerYear: 12
+                },
+                {
+                    id: 'ga-5',
+                    description: 'Ventiladores',
+                    quantity: 3,
+                    power: 45,
+                    timeSlots: [{ start: 18, end: 23 }],
+                    hours: [18, 19, 20, 21, 22],
+                    hoursPerDay: 5,
+                    timeDisplay: '18:00–23:00',
+                    daysPerMonth: 30,
+                    monthsPerYear: 12
+                },
+                {
+                    id: 'ga-6',
+                    description: 'Televisor',
+                    quantity: 1,
+                    power: 100,
+                    timeSlots: [{ start: 19, end: 23 }],
+                    hours: [19, 20, 21, 22],
+                    hoursPerDay: 4,
+                    timeDisplay: '19:00–23:00',
+                    daysPerMonth: 30,
+                    monthsPerYear: 12
+                },
+                {
+                    id: 'ga-7',
+                    description: 'Computador portátil',
+                    quantity: 1,
+                    power: 65,
+                    timeSlots: [{ start: 8, end: 12 }, { start: 15, end: 17 }],
+                    hours: [8, 9, 10, 11, 15, 16],
+                    hoursPerDay: 6,
+                    timeDisplay: '08:00–12:00 y 15:00–17:00',
+                    daysPerMonth: 30,
+                    monthsPerYear: 12
+                },
+                {
+                    id: 'ga-8',
+                    description: 'Lavadora',
+                    quantity: 1,
+                    power: 500,
+                    timeSlots: [{ start: 9, end: 10 }],
+                    hours: [9],
+                    hoursPerDay: 1,
+                    timeDisplay: '09:00–10:00',
+                    daysPerMonth: 30,
+                    monthsPerYear: 12
+                }
+            ],
+
+            // Reto 02: Dimensionamiento San Andrés (12.58° N, 81.70° O)
+            sizing: {
+                lat: 12.58,
+                lon: -81.70,
+                tilt: 13,
+                azimuth: 0,
+                arrayType: 0,
+                losses: 0,
+                tmin: 22.0,
+                tambOp: 31.0,
+                vmaxSystem: 600,
+                solarProvider: 'pvgis',
+                availableArea: 30,
+                pr: 0.75,
+                selectedModuleId: 'panel-550w',
+                lockedModule: false,
+                solarResource: {
+                    source: 'PVGIS-SARAH2 / Local Certificado (San Andrés, Insular)',
+                    isFixedCase: true,
+                    isFallback: false,
+                    isCached: true,
+                    lat: 12.58,
+                    lon: -81.70,
+                    tilt: 13,
+                    azimuth: 0,
+                    annualHsp: 5.32,
+                    criticalMonthHsp: 4.75,
+                    criticalMonthIndex: 10, // Noviembre
+                    criticalMonthName: 'Noviembre',
+                    maxMonthHsp: 6.15,
+                    maxMonthIndex: 2, // Marzo
+                    maxMonthName: 'Marzo',
+                    monthlyHsp: [5.25, 5.70, 6.15, 5.95, 5.40, 5.10, 5.30, 5.35, 5.15, 4.80, 4.75, 4.90],
+                    notes: 'Irradiación oficial Grupo A: 5.32 kWh/m²·día anual, 4.75 kWh/m²·día mes crítico (Noviembre). Segunda fuente NASA POWER: 5.48 kWh/m²·día (|Δ| = 3.01% <= ±15%).'
+                }
+            },
+
+            // Reto 03: Conversión On-Grid (Sin almacenamiento)
+            conversion: {
+                branch: 'grid',
+                vbus: 48,
+                invEff: 95,
+                autonomyDays: 2.0,
+                designDod: 50,
+                tempFactor: 1.0,
+                selectedBatteryId: 'BAT-AGM-200',
+                selectedControllerId: 'CTRL-A',
+                selectedInverterId: 'INV-1'
+            }
+        },
+
         'caso-estandar': {
             id: 'caso-estandar',
             name: 'Caso Estándar: Estación de Monitoreo Ambiental de la Alta Guajira',
@@ -1402,6 +1582,10 @@ const CASES_DB = {
         if (id === 'bogota') id = 'caso-4';
         if (id === 'pasto') id = 'caso-5';
         return this.cases[id] || null;
+    },
+
+    getCase(id) {
+        return this.getById(id);
     }
 };
 
@@ -1565,13 +1749,27 @@ function loadCase(rawCaseId, options = {}) {
         const badge = document.getElementById('pvwatts-status-badge');
         if (badge) {
             badge.className = 'status-badge success';
-            badge.textContent = caseData.id === 'caso-estandar'
-                ? `⭐ Caso Estándar · Datos Oficiales`
-                : `🔒 ${caseData.shortName} · PVGIS Fijo`;
+            badge.textContent = caseData.id === 'caso-grupo-a'
+                ? `🌴 Grupo A · San Andrés Oficial`
+                : (caseData.id === 'caso-estandar'
+                    ? `⭐ Caso Estándar · Datos Oficiales`
+                    : `🔒 ${caseData.shortName} · PVGIS Fijo`);
         }
 
         // Mostrar banner explicativo
         updateCaseBanner(caseData);
+
+        // E. Cargar Datos del Reto 03: Conversión y Almacenamiento
+        if (caseData.conversion && window.APP && APP.state.conversion) {
+            APP.state.conversion.branch = caseData.conversion.branch || 'grid';
+            if (caseData.conversion.vbus) APP.state.conversion.vbus = caseData.conversion.vbus;
+            if (caseData.conversion.selectedBatteryId) APP.state.conversion.selectedBatteryId = caseData.conversion.selectedBatteryId;
+            if (caseData.conversion.selectedControllerId) APP.state.conversion.selectedControllerId = caseData.conversion.selectedControllerId;
+            if (caseData.conversion.selectedInverterId) APP.state.conversion.selectedInverterId = caseData.conversion.selectedInverterId;
+            if (typeof window.CONVERSION_UI !== 'undefined' && typeof window.CONVERSION_UI.render === 'function') {
+                try { window.CONVERSION_UI.render(); } catch(e){}
+            }
+        }
 
         // Ejecutar dimensionamiento de inmediato con datos certificados
         if (typeof updateSizing === 'function') {
@@ -1579,7 +1777,7 @@ function loadCase(rawCaseId, options = {}) {
         }
 
         if (!options.silent && typeof showToast === 'function') {
-            showToast(`${caseData.shortName} cargado: Demanda (Reto 01) y Recurso Solar Fijo (Reto 02).`, 'success');
+            showToast(`${caseData.shortName} cargado: Demanda (Reto 01), Solar (Reto 02) y Conversión (Reto 03).`, 'success');
         }
     }
 }
@@ -1636,7 +1834,12 @@ function updateCaseBanner(caseData) {
     const titleEl = document.getElementById('case-lock-title');
     const descEl = document.getElementById('case-lock-desc');
 
-    if (caseData.id === 'caso-estandar') {
+    if (caseData.id === 'caso-grupo-a') {
+        if (titleEl) titleEl.textContent = `🌴 ${caseData.name}`;
+        if (descEl) {
+            descEl.innerHTML = `Ubicación (<strong>12.58° N, 81.70° O - San Andrés (Insular)</strong>), Inclinación óptima (<strong>13° al Sur</strong>), Temperaturas (Tmin: <strong>22°C</strong>, Tamb: <strong>31°C</strong>), HSP Anual: <strong>5.32 kWh/m²·día</strong> (Mes Crítico Nov: <strong>4.75</strong>). Área disponible: <strong>30 m²</strong>, Tarifa: <strong>$1.200/kWh</strong>, Sistema: <strong>On-Grid Residencial (Sin almacenamiento)</strong>.`;
+        }
+    } else if (caseData.id === 'caso-estandar') {
         if (titleEl) titleEl.textContent = `⭐ ${caseData.name}`;
         if (descEl) {
             descEl.innerHTML = `Ubicación (<strong>12.18° N, 71.28° O - Nazareth, Alta Guajira</strong>), Inclinación (<strong>12° al sur</strong>), Temperaturas (Tmin: <strong>20°C</strong>, Tamb: <strong>32°C</strong>), HSP Mes Crítico: <strong>5.2 kWh/m²·día</strong>, HSP Anual: <strong>5.8 kWh/m²·día</strong>. Módulo oficial exclusivo: <strong>550 Wp (72 celdas, 2.58 m²)</strong>. Restricción de diseño: <strong>600 V máx.</strong>`;

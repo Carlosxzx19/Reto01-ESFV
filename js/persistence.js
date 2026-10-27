@@ -11,6 +11,8 @@ function initPersistence() {
     const btnLoadConv = document.getElementById('btn-load-conv');
     const btnPresetGuajira = document.getElementById('btn-preset-guajira');
     const btnPresetGuajiraConv = document.getElementById('btn-preset-guajira-conv');
+    const btnPresetGrupoA = document.getElementById('btn-preset-grupo-a');
+    const btnPresetGrupoAConv = document.getElementById('btn-preset-grupo-a-conv');
 
     if (btnSave) btnSave.addEventListener('click', saveProject);
     if (btnSaveDim) btnSaveDim.addEventListener('click', saveProject);
@@ -20,6 +22,8 @@ function initPersistence() {
     if (btnLoadConv) btnLoadConv.addEventListener('change', loadProject);
     if (btnPresetGuajira) btnPresetGuajira.addEventListener('click', loadAltaGuajiraPreset);
     if (btnPresetGuajiraConv) btnPresetGuajiraConv.addEventListener('click', loadAltaGuajiraPreset);
+    if (btnPresetGrupoA) btnPresetGrupoA.addEventListener('click', loadGrupoAPreset);
+    if (btnPresetGrupoAConv) btnPresetGrupoAConv.addEventListener('click', loadGrupoAPreset);
 }
 
 /** Export the full state as a downloadable JSON file */
@@ -293,3 +297,13 @@ function loadAltaGuajiraPreset() {
 
     showToast('Caso Estándar Alta Guajira (Ed=7.58 kWh/d, 4x550Wp, 48V AGM) cargado con éxito.', 'success');
 }
+
+/** Load official Grupo A Preset: San Andrés (12.58° N, 81.70° O, 30 m², 1200 $/kWh, On-Grid) */
+function loadGrupoAPreset() {
+    if (typeof loadCase === 'function') {
+        loadCase('caso-grupo-a');
+    }
+}
+
+window.loadAltaGuajiraPreset = loadAltaGuajiraPreset;
+window.loadGrupoAPreset = loadGrupoAPreset;

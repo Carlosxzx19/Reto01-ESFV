@@ -11,7 +11,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.2/html2pdf.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
-    <link rel="stylesheet" href="css/styles.css?v=3.3">
+    <link rel="stylesheet" href="css/styles.css?v=5.0">
 </head>
 <body>
 
@@ -21,10 +21,22 @@
             <div class="logo">
                 <img src="img/logo.png" alt="Logo" class="logo-icon-img" style="height: 80px; width: auto; border-radius: 4px;">
                 <div>
-                    <h1>Planeación Solar Práctica</h1>
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <h1 style="margin: 0;">Planeación Solar Práctica</h1>
+                        <span class="badge" style="background: rgba(34, 197, 94, 0.2); color: #22c55e; border: 1px solid rgba(34, 197, 94, 0.4); font-weight: 700; font-size: 0.72rem; padding: 0.2rem 0.5rem; border-radius: 4px;">v1.0.0</span>
+                    </div>
+                    <p style="margin: 0.2rem 0 0 0; font-size: 0.78rem; color: var(--text-muted);">Plataforma Integral de Ingeniería Fotovoltaica · Retos 01, 02, 03 &amp; 04</p>
                 </div>
             </div>
-            <div class="header-actions" style="display: flex; gap: 0.5rem; align-items: center;">
+            <div class="header-actions" style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+                <button class="theme-toggle" id="btn-manual" title="Manual de Usuario (RF-47)" onclick="window.openUserManualModal && window.openUserManualModal()">
+                    <span class="toggle-icon">📖</span>
+                    <span>Manual</span>
+                </button>
+                <button class="theme-toggle" id="btn-tests" title="Suite de Pruebas Automáticas (RF-45)" onclick="window.openTestSuiteModal && window.openTestSuiteModal()">
+                    <span class="toggle-icon">🧪</span>
+                    <span>Pruebas</span>
+                </button>
                 <button class="theme-toggle" id="btn-lang" title="Cambiar idioma">
                     <span class="toggle-icon">🌐</span>
                     <span id="lang-label">ES</span>
@@ -70,6 +82,16 @@
                     <span class="stage-desc">MPPT, Inversor y Almacenamiento (Reto 03)</span>
                 </div>
             </button>
+            <button class="stage-btn" data-stage="informe-final" id="stage-btn-final">
+                <span class="stage-icon">
+                    <svg class="lucide-icon" xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="m9 15 2 2 4-4"/></svg>
+                </span>
+                <div class="stage-text">
+                    <span class="stage-badge">Etapa 4</span>
+                    <span class="stage-title">Componentes e Informe</span>
+                    <span class="stage-desc">Especificaciones Finales (Reto 04)</span>
+                </div>
+            </button>
         </div>
     </nav>
 
@@ -99,6 +121,10 @@
     <!-- ═══════════════ CASOS NAVIGATION (ETAPA 2: DIMENSIONAMIENTO) ═══════════════ -->
     <nav class="tab-nav" id="dim-cases-nav" aria-label="Casos de Dimensionamiento" style="display: none;">
         <div class="tab-container">
+            <button class="tab-btn dim-case-btn" data-case="caso-grupo-a" id="case-btn-caso-grupo-a" style="background: rgba(14, 165, 233, 0.15); border: 1px solid #38bdf8; font-weight: 700;">
+                <span class="tab-icon">🌴</span>
+                <span class="tab-label">Grupo A (San Andrés)</span>
+            </button>
             <button class="tab-btn dim-case-btn" data-case="caso-estandar" id="case-btn-caso-estandar">
                 <span class="tab-icon">⭐</span>
                 <span class="tab-label">Caso Estándar</span>
@@ -140,7 +166,7 @@
         <!-- ───── TAB 1: PROYECTO ───── -->
         <section id="tab-proyecto" class="tab-panel active" role="tabpanel">
             <!-- Selector Rápido de Casos de Estudio -->
-            <div class="card fade-in" style="margin-bottom: 1.25rem; border: 1px solid rgba(56, 189, 248, 0.4); background: linear-gradient(135deg, rgba(15, 23, 42, 0.6), rgba(56, 189, 248, 0.08));">
+            <div class="card fade-in header-preset-card" style="margin-bottom: 1.25rem;">
                 <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.85rem;">
                     <div>
                         <div style="display: flex; align-items: center; gap: 0.5rem;">
@@ -152,6 +178,9 @@
                         </p>
                     </div>
                     <div class="btn-group-toggle" id="project-cases-bar">
+                        <button type="button" class="btn btn-sm dim-case-btn" data-case="caso-grupo-a" id="btn-case-caso-grupo-a" style="font-weight: 800; background: linear-gradient(135deg, #0284c7, #0369a1); color: #ffffff; border: 1px solid #38bdf8; box-shadow: 0 0 10px rgba(56, 189, 248, 0.4);">
+                            🌴 Grupo A (San Andrés)
+                        </button>
                         <button type="button" class="btn btn-sm btn-secondary dim-case-btn" data-case="caso-estandar" id="btn-case-caso-estandar" style="font-weight: 700;">
                             Caso Estándar
                         </button>
@@ -386,6 +415,7 @@
                         <span class="kpi-label">Demanda Máxima Simultánea</span>
                         <span class="kpi-value" id="kpi-pmax">0 W</span>
                         <span class="kpi-sub" id="kpi-pmax-kw">0 kW</span>
+                        <span class="kpi-sub" id="kpi-pmax-hour" style="font-size: 0.72rem; color: var(--accent); margin-top: 2px;">—</span>
                     </div>
                 </div>
                 <div class="kpi-card" id="kpi-card-ed">
@@ -579,7 +609,7 @@
                     </div>
                     <div style="display: flex; gap: 0.65rem; align-items: center; flex-wrap: wrap;">
                         <!-- Selector de Proveedor: PVGIS (Default), PVWatts y Base Continental -->
-                        <div class="btn-group-toggle" id="solar-provider-toggle" style="background: rgba(15, 23, 42, 0.4); padding: 3px; border-radius: 8px; border: 1px solid var(--border-subtle);">
+                        <div class="btn-group-toggle" id="solar-provider-toggle" style="background: var(--bg-box-header); padding: 3px; border-radius: 8px; border: 1px solid var(--border-subtle);">
                             <button type="button" class="btn btn-sm btn-secondary active" id="btn-provider-pvgis" style="font-weight: 700;">
                                 🌐 PVGIS (Ángulos Óptimos)
                             </button>
@@ -756,7 +786,7 @@
 
                         <!-- Gráfica de barras mensual (celeste) -->
                         <div class="solar-chart-container" style="position: relative; height: 260px; width: 100%;">
-                            <div id="solar-chart-empty-msg" style="display: flex; align-items: center; justify-content: center; height: 100%; color: var(--text-muted); font-size: 0.95rem; font-style: italic; background: rgba(15, 23, 42, 0.25); border: 1px dashed var(--border-subtle); border-radius: 8px;">
+                            <div id="solar-chart-empty-msg" style="display: flex; align-items: center; justify-content: center; height: 100%; color: var(--text-muted); font-size: 0.95rem; font-style: italic; background: var(--bg-box-subtle); border: 1px dashed var(--border-subtle); border-radius: 8px;">
                                 Ingrese coordenadas y presione "Cálculo Solar" para generar la gráfica de irradiación mensual (HSP).
                             </div>
                             <canvas id="solar-monthly-chart" style="display: none;"></canvas>
@@ -1143,32 +1173,50 @@
                                 </div>
                             </div>
 
-                            <!-- Columna 3: Caso de Estudio Alta Guajira Preset -->
-                            <div class="action-card featured">
+                            <!-- Columna 3: Presets de Estudio (Grupo A y Alta Guajira) -->
+                            <div class="action-card featured" style="border-color: #38bdf8;">
                                 <div>
-                                    <h3 style="color: #f59e0b;">
-                                        <svg class="lucide-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                                        Caso de Estudio Certificado
+                                    <h3 style="color: #38bdf8; display: flex; align-items: center; gap: 0.4rem;">
+                                        <span>🌴</span>
+                                        Escenarios Certificados
                                     </h3>
-                                    <p>
-                                        Carga instantánea del caso estándar de Alta Guajira: <strong>7.58 kWh/día</strong>, 4 paneles 550Wp, 48V AGM (16 un), validación TdR.
+                                    <p style="font-size: 0.82rem; margin-bottom: 0.75rem;">
+                                        Carga con 1 clic los escenarios evaluados con datos oficiales de radiación y demanda verificada.
                                     </p>
                                 </div>
-                                <button class="btn btn-secondary" id="btn-preset-guajira-conv" style="width: 100%; justify-content: center; border-color: rgba(245, 158, 11, 0.5); font-weight: 600;">
-                                    Cargar Caso Alta Guajira (7.58 kWh/d)
-                                </button>
+                                <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                                    <button class="btn btn-primary btn-sm" id="btn-preset-grupo-a-conv" onclick="window.loadGrupoAPreset && window.loadGrupoAPreset()" style="width: 100%; justify-content: center; font-weight: 700; background: linear-gradient(135deg, #0284c7, #0369a1); border-color: #38bdf8;">
+                                        🌴 Cargar Grupo A · San Andrés (12,87 kWh/d)
+                                    </button>
+                                    <button class="btn btn-secondary btn-sm" id="btn-preset-guajira-conv" onclick="window.loadAltaGuajiraPreset && window.loadAltaGuajiraPreset()" style="width: 100%; justify-content: center; border-color: rgba(245, 158, 11, 0.5); font-weight: 600;">
+                                        ⭐ Cargar Alta Guajira (7,58 kWh/d)
+                                    </button>
+                                </div>
                             </div>
+                        </div>
+
+                        <!-- Botón para avanzar a Etapa 4 -->
+                        <div style="margin-top: 1.5rem; text-align: center; border-top: 1px solid var(--border-subtle); padding-top: 1.25rem;">
+                            <button type="button" class="btn btn-primary" onclick="window.switchStage && window.switchStage('informe-final')" style="font-size: 0.95rem; padding: 0.75rem 1.5rem; font-weight: 700; background: linear-gradient(135deg, #f59e0b, #d97706); box-shadow: 0 4px 15px rgba(245, 158, 11, 0.35); display: inline-flex; align-items: center; gap: 0.5rem;">
+                                Continuar a Ficha Técnica de Componentes Seleccionados e Informe Final (Reto 04)
+                                <svg class="lucide-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                            </button>
                         </div>
                     </div>
                 </div>
             </div>
         </div><!-- /#stage-conversion -->
 
+        <!-- ═══════════════ STAGE 4: COMPONENTES SELECCIONADOS E INFORME FINAL (RETO 04) ═══════════════ -->
+        <div id="stage-informe-final" class="stage-panel">
+            <div id="final-components-page-container"></div>
+        </div>
+
     </main>
 
     <!-- ═══════════════ FOOTER ═══════════════ -->
     <footer class="app-footer">
-        <p>Planeación Solar Práctica v3.0 — Energía Solar Fotovoltaica (Retos 01, 02 &amp; Reto 03) — 2026</p>
+        <p>Planeación Solar Práctica v1.0.0 — Plataforma Integral de Dimensionamiento Solar Fotovoltaico (Retos 01, 02, 03 y 04) — Universidad del Magdalena &copy; 2026-II</p>
     </footer>
 
     <!-- ═══════════════ MODAL DE CONFIGURACIÓN DE APIS Y PARÁMETROS ═══════════════ -->
@@ -1180,7 +1228,7 @@
             </div>
 
             <!-- Navegación de Pestañas del Modal -->
-            <div style="display: flex; gap: 0.5rem; border-bottom: 1px solid var(--border-subtle); padding: 0.5rem 1.25rem 0 1.25rem; background: rgba(15, 23, 42, 0.35);">
+            <div class="modal-tab-bar">
                 <button type="button" class="tab-btn active config-tab-btn" data-tab="config-tab-apis" id="btn-config-tab-apis" style="padding: 0.55rem 1rem; font-size: 0.88rem; font-weight: 700; border: none; background: transparent; color: var(--accent); border-bottom: 2px solid var(--accent); cursor: pointer; display: flex; align-items: center; gap: 0.4rem;">
                     <span>🔌</span> APIs y Servicios
                 </button>
@@ -1193,7 +1241,7 @@
                 <!-- PESTAÑA 1: APIS Y SERVICIOS -->
                 <div class="config-tab-panel" id="config-tab-apis">
                     <!-- 0. MODO DE ORIGEN DE DATOS DEL RECURSO SOLAR -->
-                    <div style="background: rgba(15, 23, 42, 0.55); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 1.1rem; margin-bottom: 1.35rem;">
+                    <div class="info-box-subtle" style="margin-bottom: 1.35rem;">
                         <label style="font-weight: 700; margin-bottom: 0.65rem; display: block; font-size: 0.92rem; color: var(--text-primary);">
                             🌐 Modo de Obtención del Recurso Solar
                         </label>
@@ -1312,7 +1360,7 @@
                     </div>
 
                     <!-- 1. ECUACIÓN VOC A TEMPERATURA MÍNIMA -->
-                    <div class="equation-card" style="background: rgba(15, 23, 42, 0.45); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 1rem 1.2rem; margin-bottom: 1.1rem;">
+                    <div class="equation-card info-box-subtle" style="margin-bottom: 1.1rem;">
                         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.6rem; flex-wrap: wrap; gap: 0.5rem;">
                             <strong style="color: var(--accent-orange); font-size: 0.88rem; text-transform: uppercase; letter-spacing: 0.03em;">
                                 1. Tensión de Circuito Abierto a Temp. Mínima (Voc,max)
@@ -1337,7 +1385,7 @@
                     </div>
 
                     <!-- 2. ECUACIÓN TEMPERATURA DE CELDA (NOCT) -->
-                    <div class="equation-card" style="background: rgba(15, 23, 42, 0.45); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 1rem 1.2rem; margin-bottom: 1.1rem;">
+                    <div class="equation-card info-box-subtle" style="margin-bottom: 1.1rem;">
                         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.6rem; flex-wrap: wrap; gap: 0.5rem;">
                             <strong style="color: #38bdf8; font-size: 0.88rem; text-transform: uppercase; letter-spacing: 0.03em;">
                                 2. Temperatura de Operación de la Célula (Tc)
@@ -1364,7 +1412,7 @@
                     </div>
 
                     <!-- 3. ECUACIÓN DELTA T -->
-                    <div class="equation-card" style="background: rgba(15, 23, 42, 0.45); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 1rem 1.2rem; margin-bottom: 1.1rem;">
+                    <div class="equation-card info-box-subtle" style="margin-bottom: 1.1rem;">
                         <strong style="color: #a855f7; font-size: 0.88rem; text-transform: uppercase; letter-spacing: 0.03em; display: block; margin-bottom: 0.6rem;">
                             3. Diferencial Térmico de la Celda (&Delta;T)
                         </strong>
@@ -1380,7 +1428,7 @@
                     </div>
 
                     <!-- 4. ECUACIÓN VMP A TEMPERATURA DE OPERACIÓN -->
-                    <div class="equation-card" style="background: rgba(15, 23, 42, 0.45); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 1rem 1.2rem; margin-bottom: 1.1rem;">
+                    <div class="equation-card info-box-subtle" style="margin-bottom: 1.1rem;">
                         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.6rem; flex-wrap: wrap; gap: 0.5rem;">
                             <strong style="color: #10b981; font-size: 0.88rem; text-transform: uppercase; letter-spacing: 0.03em;">
                                 4. Tensión a Máxima Potencia en Operación (Vmp,operacion)
@@ -1410,7 +1458,7 @@
 
                     <!-- 5. TABLA RESUMEN PASO A PASO PARA CASO 1 -->
                     <div style="margin-top: 1rem; border: 1px solid var(--border-subtle); border-radius: 8px; overflow: hidden;">
-                        <div style="background: rgba(15, 23, 42, 0.7); padding: 0.65rem 1rem; font-size: 0.85rem; font-weight: 700; color: var(--text-primary); border-bottom: 1px solid var(--border-subtle);">
+                        <div style="background: var(--bg-table-header); padding: 0.65rem 1rem; font-size: 0.85rem; font-weight: 700; color: #ffffff; border-bottom: 1px solid var(--border-subtle);">
                             📊 Comparación Paso a Paso en Caso 1 (Ta = 27.3°C, Tmin = 21.3°C, G = 800 W/m²)
                         </div>
                         <table class="data-table" style="width: 100%; font-size: 0.8rem; margin: 0;">
@@ -1520,7 +1568,7 @@
                 </div>
 
                 <!-- 1. Tensión y Corriente STC -->
-                <div style="background: rgba(15, 23, 42, 0.4); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 0.85rem 1rem; margin-bottom: 1rem;">
+                <div class="info-box-subtle" style="margin-bottom: 1rem;">
                     <div style="font-size: 0.8rem; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 0.6rem; display: flex; align-items: center; gap: 0.35rem;">
                         ⚡ Parámetros Eléctricos STC (1000 W/m², 25°C)
                     </div>
@@ -1547,7 +1595,7 @@
                 </div>
 
                 <!-- 2. Potencia y Eficiencia -->
-                <div style="background: rgba(15, 23, 42, 0.4); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 0.85rem 1rem; margin-bottom: 1rem;">
+                <div class="info-box-subtle" style="margin-bottom: 1rem;">
                     <div style="font-size: 0.8rem; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 0.6rem; display: flex; align-items: center; gap: 0.35rem;">
                         📊 Potencia y Rendimiento
                     </div>
@@ -1570,7 +1618,7 @@
                 </div>
 
                 <!-- 3. Coeficientes Térmicos y NOCT -->
-                <div style="background: rgba(15, 23, 42, 0.4); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 0.85rem 1rem; margin-bottom: 1rem;">
+                <div class="info-box-subtle" style="margin-bottom: 1rem;">
                     <div style="font-size: 0.8rem; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 0.6rem; display: flex; align-items: center; gap: 0.35rem;">
                         🌡️ Coeficientes Térmicos y NOCT
                     </div>
@@ -1597,7 +1645,7 @@
                 </div>
 
                 <!-- 4. Dimensiones y Celdas -->
-                <div style="background: rgba(15, 23, 42, 0.4); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 0.85rem 1rem; margin-bottom: 1rem;">
+                <div class="info-box-subtle" style="margin-bottom: 1rem;">
                     <div style="font-size: 0.8rem; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 0.6rem; display: flex; align-items: center; gap: 0.35rem;">
                         📐 Dimensiones y Construcción
                     </div>
@@ -1609,8 +1657,6 @@
                         <div class="form-group">
                             <label for="mod-edit-cells" style="font-size: 0.82rem; font-weight: 600; display: block; margin-bottom: 0.25rem;">Celdas en Serie (unidades)</label>
                             <input type="number" id="mod-edit-cells" step="1" min="12" max="144" placeholder="72" style="width: 100%; padding: 0.5rem 0.65rem; border-radius: 6px; border: 1px solid var(--border-input); background: var(--bg-input); color: var(--text-primary); font-size: 0.9rem;">
-                        </div>
-                    </div>
                 </div>
 
                 <!-- 5. URL en la parte inferior -->
@@ -2070,27 +2116,28 @@
     </div>
 
     <!-- ═══════════════ SCRIPTS ═══════════════ -->
-    <script src="js/i18n.js?v=3.6"></script>
-    <script src="js/app.js?v=4.0"></script>
-    <script src="js/solar_db.js?v=3.9"></script>
-    <script src="js/continents_db.js?v=3.6"></script>
-    <script src="js/pvwatts_service.js?v=3.6"></script>
-    <script src="js/pvgis_service.js?v=3.6"></script>
-    <script src="js/nasa_power_service.js?v=3.6"></script>
-    <script src="js/modules_db.js?v=3.7"></script>
-    <script src="js/cases_db.js?v=4.2"></script>
-    <script src="js/sizing.js?v=3.6"></script>
-    <script src="js/sizing_ui.js?v=3.6"></script>
-    <script src="js/conversion_db.js?v=1.3"></script>
-    <script src="js/conversion.js?v=1.3"></script>
-    <script src="js/conversion_ui.js?v=1.3"></script>
-    <script src="js/project.js?v=3.7"></script>
-    <script src="js/loads.js?v=3.6"></script>
-    <script src="js/calculations.js?v=3.7"></script>
-    <script src="js/chart.js?v=3.6"></script>
-    <script src="js/persistence.js?v=3.6"></script>
-    <script src="js/report.js?v=3.6"></script>
-    <script src="js/excel.js?v=3.6"></script>
+    <script src="js/i18n.js?v=5.0"></script>
+    <script src="js/app.js?v=5.0"></script>
+    <script src="js/solar_db.js?v=5.0"></script>
+    <script src="js/continents_db.js?v=5.0"></script>
+    <script src="js/pvwatts_service.js?v=5.0"></script>
+    <script src="js/pvgis_service.js?v=5.0"></script>
+    <script src="js/nasa_power_service.js?v=5.0"></script>
+    <script src="js/modules_db.js?v=5.0"></script>
+    <script src="js/cases_db.js?v=5.0"></script>
+    <script src="js/sizing.js?v=5.0"></script>
+    <script src="js/sizing_ui.js?v=5.0"></script>
+    <script src="js/conversion_db.js?v=5.0"></script>
+    <script src="js/conversion.js?v=5.0"></script>
+    <script src="js/conversion_ui.js?v=5.0"></script>
+    <script src="js/project.js?v=5.0"></script>
+    <script src="js/loads.js?v=5.0"></script>
+    <script src="js/calculations.js?v=5.0"></script>
+    <script src="js/chart.js?v=5.0"></script>
+    <script src="js/persistence.js?v=5.0"></script>
+    <script src="js/report.js?v=5.0"></script>
+    <script src="js/excel.js?v=5.0"></script>
+    <script src="js/final_report_ui.js?v=5.0"></script>
 
 </body>
 </html>

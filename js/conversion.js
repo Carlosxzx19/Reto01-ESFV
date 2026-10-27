@@ -526,3 +526,58 @@ const CONVERSION_CALC = {
 };
 
 window.CONVERSION_CALC = CONVERSION_CALC;
+
+window.CONVERSION = {
+    calculate() {
+        const res = CONVERSION_CALC.calculateAll();
+        const inp = res.inputs;
+        const b = res.activeBattery;
+        const c = res.activeController;
+        const inv = res.activeInverter;
+        return {
+            branch: inp.branch,
+            vbus: inp.busVoltage,
+            invEff: Math.round(inp.inverterEfficiency * 100),
+            batteryBank: b ? {
+                battery: b.battery,
+                ns: b.nsBat,
+                np: b.npBat,
+                totalUnits: b.totalBatteries,
+                cUsefulAh: b.ahInst * (inp.dodDesign || b.battery.dod || 0.5),
+                cInstalledAh: b.ahInst,
+                eInstalledKwh: b.kwhInst,
+                dodFinal: b.dodFin * 100,
+                cRateCharge: b.cCharge,
+                cRateDischarge: b.cDischarge,
+                autonomyDays: inp.autonomyDays,
+                canRecover: b.recovers,
+                trecDays: b.tRecoverDays
+            } : null,
+            controllerVerification: c ? {
+                device: c.device,
+                vocGenTmin: res.thermal.vocColdArray,
+                vocLimit: c.device.maxPVVoc,
+                mpptComplies: c.vmpHotOk,
+                vmpHot: res.thermal.vmpHotArray,
+                vmpCold: res.thermal.vmpColdArray,
+                currentComplies: c.chargeCurrentOk,
+                iOutDesign: res.thermal.iDisenoSalida,
+                iMaxController: c.device.maxChargeA || 60
+            } : null,
+            inverterVerification: inv ? {
+                device: inv.device,
+                pnomInv: inv.device.nominalPowerW,
+                dcacComplies: inv.dcacVerdict === 'ok' || inv.dcacVerdict === 'cumple',
+                dcacRatio: inv.dcacRatio,
+                dcacStatus: inv.dcacVerdict
+            } : null,
+            balance: b ? {
+                recoversInTarget: b.recovers && b.tRecoverDays <= 3.0,
+                trecCurrent: b.tRecoverDays,
+                deltaN: b.deltaModulesAnnual
+            } : null,
+            raw: res
+        };
+    }
+};
+

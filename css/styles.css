@@ -14,6 +14,8 @@
     --bg-table-header: rgba(15, 23, 42, 0.9);
     --bg-table-row-alt: rgba(255, 255, 255, 0.02);
     --bg-table-row-hover: rgba(245, 158, 11, 0.06);
+    --bg-box-subtle: rgba(15, 23, 42, 0.45);
+    --bg-box-header: rgba(15, 23, 42, 0.35);
 
     /* Borders */
     --border-subtle: rgba(255, 255, 255, 0.06);
@@ -66,6 +68,8 @@
     --bg-table-header: #1e293b;
     --bg-table-row-alt: rgba(0, 0, 0, 0.02);
     --bg-table-row-hover: rgba(245, 158, 11, 0.06);
+    --bg-box-subtle: #f8fafc;
+    --bg-box-header: #f1f5f9;
 
     /* Borders */
     --border-subtle: rgba(0, 0, 0, 0.08);
@@ -1044,8 +1048,8 @@ body::before {
 
 .stage-nav-container {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1rem;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.75rem;
     background: var(--bg-card);
     padding: 0.5rem;
     border-radius: var(--radius-lg);
@@ -1053,7 +1057,13 @@ body::before {
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
 }
 
-@media (max-width: 900px) {
+@media (max-width: 1024px) {
+    .stage-nav-container {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 580px) {
     .stage-nav-container {
         grid-template-columns: 1fr;
     }
@@ -1796,6 +1806,12 @@ body::before {
     flex-direction: column;
 }
 
+[data-theme="light"] .annual-card {
+    background: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
 .ann-label {
     font-size: 0.75rem;
     color: var(--text-secondary);
@@ -2303,5 +2319,100 @@ body::before {
 
 .data-table-compact tbody tr:hover {
     background: rgba(245, 158, 11, 0.06);
+}
+
+/* ───── LIGHT THEME: ELIMINATE ALL MUDDY DARK GRAY BOXES ───── */
+[data-theme="light"] [style*="rgba(15, 23, 42"],
+[data-theme="light"] [style*="rgba(15,23,42"],
+[data-theme="light"] [style*="rgba(30, 41, 59"],
+[data-theme="light"] [style*="rgba(30,41,59"] {
+    background: #f8fafc !important;
+    border-color: #e2e8f0 !important;
+    color: #334155;
+}
+
+[data-theme="light"] [style*="linear-gradient(135deg, rgba(15, 23, 42"] {
+    background: linear-gradient(135deg, #ffffff 60%, rgba(245, 158, 11, 0.08) 100%) !important;
+    border-color: #fed7aa !important;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04) !important;
+}
+
+[data-theme="light"] #tab-proyecto .card[style*="rgba(56, 189, 248"] {
+    background: linear-gradient(135deg, #ffffff 60%, rgba(56, 189, 248, 0.08) 100%) !important;
+    border-color: #bae6fd !important;
+}
+
+/* Dedicated component classes for clear styling in both themes */
+.info-box-subtle {
+    background: var(--bg-box-subtle);
+    border: 1px solid var(--border-subtle);
+    border-radius: 8px;
+    padding: 0.85rem 1rem;
+}
+
+[data-theme="light"] .info-box-subtle {
+    background: #f8fafc !important;
+    border: 1px solid #e2e8f0 !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+[data-theme="light"] .info-box-subtle strong {
+    color: #0f172a !important;
+}
+
+[data-theme="light"] .info-box-subtle span,
+[data-theme="light"] .info-box-subtle p,
+[data-theme="light"] .info-box-subtle div {
+    color: #334155;
+}
+
+.modal-tab-bar {
+    display: flex;
+    gap: 0.5rem;
+    border-bottom: 1px solid var(--border-subtle);
+    padding: 0.5rem 1.25rem 0 1.25rem;
+    background: var(--bg-box-header);
+}
+
+[data-theme="light"] .modal-tab-bar {
+    background: #f1f5f9 !important;
+    border-bottom: 1px solid #cbd5e1 !important;
+}
+
+.header-preset-card {
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.6), rgba(56, 189, 248, 0.08));
+    border: 1px solid rgba(56, 189, 248, 0.2);
+}
+
+[data-theme="light"] .header-preset-card {
+    background: linear-gradient(135deg, #ffffff 60%, rgba(56, 189, 248, 0.08) 100%) !important;
+    border-color: #bae6fd !important;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+}
+
+.etapa4-header-card {
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.75), rgba(245, 158, 11, 0.08));
+    border: 1px solid rgba(245, 158, 11, 0.25);
+}
+
+[data-theme="light"] .etapa4-header-card {
+    background: linear-gradient(135deg, #ffffff 60%, rgba(245, 158, 11, 0.08) 100%) !important;
+    border-color: #fed7aa !important;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+}
+
+/* Modal and card steps for user manual & calculators */
+[data-theme="light"] .modal-step-card,
+[data-theme="light"] .method-card,
+[data-theme="light"] .equation-card {
+    background: #f8fafc !important;
+    border-color: #e2e8f0 !important;
+    color: #334155 !important;
+}
+
+[data-theme="light"] .modal-step-card strong,
+[data-theme="light"] .method-card strong,
+[data-theme="light"] .equation-card strong {
+    color: #0f172a !important;
 }
 

@@ -185,6 +185,10 @@ function switchStage(stageId) {
     if (stageId === 'conversion') {
         if (typeof updateConversion === 'function') updateConversion();
     }
+
+    if (stageId === 'informe-final') {
+        if (typeof renderFinalComponentsPage === 'function') renderFinalComponentsPage();
+    }
 }
 
 // ───── TAB NAVIGATION ─────
@@ -218,6 +222,9 @@ function recalculateAll() {
     if (typeof updateChart === 'function') updateChart();
     if (typeof updateSizing === 'function') updateSizing();
     if (typeof updateConversion === 'function') updateConversion();
+    if (APP.currentStage === 'informe-final' && typeof renderFinalComponentsPage === 'function') {
+        renderFinalComponentsPage();
+    }
 }
 
 // ───── THEME TOGGLE ─────
