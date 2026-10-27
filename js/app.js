@@ -35,12 +35,27 @@ const APP = {
             tambOp: 32,
             vmaxSystem: 600,
             criterion: 'anual', // 'anual' | 'critico'
-            selectedModuleId: 'panel-550w',
-            projectionView: 'mensual',
             solarResource: null,
             evaluatedModules: [],
             selectedResult: null,
             solarWindow: null
+        },
+        conversion: {
+            branch: 'storage', // 'storage' (con almacenamiento) | 'grid' (sin almacenamiento)
+            inverterEfficiency: 0.90, // 0.70 a 1.00
+            busVoltage: 48,          // 12, 24, 48 V
+            autonomyDays: 2.0,       // N días (> 0)
+            dodDesign: 0.50,         // 0.10 a 0.95
+            tempFactor: 1.0,         // f_T
+            selectedBatteryId: 'AGM',
+            selectedControllerId: 'CTRL-A',
+            selectedInverterId: 'INV-B',
+            dcacMin: 1.0,
+            dcacMax: 1.3,
+            pumpStartFactor: 3.0,
+            customStringNs: null,
+            balanceAdjusted: false,
+            additionalModules: 0
         }
     },
     currentStage: 'requerimiento',
@@ -166,6 +181,10 @@ function switchStage(stageId) {
         }
         if (typeof updateSizing === 'function') updateSizing();
     }
+
+    if (stageId === 'conversion') {
+        if (typeof updateConversion === 'function') updateConversion();
+    }
 }
 
 // ───── TAB NAVIGATION ─────
@@ -198,6 +217,7 @@ function recalculateAll() {
     if (typeof updateCalculations === 'function') updateCalculations();
     if (typeof updateChart === 'function') updateChart();
     if (typeof updateSizing === 'function') updateSizing();
+    if (typeof updateConversion === 'function') updateConversion();
 }
 
 // ───── THEME TOGGLE ─────
@@ -251,4 +271,5 @@ document.addEventListener('DOMContentLoaded', () => {
     if (typeof initReport === 'function') initReport();
     if (typeof initExcel === 'function') initExcel();
     if (typeof initSizingUI === 'function') initSizingUI();
+    if (typeof initConversionUI === 'function') initConversionUI();
 });

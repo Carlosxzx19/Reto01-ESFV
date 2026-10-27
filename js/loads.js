@@ -387,8 +387,9 @@ function renderLoads() {
             : hpdRaw;
         
         const dpm = load.daysPerMonth || APP.state.config.daysPerMonth;
-        const mpy = load.monthsPerYear || APP.state.config.monthsPerYear;
-        const freqDisplay = `${dpm} d/m, ${mpy} m/a`;
+        const mpy = load.monthsPerYear || APP.state.config.monthsPerYear || 12;
+        const isEn = window.APP_LANG === 'en';
+        const freqDisplay = isEn ? `${dpm} d/m, ${mpy} m/y` : `${dpm} d/m, ${mpy} m/a`;
 
         let badgeClass = 'badge';
         if (classification === 'Diurna') badgeClass += ' badge-day';

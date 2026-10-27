@@ -25,7 +25,7 @@
                 </div>
             </div>
             <div class="header-actions" style="display: flex; gap: 0.5rem; align-items: center;">
-                <button class="theme-toggle" id="btn-lang" title="Cambiar idioma" onclick="window.toggleLanguage && window.toggleLanguage()">
+                <button class="theme-toggle" id="btn-lang" title="Cambiar idioma">
                     <span class="toggle-icon">🌐</span>
                     <span id="lang-label">ES</span>
                 </button>
@@ -58,6 +58,16 @@
                     <span class="stage-badge">Etapa 2</span>
                     <span class="stage-title">Dimensionamiento</span>
                     <span class="stage-desc">Generador Fotovoltaico (Reto 02)</span>
+                </div>
+            </button>
+            <button class="stage-btn" data-stage="conversion" id="stage-btn-conv">
+                <span class="stage-icon">
+                    <svg class="lucide-icon" xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="16" height="10" x="2" y="7" rx="2" ry="2"/><line x1="22" x2="22" y1="11" y2="13"/></svg>
+                </span>
+                <div class="stage-text">
+                    <span class="stage-badge">Etapa 3</span>
+                    <span class="stage-title">Conversión y Baterías</span>
+                    <span class="stage-desc">MPPT, Inversor y Almacenamiento (Reto 03)</span>
                 </div>
             </button>
         </div>
@@ -885,12 +895,12 @@
                 <div class="card-body">
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.25rem;">
                         <!-- Columna 1: Informe Ejecutivo -->
-                        <div style="background: rgba(15, 23, 42, 0.4); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 1.25rem; display: flex; flex-direction: column; justify-content: space-between;">
+                        <div class="action-card">
                             <div>
-                                <h3 style="font-size: 1.05rem; margin-bottom: 0.4rem; display: flex; align-items: center; gap: 0.5rem;">
+                                <h3>
                                     <span>📄</span> Informe Ejecutivo (PDF)
                                 </h3>
-                                <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1.25rem; line-height: 1.45;">
+                                <p>
                                     Genera un informe integral con todos los datos del proyecto, cuadro de cargas, perfil 24 h, dimensionamiento solar e indicadores clave de ambos retos.
                                 </p>
                             </div>
@@ -900,12 +910,12 @@
                         </div>
 
                         <!-- Columna 2: Persistencia JSON -->
-                        <div style="background: rgba(15, 23, 42, 0.4); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 1.25rem; display: flex; flex-direction: column; justify-content: space-between;">
+                        <div class="action-card">
                             <div>
-                                <h3 style="font-size: 1.05rem; margin-bottom: 0.4rem; display: flex; align-items: center; gap: 0.5rem;">
+                                <h3>
                                     <span>💾</span> Persistencia (.json)
                                 </h3>
-                                <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1.25rem; line-height: 1.45;">
+                                <p>
                                     Guarde o recupere el estado completo del proyecto (cargas, configuración y dimensionamiento) en un archivo local JSON.
                                 </p>
                             </div>
@@ -921,12 +931,12 @@
                         </div>
 
                         <!-- Columna 3: Cuadro de Cargas Excel -->
-                        <div style="background: rgba(15, 23, 42, 0.4); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 1.25rem; display: flex; flex-direction: column; justify-content: space-between;">
+                        <div class="action-card">
                             <div>
-                                <h3 style="font-size: 1.05rem; margin-bottom: 0.4rem; display: flex; align-items: center; gap: 0.5rem;">
+                                <h3>
                                     <span>📊</span> Cuadro de Cargas (.xlsx)
                                 </h3>
-                                <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1.25rem; line-height: 1.45;">
+                                <p>
                                     Exporte las cargas en formato Excel estructurado o importe una planilla existente con franjas horarias.
                                 </p>
                             </div>
@@ -946,11 +956,219 @@
 
         </div><!-- /#stage-dimensionamiento -->
 
+        <!-- ═══════════════ ETAPA 3: CONVERSIÓN Y BATERÍAS (RETO 03) ═══════════════ -->
+        <div id="stage-conversion" class="stage-panel">
+            <!-- 1. Banner de Datos Heredados sin Reingreso (RF-26) -->
+            <div class="card fade-in">
+                <div class="card-header">
+                    <h2>
+                        <svg class="lucide-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                        Datos Heredados de Reto 01 &amp; Reto 02 (RF-26)
+                    </h2>
+                    <span class="conv-badge info">Sin Reingreso Manual · Reactivo</span>
+                </div>
+                <div class="card-body">
+                    <div id="conv-inherited-banner" class="kpi-grid"></div>
+                </div>
+            </div>
+
+            <!-- 2. Selector de Rama y Parámetros de Diseño (RF-25, RF-30, RF-32) -->
+            <div class="card fade-in">
+                <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                    <div>
+                        <h2>
+                            <svg class="lucide-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+                            Configuración de Conversión y Selección de Rama (RF-25)
+                        </h2>
+                        <p class="card-description">Seleccione entre sistema con baterías o conectado a red sin almacenamiento.</p>
+                    </div>
+                    <div class="conv-branch-selector">
+                        <button type="button" class="btn active" id="conv-branch-storage">
+                            <svg class="lucide-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="16" height="10" x="2" y="7" rx="2" ry="2"/><line x1="22" x2="22" y1="11" y2="13"/></svg>
+                            Con Almacenamiento (Off-Grid / Híbrido)
+                        </button>
+                        <button type="button" class="btn" id="conv-branch-grid">
+                            <svg class="lucide-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                            Sin Almacenamiento (On-Grid)
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="conv-form-grid">
+                        <div class="form-group conv-storage-only">
+                            <label for="conv-bus-voltage">Tensión Nominal del Bus DC (V)</label>
+                            <select id="conv-bus-voltage">
+                                <option value="12">12 V</option>
+                                <option value="24">24 V</option>
+                                <option value="48" selected>48 V</option>
+                            </select>
+                        </div>
+                        <!-- Rama Almacenamiento -->
+                        <div class="form-group conv-storage-only">
+                            <label for="conv-autonomy">Autonomía Deseada (N días)</label>
+                            <input type="number" id="conv-autonomy" min="0.5" max="10" step="0.5" value="2.0">
+                        </div>
+                        <div class="form-group conv-storage-only">
+                            <label for="conv-dod">Profundidad de Descarga Diseño DoD (%)</label>
+                            <input type="number" id="conv-dod" min="10" max="95" step="5" value="50">
+                        </div>
+                        <div class="form-group conv-storage-only">
+                            <label for="conv-temp-factor">Factor de Temperatura (fT)</label>
+                            <input type="number" id="conv-temp-factor" min="0.5" max="1.0" step="0.05" value="1.0">
+                        </div>
+
+                        <!-- Rama Sin Almacenamiento -->
+                        <div class="form-group conv-grid-only" style="display: none;">
+                            <label for="conv-dcac-min">Límite Mínimo Relación DC/AC</label>
+                            <input type="number" id="conv-dcac-min" min="0.5" max="2.0" step="0.05" value="1.0">
+                        </div>
+                        <div class="form-group conv-grid-only" style="display: none;">
+                            <label for="conv-dcac-max">Límite Máximo Relación DC/AC</label>
+                            <input type="number" id="conv-dcac-max" min="0.5" max="2.0" step="0.05" value="1.3">
+                        </div>
+                    </div>
+                    <div class="form-actions" style="margin-top: 1.25rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
+                        <button type="button" class="btn btn-secondary btn-sm" id="conv-btn-manage-catalog" onclick="window.CONVERSION_UI.openCatalogModal()">
+                            <svg class="lucide-icon" xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+                            Gestionar Catálogo de Equipos y Fichas Técnicas (RF-27)
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. Verificación de Arreglo y Separación de Corrientes (RF-28, RF-29) -->
+            <div class="card fade-in">
+                <div class="card-header">
+                    <h2>
+                        <svg class="lucide-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/><path d="m9 12 2 2 4-4"/></svg>
+                        Verificación Eléctrica del Arreglo y Corrientes NTC 2050 (RF-28, RF-29)
+                    </h2>
+                </div>
+                <div class="card-body">
+                    <div id="conv-array-checks"></div>
+                </div>
+            </div>
+
+            <!-- 4. Comparador de Equipos (RF-31) -->
+            <div class="card fade-in">
+                <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
+                    <div>
+                        <h2>
+                            <svg class="lucide-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="16" height="16" x="4" y="4" rx="2"/><rect width="6" height="6" x="9" y="9" rx="1"/><path d="M15 2v2"/><path d="M15 20v2"/><path d="M2 15h2"/><path d="M2 9h2"/><path d="M20 15h2"/><path d="M20 9h2"/><path d="M9 2v2"/><path d="M9 20v2"/></svg>
+                            <span class="conv-storage-only">Comparador de Reguladores MPPT e Inversores Híbridos (RF-28, RF-29, RF-31)</span>
+                            <span class="conv-grid-only" style="display: none;">Comparador de Inversores Solares Conectados a Red (RF-30, RF-31)</span>
+                        </h2>
+                        <p class="card-description">
+                            <span class="conv-storage-only">Haga clic sobre cualquier fila para seleccionar el equipo como dispositivo activo de conversión.</span>
+                            <span class="conv-grid-only" style="display: none;">Haga clic sobre cualquier inversor para seleccionarlo y evaluar el factor de sobrecarga y arranque.</span>
+                        </p>
+                    </div>
+                    <span class="conv-badge info">Selección Interactiva en Tabla</span>
+                </div>
+                <div class="card-body">
+                    <div class="conv-storage-only" id="conv-controllers-table-container"></div>
+                    <div class="conv-grid-only" id="conv-inverters-table-container" style="display: none;"></div>
+                </div>
+            </div>
+
+            <!-- 5. Sección de Almacenamiento (Baterías, Visualizador, Balance) -->
+            <div class="conv-storage-only">
+                <div class="card fade-in">
+                    <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
+                        <div>
+                            <h2>
+                                <svg class="lucide-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="16" height="10" x="2" y="7" rx="2" ry="2"/><line x1="22" x2="22" y1="11" y2="13"/></svg>
+                                Comparador y Selección de Banco de Baterías (RF-32, RF-33, RF-35)
+                            </h2>
+                            <p class="card-description">Haga clic en cualquier fila de batería para seleccionarla y visualizar inmediatamente su diagrama serie/paralelo y KPIs.</p>
+                        </div>
+                        <span class="conv-badge info">Selección Interactiva en Tabla</span>
+                    </div>
+                    <div class="card-body">
+                        <div id="conv-batteries-table-container"></div>
+                        <div id="conv-battery-kpis" class="kpi-grid" style="margin-top: 1.25rem;"></div>
+                        <div id="conv-battery-visual" style="margin-top: 1rem;"></div>
+                    </div>
+                </div>
+
+                <div id="conv-balance-card"></div>
+
+                <!-- 6. Acciones del Proyecto (Informe, Persistencia y Caso de Prueba Alta Guajira) -->
+                <div class="card fade-in" style="margin-top: 1.5rem;">
+                    <div class="card-header">
+                        <h2>
+                            <svg class="lucide-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" x2="13" y1="13" y2="17"/><line x1="16" x2="8" y1="17" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                            Gestión del Proyecto, Informes y Caso Estandarizado (RF-36)
+                        </h2>
+                        <p class="card-description">Exporte el informe ejecutivo en PDF con datos del Reto 01, 02 y 03, o guarde el proyecto en JSON.</p>
+                    </div>
+                    <div class="card-body">
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.25rem;">
+                            <!-- Columna 1: PDF -->
+                            <div class="action-card">
+                                <div>
+                                    <h3>
+                                        <svg class="lucide-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                                        Informe Ejecutivo (PDF)
+                                    </h3>
+                                    <p>
+                                        Genera el informe técnico de ingeniería incluyendo cuadro de cargas, generador FV, banco de baterías y verificación de regulador/inversor.
+                                    </p>
+                                </div>
+                                <button class="btn btn-primary" id="btn-report-conv" style="width: 100%; justify-content: center;">
+                                    <svg class="lucide-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                                    Generar Informe PDF (Retos 01, 02 &amp; 03)
+                                </button>
+                            </div>
+
+                            <!-- Columna 2: Persistencia JSON -->
+                            <div class="action-card">
+                                <div>
+                                    <h3>
+                                        <svg class="lucide-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                                        Persistencia (.json)
+                                    </h3>
+                                    <p>
+                                        Guarde o cargue el proyecto completo con equipos de conversión personalizados y selección de rama.
+                                    </p>
+                                </div>
+                                <div class="persistence-actions" style="display: flex; gap: 0.6rem; flex-wrap: wrap;">
+                                    <button class="btn btn-primary" id="btn-save-conv" style="flex: 1; justify-content: center; min-width: 110px;">
+                                        Guardar
+                                    </button>
+                                    <label class="btn btn-secondary file-label" tabindex="0" style="flex: 1; justify-content: center; min-width: 110px; margin: 0;">
+                                        Cargar
+                                        <input type="file" id="btn-load-conv" accept=".json" hidden>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Columna 3: Caso de Estudio Alta Guajira Preset -->
+                            <div class="action-card featured">
+                                <div>
+                                    <h3 style="color: #f59e0b;">
+                                        <svg class="lucide-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                                        Caso de Estudio Certificado
+                                    </h3>
+                                    <p>
+                                        Carga instantánea del caso estándar de Alta Guajira: <strong>7.58 kWh/día</strong>, 4 paneles 550Wp, 48V AGM (16 un), validación TdR.
+                                    </p>
+                                </div>
+                                <button class="btn btn-secondary" id="btn-preset-guajira-conv" style="width: 100%; justify-content: center; border-color: rgba(245, 158, 11, 0.5); font-weight: 600;">
+                                    Cargar Caso Alta Guajira (7.58 kWh/d)
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div><!-- /#stage-conversion -->
+
     </main>
 
     <!-- ═══════════════ FOOTER ═══════════════ -->
     <footer class="app-footer">
-        <p>Planeación Solar Práctica v2.0 — Energía Solar Fotovoltaica (Reto 01 & Reto 02) — 2026</p>
+        <p>Planeación Solar Práctica v3.0 — Energía Solar Fotovoltaica (Retos 01, 02 &amp; Reto 03) — 2026</p>
     </footer>
 
     <!-- ═══════════════ MODAL DE CONFIGURACIÓN DE APIS Y PARÁMETROS ═══════════════ -->
@@ -1829,6 +2047,28 @@
     })();
     </script>
 
+    <!-- ═══════════════ MODAL DE GESTIÓN DE CATÁLOGO DE CONVERSIÓN (RF-27) ═══════════════ -->
+    <div class="modal-backdrop" id="conv-catalog-modal" style="display: none;">
+        <div class="modal-container" style="max-width: 900px; width: 95%; max-height: 92vh; display: flex; flex-direction: column;">
+            <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border-subtle);">
+                <h3 style="margin: 0; display: flex; align-items: center; gap: 0.5rem; font-size: 1.15rem; color: var(--text-primary);">
+                    <svg class="lucide-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+                    Catálogo de Equipos, Módulos FV y Baterías (RF-27)
+                </h3>
+                <button type="button" class="modal-close-btn" id="btn-close-conv-catalog" onclick="window.CONVERSION_UI.closeCatalogModal()" aria-label="Cerrar">&times;</button>
+            </div>
+            <div class="modal-body" id="conv-catalog-modal-body" style="overflow-y: auto; padding: 1.25rem;"></div>
+            <div class="modal-footer" style="padding: 1rem 1.5rem; border-top: 1px solid var(--border-subtle); display: flex; justify-content: space-between; align-items: center; background: var(--bg-card);">
+                <button type="button" class="btn btn-ghost btn-sm" onclick="if(confirm('¿Restablecer todo el catálogo (equipos, baterías y módulos) a los valores predeterminados?')) { CONVERSION_DB.resetDefaults(); if(window.MODULES_DB) MODULES_DB.resetDefaults(); CONVERSION_UI.render(); CONVERSION_UI.openCatalogModal(); }">
+                    🔄 Restablecer Todo de Fábrica
+                </button>
+                <button type="button" class="btn btn-secondary btn-sm" id="conv-btn-close-catalog" onclick="window.CONVERSION_UI.closeCatalogModal()">
+                    Cerrar
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- ═══════════════ SCRIPTS ═══════════════ -->
     <script src="js/i18n.js?v=3.6"></script>
     <script src="js/app.js?v=4.0"></script>
@@ -1837,11 +2077,14 @@
     <script src="js/pvwatts_service.js?v=3.6"></script>
     <script src="js/pvgis_service.js?v=3.6"></script>
     <script src="js/nasa_power_service.js?v=3.6"></script>
-    <script src="js/modules_db.js?v=3.6"></script>
+    <script src="js/modules_db.js?v=3.7"></script>
     <script src="js/cases_db.js?v=4.2"></script>
     <script src="js/sizing.js?v=3.6"></script>
     <script src="js/sizing_ui.js?v=3.6"></script>
-    <script src="js/project.js?v=3.6"></script>
+    <script src="js/conversion_db.js?v=1.3"></script>
+    <script src="js/conversion.js?v=1.3"></script>
+    <script src="js/conversion_ui.js?v=1.3"></script>
+    <script src="js/project.js?v=3.7"></script>
     <script src="js/loads.js?v=3.6"></script>
     <script src="js/calculations.js?v=3.7"></script>
     <script src="js/chart.js?v=3.6"></script>

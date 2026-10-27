@@ -91,15 +91,16 @@ function updateCalculations() {
     const ea = calcAnnualEnergy();
 
     // KPI Cards
+    const isEn = window.APP_LANG === 'en';
     const pinstKw = (Math.round((pinst / 1000 + 1e-6) * 100) / 100).toFixed(2);
     const pmaxKw = (Math.round((pmax / 1000 + 1e-6) * 100) / 100).toFixed(2);
-    document.getElementById('kpi-pinst').textContent = `${pinst.toLocaleString('es-CO')} W`;
+    document.getElementById('kpi-pinst').textContent = `${pinst.toLocaleString(isEn ? 'en-US' : 'es-CO')} W`;
     document.getElementById('kpi-pinst-kw').textContent = `${pinstKw} kW`;
-    document.getElementById('kpi-pmax').textContent = `${pmax.toLocaleString('es-CO')} W`;
+    document.getElementById('kpi-pmax').textContent = `${pmax.toLocaleString(isEn ? 'en-US' : 'es-CO')} W`;
     document.getElementById('kpi-pmax-kw').textContent = `${pmaxKw} kW`;
-    document.getElementById('kpi-ed').textContent = `${ed.toFixed(2)} kWh/día`;
-    document.getElementById('kpi-em').textContent = `${em.toFixed(2)} kWh/mes`;
-    document.getElementById('kpi-ea').textContent = `${ea.toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} kWh/año`;
+    document.getElementById('kpi-ed').textContent = `${ed.toFixed(2)} ${isEn ? 'kWh/day' : 'kWh/día'}`;
+    document.getElementById('kpi-em').textContent = `${em.toFixed(2)} ${isEn ? 'kWh/month' : 'kWh/mes'}`;
+    document.getElementById('kpi-ea').textContent = `${ea.toLocaleString(isEn ? 'en-US' : 'es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${isEn ? 'kWh/year' : 'kWh/año'}`;
 
     // Cost estimates
     document.getElementById('cost-daily').textContent = formatCOP(calcCost(ed));

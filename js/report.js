@@ -5,8 +5,10 @@
 function initReport() {
     const btn1 = document.getElementById('btn-report');
     const btn2 = document.getElementById('btn-report-dim');
+    const btn3 = document.getElementById('btn-report-conv');
     if (btn1) btn1.addEventListener('click', generateReport);
     if (btn2) btn2.addEventListener('click', generateReport);
+    if (btn3) btn3.addEventListener('click', generateReport);
 }
 
 function generateReport() {
@@ -471,6 +473,105 @@ function generateReport() {
                 `;
             })()}
         </div>
+
+        <!-- ═══════════════ SECCIÓN RETO 03: CONVERSIÓN Y ALMACENAMIENTO ═══════════════ -->
+        ${(() => {
+            if (typeof CONVERSION === 'undefined' || typeof CONVERSION_DB === 'undefined') return '';
+            const conv = CONVERSION.calculate();
+            const isStorage = conv.branch === 'storage';
+
+            return `
+            <div class="section" style="page-break-before: always; margin-top: 15px;">
+                <div class="section-title">3. Sistema de Conversión y Almacenamiento (Reto 03)</div>
+                <div style="font-size:0.8rem; color:#64748b; margin-bottom:8px;">
+                    Rama seleccionada: <strong>${isStorage ? 'Con Almacenamiento (Off-Grid / Aislado)' : 'Sin Almacenamiento (On-Grid / Red)'}</strong>
+                    &nbsp;|&nbsp; Tensión Bus DC: <strong>${conv.vbus} V</strong>
+                    &nbsp;|&nbsp; Eficiencia Inversor: <strong>${conv.invEff}%</strong>
+                </div>
+
+                ${isStorage && conv.batteryBank ? `
+                <div style="margin-bottom: 10px;">
+                    <strong style="font-size:0.85rem; color:#0f172a;">Banco de Baterías</strong>
+                    <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 4px;">
+                        <div class="kpi-box"><div class="kpi-label">Tecnología</div><div class="kpi-val" style="font-size:0.82rem;">${conv.batteryBank.battery.name}</div></div>
+                        <div class="kpi-box"><div class="kpi-label">Configuración</div><div class="kpi-val">${conv.batteryBank.ns}S × ${conv.batteryBank.np}P (${conv.batteryBank.totalUnits} un)</div></div>
+                        <div class="kpi-box"><div class="kpi-label">Capacidad Útil / Inst.</div><div class="kpi-val">${conv.batteryBank.cUsefulAh.toFixed(0)} / ${conv.batteryBank.cInstalledAh.toFixed(0)} Ah</div></div>
+                        <div class="kpi-box"><div class="kpi-label">Energía Instalada</div><div class="kpi-val">${conv.batteryBank.eInstalledKwh.toFixed(2)} kWh</div></div>
+                    </div>
+                    <div style="font-size:0.75rem; color:#475569; margin-top: 4px;">
+                        DoD Real: <strong>${conv.batteryBank.dodFinal.toFixed(1)}%</strong>
+                        &nbsp;|&nbsp; Tasa Carga: <strong>${conv.batteryBank.cRateCharge.toFixed(2)}C</strong>
+                        &nbsp;|&nbsp; Tasa Descarga: <strong>${conv.batteryBank.cRateDischarge.toFixed(2)}C</strong>
+                        &nbsp;|&nbsp; Autonomía: <strong>${conv.batteryBank.autonomyDays} días</strong>
+                        &nbsp;|&nbsp; Tiempo de Recuperación: <strong>${conv.batteryBank.canRecover ? conv.batteryBank.trecDays.toFixed(2) + ' días' : 'No recupera (Déficit solar)'}</strong>
+                    </div>
+                </div>
+                ` : ''}
+
+                ${conv.controllerVerification ? `
+                <div style="margin-bottom: 10px;">
+                    <strong style="font-size:0.85rem; color:#0f172a;">Regulador de Carga MPPT</strong>
+                    <div style="font-size:0.75rem; color:#475569; margin-top:2px;">
+                        Modelo: <strong>${conv.controllerVerification.device.name}</strong> (${conv.controllerVerification.device.model})
+                        ${conv.controllerVerification.device.url ? ` - <a href="${conv.controllerVerification.device.url}" target="_blank" style="color:#2563eb;">Ficha Técnica</a>` : ' <em>(Referencia TdR)</em>'}
+                    </div>
+                    <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 4px;">
+                        <div class="kpi-box">
+                            <div class="kpi-label">Voc Gen @ Tmin vs Límite</div>
+                            <div class="kpi-val" style="color:${conv.controllerVerification.vocGenTmin <= conv.controllerVerification.vocLimit ? '#16a34a' : '#dc2626'};">
+                                ${conv.controllerVerification.vocGenTmin.toFixed(1)} V / ${conv.controllerVerification.vocLimit} V
+                            </div>
+                        </div>
+                        <div class="kpi-box">
+                            <div class="kpi-label">Ventana MPPT [Vmin - Vmax]</div>
+                            <div class="kpi-val" style="color:${conv.controllerVerification.mpptComplies ? '#16a34a' : '#dc2626'};">
+                                ${conv.controllerVerification.vmpHot.toFixed(1)} - ${conv.controllerVerification.vmpCold.toFixed(1)} V
+                            </div>
+                        </div>
+                        <div class="kpi-box">
+                            <div class="kpi-label">Corriente Salida (1.25x NTC)</div>
+                            <div class="kpi-val" style="color:${conv.controllerVerification.currentComplies ? '#16a34a' : '#dc2626'};">
+                                ${conv.controllerVerification.iOutDesign.toFixed(1)} A / ${conv.controllerVerification.iMaxController} A
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                ` : ''}
+
+                ${conv.inverterVerification ? `
+                <div style="margin-bottom: 10px;">
+                    <strong style="font-size:0.85rem; color:#0f172a;">Inversor Solar MPPT</strong>
+                    <div style="font-size:0.75rem; color:#475569; margin-top:2px;">
+                        Modelo: <strong>${conv.inverterVerification.device.name}</strong> (${conv.inverterVerification.device.model})
+                        ${conv.inverterVerification.device.url ? ` - <a href="${conv.inverterVerification.device.url}" target="_blank" style="color:#2563eb;">Ficha Técnica</a>` : ' <em>(Referencia TdR)</em>'}
+                    </div>
+                    <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap: 6px; margin-top: 4px;">
+                        <div class="kpi-box">
+                            <div class="kpi-label">Potencia Nominal / Pico</div>
+                            <div class="kpi-val">${conv.inverterVerification.pnomInv} W / ${conv.inverterVerification.device.surgePower ?? conv.inverterVerification.pnomInv * 2} W</div>
+                        </div>
+                        <div class="kpi-box">
+                            <div class="kpi-label">Relación DC/AC</div>
+                            <div class="kpi-val" style="color:${conv.inverterVerification.dcacComplies ? '#16a34a' : '#dc2626'};">
+                                ${conv.inverterVerification.dcacRatio.toFixed(2)} (${conv.inverterVerification.dcacStatus})
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                ` : ''}
+
+                ${isStorage && conv.balance ? `
+                <div style="padding: 6px 10px; background: #f8fafc; border-left: 3px solid ${conv.balance.recoversInTarget ? '#16a34a' : '#f59e0b'}; border-radius: 4px; font-size: 0.75rem; margin-top: 6px;">
+                    <strong>Balance de Cierre Energético:</strong>
+                    ${conv.balance.recoversInTarget
+                        ? `El sistema recupera el banco de baterías en ${conv.balance.trecCurrent.toFixed(1)} días (Meta: &le; 3.0 días).`
+                        : `Déficit solar detectado para recuperación (${conv.balance.trecCurrent.toFixed(1)} días). Se recomienda adicionar <strong>+${conv.balance.deltaN} módulos</strong> para alcanzar la tasa de recarga.`
+                    }
+                </div>
+                ` : ''}
+            </div>
+            `;
+        })()}
 
         <div class="footer">
             <p>${t('Generado automáticamente por Planeación Solar Práctica')} — ${new Date().toLocaleDateString(exportLang === 'en' ? 'en-US' : 'es-CO', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>

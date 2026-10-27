@@ -34,7 +34,14 @@ function initProject() {
             }
         });
     }
-    fields.systemType.addEventListener('change', () => APP.state.project.systemType = fields.systemType.value);
+    fields.systemType.addEventListener('change', () => {
+        const val = fields.systemType.value;
+        APP.state.project.systemType = val;
+        if (window.CONVERSION_UI && typeof window.CONVERSION_UI.setBranch === 'function') {
+            const branch = val === 'on-grid' ? 'grid' : 'storage';
+            window.CONVERSION_UI.setBranch(branch, false);
+        }
+    });
 
     // ───── Day/Night Configuration ─────
     const dayStartSel = document.getElementById('day-start');

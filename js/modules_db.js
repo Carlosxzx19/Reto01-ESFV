@@ -171,6 +171,18 @@ const MODULES_DB = {
         return null;
     },
 
+    getDefaultModule(id) {
+        return DEFAULT_MODULES.find(m => m.id === id);
+    },
+
+    resetModule(id) {
+        const def = this.getDefaultModule(id);
+        if (def) {
+            return this.updateModule(id, JSON.parse(JSON.stringify(def)));
+        }
+        return null;
+    },
+
     resetDefaults() {
         this.modules = JSON.parse(JSON.stringify(DEFAULT_MODULES));
         localStorage.removeItem('pv_custom_modules');

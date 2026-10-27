@@ -786,6 +786,7 @@ function renderModuleCards(evaluated) {
 
     const s = APP.state.sizing;
     const isEstandar = !!(s.lockedModule || s.activeCaseId === 'caso-estandar');
+    const isEn = window.APP_LANG === 'en';
 
     // Gear icon button for editing catalog
     const btnEditMod = document.getElementById('btn-edit-modules');
@@ -804,13 +805,15 @@ function renderModuleCards(evaluated) {
     container.innerHTML = evaluated.map(item => {
         const isSelected = item.module.id === s.selectedModuleId || isEstandar;
         const fitClass = item.fitsArea ? 'status-ok' : 'status-danger';
-        const fitText = item.fitsArea ? '✓ Cabe en el área' : '✗ No cabe (insuficiente)';
+        const fitText = item.fitsArea
+            ? (isEn ? '✓ Fits available area' : '✓ Cabe en el área')
+            : (isEn ? '✗ Does not fit (insufficient area)' : '✗ No cabe (insuficiente)');
         const excedentSign = item.excedentPercent >= 0 ? '+' : '';
-        const fallbackName = item.module.id === 'panel-estandar'
-            ? 'Módulo de Referencia Oficial'
-            : (item.module.id === 'panel-150w' ? 'Módulo 1' : item.module.id === 'panel-330w' ? 'Módulo 2' : 'Módulo 3');
+        const fallbackName = isEn
+            ? (item.module.id === 'panel-estandar' ? 'Official Reference Module' : item.module.id === 'panel-150w' ? 'Module 1' : item.module.id === 'panel-330w' ? 'Module 2' : 'Module 3')
+            : (item.module.id === 'panel-estandar' ? 'Módulo de Referencia Oficial' : item.module.id === 'panel-150w' ? 'Módulo 1' : item.module.id === 'panel-330w' ? 'Módulo 2' : 'Módulo 3');
         const cleanName = isEstandar
-            ? 'Módulo de Referencia Declarado (Caso Estándar)'
+            ? (isEn ? 'Declared Reference Module (Standard Case)' : 'Módulo de Referencia Declarado (Caso Estándar)')
             : ((item.module.name || '').replace(/[-_].*$/, '').trim() || fallbackName);
         const hasGen = item.finalModCount > 0;
 
@@ -828,17 +831,17 @@ function renderModuleCards(evaluated) {
 
         const badgeLockedHtml = isEstandar ? `
             <div style="margin-bottom: 0.6rem; padding: 0.35rem 0.6rem; background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.35); border-radius: 6px; font-size: 0.76rem; color: #38bdf8; display: flex; align-items: center; justify-content: center; gap: 0.4rem; font-weight: 600;">
-                <span>🔒</span> Referencia Oficial Exclusiva — No modificable
+                <span>🔒</span> ${isEn ? 'Exclusive Official Reference — Not modifiable' : 'Referencia Oficial Exclusiva — No modificable'}
             </div>
         ` : '';
 
         const buttonHtml = isEstandar ? `
             <button class="btn btn-sm btn-primary btn-select-mod" style="margin-top: 0.8rem; width: 100%; cursor: default; opacity: 0.95;" onclick="event.stopPropagation();">
-                ★ Módulo Oficial Único (Caso Estándar)
+                ${isEn ? '★ Unique Official Module (Standard Case)' : '★ Módulo Oficial Único (Caso Estándar)'}
             </button>
         ` : `
             <button class="btn btn-sm ${isSelected ? 'btn-primary' : 'btn-ghost'} btn-select-mod" style="margin-top: 0.8rem; width: 100%;">
-                ${isSelected ? '★ Módulo Seleccionado' : 'Seleccionar esta Referencia'}
+                ${isSelected ? (isEn ? '★ Selected Module' : '★ Módulo Seleccionado') : (isEn ? 'Select this Reference' : 'Seleccionar esta Referencia')}
             </button>
         `;
 
@@ -853,59 +856,59 @@ function renderModuleCards(evaluated) {
             <!-- Voc del Sistema con la menor temperatura de la ubicación -->
             <div class="voc-tmin-callout" style="background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.4); border-radius: 8px; padding: 0.65rem 0.85rem; margin: 0.8rem 0;">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <span style="font-size:0.78rem; text-transform:uppercase; font-weight:700; color:var(--accent);">Voc Sistema @ Tmin (${s.tmin}°C) [≤${s.vmaxSystem}V]</span>
+                    <span style="font-size:0.78rem; text-transform:uppercase; font-weight:700; color:var(--accent);">${isEn ? 'System Voc @ Tmin' : 'Voc Sistema @ Tmin'} (${s.tmin}°C) [≤${s.vmaxSystem}V]</span>
                     <span class="voc-system-val">${displayVoc}</span>
                 </div>
                 <div class="voc-details-row" style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px; font-size: 0.8rem; font-weight: 700; white-space: nowrap; gap: 0.35rem;">
                     <span>Voc: ${vocMod.toFixed(2)} V</span>
                     <span style="font-size: 0.86rem; font-weight: 800; background: rgba(245, 158, 11, 0.15); padding: 2px 6px; border-radius: 4px;">${displayStrings}</span>
-                    <span>Ns máx: ${item.nsMax}</span>
+                    <span>${isEn ? 'Max Ns' : 'Ns máx'}: ${item.nsMax}</span>
                 </div>
             </div>
 
             <div class="module-metrics-grid">
                 <div class="metric-item">
-                    <span class="m-label">Módulos</span>
+                    <span class="m-label">${isEn ? 'Modules' : 'Módulos'}</span>
                     <span class="m-val highlight">${item.finalModCount} un.</span>
                 </div>
                 <div class="metric-item">
-                    <span class="m-label">Potencia Inst.</span>
+                    <span class="m-label">${isEn ? 'Inst. Power' : 'Potencia Inst.'}</span>
                     <span class="m-val">${item.installedPowerKwp.toFixed(2)} kWp</span>
                 </div>
                 <div class="metric-item">
-                    <span class="m-label">Excedente</span>
+                    <span class="m-label">${isEn ? 'Surplus' : 'Excedente'}</span>
                     <span class="m-val">${excedentSign}${item.excedentPercent.toFixed(1)}%</span>
                 </div>
                 <div class="metric-item" title="Tensión Vmp a temperatura real de operación de la celda Tc (${item.tCellOp.toFixed(1)}°C con G=800 W/m²). Vmp módulo: ${vmpMod.toFixed(2)} V · Ns: ${item.ns}">
-                    <span class="m-label">Vmp Op. (@${item.tCellOp.toFixed(1)}°C)</span>
+                    <span class="m-label">${isEn ? 'Op. Vmp' : 'Vmp Op.'} (@${item.tCellOp.toFixed(1)}°C)</span>
                     <span class="m-val">${displayVmp}</span>
                 </div>
                 <div class="metric-item">
-                    <span class="m-label">I diseño (690-8)</span>
+                    <span class="m-label">${isEn ? 'Design I (690-8)' : 'I diseño (690-8)'}</span>
                     <span class="m-val">${displayIdesign}</span>
                 </div>
                 <div class="metric-item">
-                    <span class="m-label">Imp Sist.</span>
+                    <span class="m-label">${isEn ? 'System Imp' : 'Imp Sist.'}</span>
                     <span class="m-val">${displayImp}</span>
                 </div>
                 <div class="metric-item">
-                    <span class="m-label">Área Generador</span>
+                    <span class="m-label">${isEn ? 'Generator Area' : 'Área Generador'}</span>
                     <span class="m-val">${item.totalArea.toFixed(2)} m²</span>
                 </div>
                 <div class="metric-item">
-                    <span class="m-label">Generación Est.</span>
+                    <span class="m-label">${isEn ? 'Est. Generation' : 'Generación Est.'}</span>
                     <span class="m-val">${item.estimatedDailyKwh.toFixed(2)} kWh/d</span>
                 </div>
             </div>
 
             <div class="area-badge ${fitClass}">
-                ${fitText} (${item.totalArea.toFixed(1)} m² de ${item.availableArea} m²)
+                ${fitText} (${item.totalArea.toFixed(1)} m² ${isEn ? 'of' : 'de'} ${item.availableArea} m²)
             </div>
 
             ${buttonHtml}
             ${item.module.url && item.module.url.trim() !== '' ? `
             <a href="${item.module.url}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation();" class="btn btn-sm btn-module-ref" style="margin-top: 0.4rem; width: 100%; display: flex; align-items: center; justify-content: center; gap: 0.35rem; background: #0284c7; color: #ffffff !important; font-size: 0.8rem; font-weight: 600; text-decoration: none; border-radius: var(--radius-sm); padding: 0.42rem 0.6rem; border: none; cursor: pointer; transition: all 0.2s ease;">
-                🔗 Referencia
+                🔗 ${isEn ? 'Datasheet' : 'Referencia'}
             </a>
             ` : ''}
         </div>
@@ -921,6 +924,7 @@ function renderModuleTable(evaluated) {
 
     const s = APP.state.sizing;
     const isEstandar = !!(s.lockedModule || s.activeCaseId === 'caso-estandar');
+    const isEn = window.APP_LANG === 'en';
 
     const formatVal = (val, unit = '') => {
         if (val === undefined || val === null || val === '' || isNaN(val)) return '—';
@@ -947,8 +951,8 @@ function renderModuleTable(evaluated) {
         if (thead) {
             thead.innerHTML = `
                 <tr>
-                    <th style="width: 45%; text-align: left;">Parámetro (Tabla 7.2 Módulo de referencia)</th>
-                    <th style="width: 55%; text-align: center;">Módulo de Referencia Declarado (550 Wp)</th>
+                    <th style="width: 45%; text-align: left;">${isEn ? 'Parameter (Table 7.2 Reference module)' : 'Parámetro (Tabla 7.2 Módulo de referencia)'}</th>
+                    <th style="width: 55%; text-align: center;">${isEn ? 'Declared Reference Module (550 Wp)' : 'Módulo de Referencia Declarado (550 Wp)'}</th>
                 </tr>
             `;
         }
@@ -956,18 +960,18 @@ function renderModuleTable(evaluated) {
         const m = (evaluated && evaluated.length > 0) ? evaluated[0].module : MODULES_DB.getStandardModule();
 
         const rows = [
-            { label: 'Potencia pico (Pmax)', val: formatVal(m.pmax, 'Wp') },
-            { label: 'Celdas en serie', val: `${m.cellsInSeries || 72}` },
-            { label: 'Tensión de circuito abierto (Voc)', val: formatVal(m.voc, 'V') },
-            { label: 'Corriente de cortocircuito (Isc)', val: formatVal(m.isc, 'A') },
-            { label: 'Tensión en punto de máxima potencia (Vmp)', val: formatVal(m.vmp, 'V') },
-            { label: 'Corriente en punto de máxima potencia (Imp)', val: formatVal(m.imp, 'A') },
-            { label: 'Área del módulo', val: formatVal(m.area, 'm²') },
-            { label: 'Coeficiente de temperatura de Voc (β)', val: formatSign(m.tempCoefVoc, '%/°C') },
-            { label: 'Coeficiente de temperatura de Isc (α)', val: formatSign(m.tempCoefIsc, '%/°C') },
-            { label: 'Coeficiente de temperatura de Pmp (γ)', val: formatSign(m.tempCoefPmp, '%/°C') },
-            { label: 'Temperatura de operación nominal de celda (NOCT)', val: formatVal(m.noct, '°C') },
-            { label: 'Eficiencia declarada', val: formatVal(m.efficiency, '%') }
+            { label: isEn ? 'Peak power (Pmax)' : 'Potencia pico (Pmax)', val: formatVal(m.pmax, 'Wp') },
+            { label: isEn ? 'Cells in series' : 'Celdas en serie', val: `${m.cellsInSeries || 72}` },
+            { label: isEn ? 'Open circuit voltage (Voc)' : 'Tensión de circuito abierto (Voc)', val: formatVal(m.voc, 'V') },
+            { label: isEn ? 'Short circuit current (Isc)' : 'Corriente de cortocircuito (Isc)', val: formatVal(m.isc, 'A') },
+            { label: isEn ? 'Maximum power voltage (Vmp)' : 'Tensión en punto de máxima potencia (Vmp)', val: formatVal(m.vmp, 'V') },
+            { label: isEn ? 'Maximum power current (Imp)' : 'Corriente en punto de máxima potencia (Imp)', val: formatVal(m.imp, 'A') },
+            { label: isEn ? 'Module area' : 'Área del módulo', val: formatVal(m.area, 'm²') },
+            { label: isEn ? 'Temperature coefficient of Voc (β)' : 'Coeficiente de temperatura de Voc (β)', val: formatSign(m.tempCoefVoc, '%/°C') },
+            { label: isEn ? 'Temperature coefficient of Isc (α)' : 'Coeficiente de temperatura de Isc (α)', val: formatSign(m.tempCoefIsc, '%/°C') },
+            { label: isEn ? 'Temperature coefficient of Pmp (γ)' : 'Coeficiente de temperatura de Pmp (γ)', val: formatSign(m.tempCoefPmp, '%/°C') },
+            { label: isEn ? 'Nominal operating cell temperature (NOCT)' : 'Temperatura de operación nominal de celda (NOCT)', val: formatVal(m.noct, '°C') },
+            { label: isEn ? 'Declared efficiency' : 'Eficiencia declarada', val: formatVal(m.efficiency, '%') }
         ];
 
         tbody.innerHTML = rows.map(r => `
@@ -993,10 +997,10 @@ function renderModuleTable(evaluated) {
     if (thead) {
         thead.innerHTML = `
             <tr>
-                <th style="width: 25%; text-align: left;">Parámetro</th>
-                <th style="width: 25%; text-align: center;">Módulo 1</th>
-                <th style="width: 25%; text-align: center;">Módulo 2</th>
-                <th style="width: 25%; text-align: center;">Módulo 3</th>
+                <th style="width: 25%; text-align: left;">${isEn ? 'Parameter' : 'Parámetro'}</th>
+                <th style="width: 25%; text-align: center;">${isEn ? 'Module 1' : 'Módulo 1'}</th>
+                <th style="width: 25%; text-align: center;">${isEn ? 'Module 2' : 'Módulo 2'}</th>
+                <th style="width: 25%; text-align: center;">${isEn ? 'Module 3' : 'Módulo 3'}</th>
             </tr>
         `;
     }
@@ -1011,19 +1015,19 @@ function renderModuleTable(evaluated) {
     const m3 = modules[2] || {};
 
     const rows = [
-        { label: 'Potencia Pico (Pmax)', v1: formatVal(m1.pmax ?? 210, 'Wp'), v2: formatVal(m2.pmax ?? 340, 'Wp'), v3: formatVal(m3.pmax ?? 550, 'Wp') },
-        { label: 'Celdas en serie', v1: `${m1.cellsInSeries ?? 36}`, v2: `${m2.cellsInSeries ?? 72}`, v3: `${m3.cellsInSeries ?? 144}` },
-        { label: 'Voc (Circuito Abierto)', v1: formatVal(m1.voc ?? 23.95, 'V'), v2: formatVal(m2.voc ?? 41.55, 'V'), v3: formatVal(m3.voc ?? 49.8, 'V') },
-        { label: 'Isc (Cortocircuito)', v1: formatVal(m1.isc ?? 11.07, 'A'), v2: formatVal(m2.isc ?? 10.46, 'A'), v3: formatVal(m3.isc ?? 13.99, 'A') },
-        { label: 'Pmax NMOT', v1: formatVal(m1.pmaxNmot ?? 156.8, 'W'), v2: formatVal(m2.pmaxNmot ?? 257, 'W'), v3: formatVal(m3.pmaxNmot ?? 410, 'W') },
-        { label: 'Vmp (Voltaje Pmax)', v1: formatVal(m1.vmp ?? 20.05, 'V'), v2: formatVal(m2.vmp ?? 34.73, 'V'), v3: formatVal(m3.vmp ?? 41.6, 'V') },
-        { label: 'Imp (Corriente Pmax)', v1: formatVal(m1.imp ?? 10.47, 'A'), v2: formatVal(m2.imp ?? 9.79, 'A'), v3: formatVal(m3.imp ?? 13.23, 'A') },
-        { label: 'Coef. Temp. Voc (β)', v1: formatSign(m1.tempCoefVoc ?? -0.32, '%/°C'), v2: formatSign(m2.tempCoefVoc ?? -0.272, '%/°C'), v3: formatSign(m3.tempCoefVoc ?? -0.28, '%/°C') },
-        { label: 'Coef. Temp. Isc (α)', v1: formatSign(m1.tempCoefIsc ?? 0.05, '%/°C'), v2: formatSign(m2.tempCoefIsc ?? 0.044, '%/°C'), v3: formatSign(m3.tempCoefIsc ?? 0.05, '%/°C') },
-        { label: 'Coef. Temp. Pmp (γ)', v1: formatSign(m1.tempCoefPmp ?? -0.39, '%/°C'), v2: formatSign(m2.tempCoefPmp ?? -0.35, '%/°C'), v3: formatSign(m3.tempCoefPmp ?? -0.36, '%/°C') },
-        { label: 'NOCT', v1: formatVal(m1.noct ?? 45, '°C'), v2: formatVal(m2.noct ?? 45, '°C'), v3: formatVal(m3.noct ?? 45, '°C') },
-        { label: 'Área', v1: formatVal(m1.area ?? 1.092, 'm²'), v2: formatVal(m2.area ?? 1.682, 'm²'), v3: formatVal(m3.area ?? 2.584, 'm²') },
-        { label: 'Eficiencia', v1: formatVal(m1.efficiency ?? 19.23, '%'), v2: formatVal(m2.efficiency ?? 16.9, '%'), v3: formatVal(m3.efficiency ?? 21.5, '%') }
+        { label: isEn ? 'Peak Power (Pmax)' : 'Potencia Pico (Pmax)', v1: formatVal(m1.pmax ?? 210, 'Wp'), v2: formatVal(m2.pmax ?? 340, 'Wp'), v3: formatVal(m3.pmax ?? 550, 'Wp') },
+        { label: isEn ? 'Cells in series' : 'Celdas en serie', v1: `${m1.cellsInSeries ?? 36}`, v2: `${m2.cellsInSeries ?? 72}`, v3: `${m3.cellsInSeries ?? 144}` },
+        { label: isEn ? 'Voc (Open Circuit)' : 'Voc (Circuito Abierto)', v1: formatVal(m1.voc ?? 23.95, 'V'), v2: formatVal(m2.voc ?? 41.55, 'V'), v3: formatVal(m3.voc ?? 49.8, 'V') },
+        { label: isEn ? 'Isc (Short Circuit)' : 'Isc (Cortocircuito)', v1: formatVal(m1.isc ?? 11.07, 'A'), v2: formatVal(m2.isc ?? 10.46, 'A'), v3: formatVal(m3.isc ?? 13.99, 'A') },
+        { label: isEn ? 'Pmax NMOT' : 'Pmax NMOT', v1: formatVal(m1.pmaxNmot ?? 156.8, 'W'), v2: formatVal(m2.pmaxNmot ?? 257, 'W'), v3: formatVal(m3.pmaxNmot ?? 410, 'W') },
+        { label: isEn ? 'Vmp (Pmax Voltage)' : 'Vmp (Voltaje Pmax)', v1: formatVal(m1.vmp ?? 20.05, 'V'), v2: formatVal(m2.vmp ?? 34.73, 'V'), v3: formatVal(m3.vmp ?? 41.6, 'V') },
+        { label: isEn ? 'Imp (Pmax Current)' : 'Imp (Corriente Pmax)', v1: formatVal(m1.imp ?? 10.47, 'A'), v2: formatVal(m2.imp ?? 9.79, 'A'), v3: formatVal(m3.imp ?? 13.23, 'A') },
+        { label: isEn ? 'Temp. Coef. Voc (β)' : 'Coef. Temp. Voc (β)', v1: formatSign(m1.tempCoefVoc ?? -0.32, '%/°C'), v2: formatSign(m2.tempCoefVoc ?? -0.272, '%/°C'), v3: formatSign(m3.tempCoefVoc ?? -0.28, '%/°C') },
+        { label: isEn ? 'Temp. Coef. Isc (α)' : 'Coef. Temp. Isc (α)', v1: formatSign(m1.tempCoefIsc ?? 0.05, '%/°C'), v2: formatSign(m2.tempCoefIsc ?? 0.044, '%/°C'), v3: formatSign(m3.tempCoefIsc ?? 0.05, '%/°C') },
+        { label: isEn ? 'Temp. Coef. Pmp (γ)' : 'Coef. Temp. Pmp (γ)', v1: formatSign(m1.tempCoefPmp ?? -0.39, '%/°C'), v2: formatSign(m2.tempCoefPmp ?? -0.35, '%/°C'), v3: formatSign(m3.tempCoefPmp ?? -0.36, '%/°C') },
+        { label: isEn ? 'NOCT' : 'NOCT', v1: formatVal(m1.noct ?? 45, '°C'), v2: formatVal(m2.noct ?? 45, '°C'), v3: formatVal(m3.noct ?? 45, '°C') },
+        { label: isEn ? 'Area' : 'Área', v1: formatVal(m1.area ?? 1.092, 'm²'), v2: formatVal(m2.area ?? 1.682, 'm²'), v3: formatVal(m3.area ?? 2.584, 'm²') },
+        { label: isEn ? 'Efficiency' : 'Eficiencia', v1: formatVal(m1.efficiency ?? 19.23, '%'), v2: formatVal(m2.efficiency ?? 16.9, '%'), v3: formatVal(m3.efficiency ?? 21.5, '%') }
     ];
 
     tbody.innerHTML = rows.map(r => `

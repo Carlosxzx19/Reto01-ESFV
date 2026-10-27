@@ -34,6 +34,8 @@ const translations = {
 
         // Example Cases Bar
         'Casos de Ejemplo:': 'Example Cases:',
+        'Casos de Estudio Predeterminados': 'Predefined Case Studies',
+        'Haga clic en un caso para cargar automáticamente los datos de demanda (Reto 01) y parámetros solares certificados (Reto 02).': 'Click a case to automatically load demand data (Challenge 01) and certified solar parameters (Challenge 02).',
         'Caso Estándar': 'Standard Case',
         'Caso Estándar (Nazareth)': 'Standard Case (Nazareth)',
         'Caso 1 (Santa Marta)': 'Case 1 (Santa Marta)',
@@ -86,6 +88,7 @@ const translations = {
         'Meses / Año (Específico)': 'Months / Year (Specific)',
         'Días / Mes (Opcional)': 'Days / Month (Optional)',
         'Meses / Año (Opcional)': 'Months / Year (Optional)',
+        'En blanco usa por defecto': 'Blank uses default',
         'En blanco usa global': 'Leave blank for global',
         'Agregar': 'Add',
         'Actualizar': 'Update',
@@ -170,6 +173,7 @@ const translations = {
         'Orientación azimutal': 'Azimuthal orientation',
         'Consultar PVGIS': 'Query PVGIS',
         'Consultar NREL': 'Query NREL',
+        'Cálculo Solar': 'Solar Calculation',
         'Tmin Histórica (°C)': 'Historical Tmin (°C)',
         'Tamb Operación (°C)': 'Operating Tamb (°C)',
         'HSP Anual Promedio': 'Average Annual PSH',
@@ -189,6 +193,7 @@ const translations = {
         'Área del Módulo': 'Module Area',
         'Parámetros del Sistema y Criterio de Diseño': 'System Parameters & Design Criteria',
         'Área Disponible en Techo (m²)': 'Available Roof Area (m²)',
+        'Área Disponible (m²)': 'Available Area (m²)',
         'Performance Ratio (PR)': 'Performance Ratio (PR)',
         'Criterio de Dimensionamiento': 'Sizing Criterion',
         'Mes Crítico (Conservador / Recomendado)': 'Critical Month (Conservative / Recommended)',
@@ -204,7 +209,58 @@ const translations = {
         'Generación Anual Estimada': 'Estimated Annual Generation',
         'Cobertura de la Demanda': 'Demand Coverage',
         'Comparativa de Módulos Alternativos': 'Alternative Modules Comparison',
+        'Comparador de Módulos Fotovoltaicos Propuestos (Catálogo de 3 Referencias)': 'Proposed Photovoltaic Modules Comparator (3 References Catalog)',
+        'Dimensionamiento por módulo, corrección de tensión por temperatura (Voc @ Tmin y Vmp @ Operación) y verificación NTC 2050.': 'Sizing per module, temperature voltage correction (Voc @ Tmin & Vmp @ Operation) and NTC 2050 verification.',
+        'Ver Ecuaciones y Metodología': 'View Equations & Methodology',
+        'Detalle Técnico Comparativo y Verificación Eléctrica (NTC 2050)': 'Detailed Technical Comparison & Electrical Verification (NTC 2050)',
+        'Módulo de Referencia Declarado (Caso Estándar)': 'Declared Reference Module (Standard Case)',
+        'Módulo de Referencia Oficial': 'Official Reference Module',
+        'Referencia Oficial Exclusiva — No modificable': 'Exclusive Official Reference — Not modifiable',
+        '★ Módulo Oficial Único (Caso Estándar)': '★ Unique Official Module (Standard Case)',
+        '★ Módulo Seleccionado': '★ Selected Module',
+        'Seleccionar esta Referencia': 'Select this Reference',
+        '✓ Cabe en el área': '✓ Fits available area',
+        '✗ No cabe (insuficiente)': '✗ Does not fit (insufficient area)',
+        'Módulos': 'Modules',
+        'Potencia Inst.': 'Inst. Power',
+        'Excedente': 'Surplus',
+        'Vmp Op.': 'Op. Vmp',
+        'I diseño (690-8)': 'Design I (690-8)',
+        'Imp Sist.': 'System Imp',
+        'Área Generador': 'Generator Area',
+        'Generación Est.': 'Est. Generation',
+        'Módulo 1': 'Module 1',
+        'Módulo 2': 'Module 2',
+        'Módulo 3': 'Module 3',
+        'Parámetro': 'Parameter',
+        'Parámetro (Tabla 7.2 Módulo de referencia)': 'Parameter (Table 7.2 Reference module)',
+        'Módulo de Referencia Declarado (550 Wp)': 'Declared Reference Module (550 Wp)',
+        'Potencia pico (Pmax)': 'Peak power (Pmax)',
+        'Potencia Pico (Pmax)': 'Peak Power (Pmax)',
+        'Celdas en serie': 'Cells in series',
+        'Tensión de circuito abierto (Voc)': 'Open circuit voltage (Voc)',
+        'Voc (Circuito Abierto)': 'Voc (Open Circuit)',
+        'Corriente de cortocircuito (Isc)': 'Short circuit current (Isc)',
+        'Isc (Cortocircuito)': 'Isc (Short Circuit)',
+        'Tensión en punto de máxima potencia (Vmp)': 'Maximum power voltage (Vmp)',
+        'Vmp (Voltaje Pmax)': 'Vmp (Pmax Voltage)',
+        'Corriente en punto de máxima potencia (Imp)': 'Maximum power current (Imp)',
+        'Imp (Corriente Pmax)': 'Imp (Pmax Current)',
+        'Área del módulo': 'Module area',
+        'Coeficiente de temperatura de Voc (β)': 'Temperature coefficient of Voc (β)',
+        'Coef. Temp. Voc (β)': 'Temp. Coef. Voc (β)',
+        'Coeficiente de temperatura de Isc (α)': 'Temperature coefficient of Isc (α)',
+        'Coef. Temp. Isc (α)': 'Temp. Coef. Isc (α)',
+        'Coeficiente de temperatura de Pmp (γ)': 'Temperature coefficient of Pmp (γ)',
+        'Coef. Temp. Pmp (γ)': 'Temp. Coef. Pmp (γ)',
+        'Temperatura de operación nominal de celda (NOCT)': 'Nominal operating cell temperature (NOCT)',
+        'Eficiencia declarada': 'Declared efficiency',
+        'Eficiencia': 'Efficiency',
+        'Pmax NMOT': 'Pmax NMOT',
+        'Máx. 600 V (Residencial NTC 2050)': 'Max. 600 V (Residential NTC 2050)',
+        'Máx. 1000 V (Industrial NTC 2050)': 'Max. 1000 V (Industrial NTC 2050)',
         'Proyección de Generación vs Demanda Energética': 'Generation vs Energy Demand Projection',
+        'Estimación mensual y anual para el módulo actualmente seleccionado.': 'Monthly and annual projection for currently selected module.',
         'Vista Mensual (12 Meses)': 'Monthly View (12 Months)',
         'Vista Anual Proyectada': 'Projected Annual View',
 
@@ -263,6 +319,12 @@ const translations = {
     }
 };
 
+// Build reverse dictionary (EN -> ES)
+const reverseDict = {};
+for (const [es, en] of Object.entries(translations['en'])) {
+    reverseDict[en] = es;
+}
+
 // Current active language: read from localStorage or default to 'es'
 window.APP_LANG = localStorage.getItem('app_lang') || 'es';
 
@@ -275,9 +337,6 @@ function collectTextNodes(el, list = []) {
 
     for (let child of el.childNodes) {
         if (isTextNode(child)) {
-            if (!child.originalText) {
-                child.originalText = child.nodeValue;
-            }
             list.push(child);
         } else if (child.nodeType === Node.ELEMENT_NODE) {
             collectTextNodes(child, list);
@@ -290,56 +349,87 @@ window.translateText = function(text, targetLang) {
     const lang = targetLang || window.APP_LANG;
     if (lang === 'en' && translations['en'][text]) {
         return translations['en'][text];
+    } else if (lang === 'es' && reverseDict[text]) {
+        return reverseDict[text];
     }
     return text;
 };
 
 function updateUITexts() {
     const isEn = window.APP_LANG === 'en';
-    const dict = isEn ? translations['en'] : null;
+    const dict = translations['en'];
 
     // 1. Text nodes in DOM
     const allTextNodes = collectTextNodes(document.body);
     allTextNodes.forEach(node => {
-        const orig = node.originalText;
-        const trimmedOrig = orig.trim();
+        const val = node.nodeValue;
+        const trimmed = val.trim();
+        if (!trimmed) return;
 
-        if (isEn && dict && dict[trimmedOrig]) {
-            node.nodeValue = orig.replace(trimmedOrig, dict[trimmedOrig]);
-        } else if (!isEn) {
-            node.nodeValue = orig;
+        // Remember initial Spanish baseline text
+        if (!node._baseText) {
+            node._baseText = reverseDict[trimmed] || trimmed;
+        }
+
+        const leading = val.match(/^\s*/)[0];
+        const trailing = val.match(/\s*$/)[0];
+
+        if (isEn) {
+            const target = dict[node._baseText] || dict[trimmed];
+            if (target) {
+                node.nodeValue = leading + target + trailing;
+            }
+        } else {
+            const target = node._baseText || reverseDict[trimmed];
+            if (target) {
+                node.nodeValue = leading + target + trailing;
+            }
         }
     });
 
     // 2. Form input placeholders
-    const inputs = document.querySelectorAll('[placeholder]');
-    inputs.forEach(input => {
-        if (!input.originalPlaceholder) {
-            input.originalPlaceholder = input.getAttribute('placeholder');
+    document.querySelectorAll('[placeholder]').forEach(input => {
+        const currentPh = input.getAttribute('placeholder') || '';
+        const trimmed = currentPh.trim();
+        if (!input._basePlaceholder) {
+            input._basePlaceholder = reverseDict[trimmed] || trimmed;
         }
-        const orig = input.originalPlaceholder.trim();
-        if (isEn && dict && dict[orig]) {
-            input.setAttribute('placeholder', dict[orig]);
+        if (isEn && dict[input._basePlaceholder]) {
+            input.setAttribute('placeholder', dict[input._basePlaceholder]);
         } else if (!isEn) {
-            input.setAttribute('placeholder', input.originalPlaceholder);
+            input.setAttribute('placeholder', input._basePlaceholder);
         }
     });
 
     // 3. Titles and tooltips
-    const elementsWithTitle = document.querySelectorAll('[title]');
-    elementsWithTitle.forEach(el => {
-        if (!el.originalTitle) {
-            el.originalTitle = el.getAttribute('title');
+    document.querySelectorAll('[title]').forEach(el => {
+        if (el.id === 'btn-lang') return; // Handled separately
+        const currentTitle = el.getAttribute('title') || '';
+        const trimmed = currentTitle.trim();
+        if (!el._baseTitle) {
+            el._baseTitle = reverseDict[trimmed] || trimmed;
         }
-        const orig = el.originalTitle.trim();
-        if (isEn && dict && dict[orig]) {
-            el.setAttribute('title', dict[orig]);
+        if (isEn && dict[el._baseTitle]) {
+            el.setAttribute('title', dict[el._baseTitle]);
         } else if (!isEn) {
-            el.setAttribute('title', el.originalTitle);
+            el.setAttribute('title', el._baseTitle);
         }
     });
 
-    // 4. Update Header Buttons
+    // 4. Select options
+    document.querySelectorAll('select option').forEach(opt => {
+        const trimmed = opt.textContent.trim();
+        if (!opt._baseText) {
+            opt._baseText = reverseDict[trimmed] || trimmed;
+        }
+        if (isEn && dict[opt._baseText]) {
+            opt.textContent = dict[opt._baseText];
+        } else if (!isEn) {
+            opt.textContent = opt._baseText;
+        }
+    });
+
+    // 5. Update Header Buttons
     const btnText = document.getElementById('lang-label');
     if (btnText) {
         btnText.textContent = isEn ? 'EN' : 'ES';
@@ -348,8 +438,13 @@ function updateUITexts() {
     if (btnLang) {
         btnLang.title = isEn ? 'Cambiar a Español' : 'Switch to English';
     }
+    const themeLabel = document.getElementById('theme-label');
+    if (themeLabel) {
+        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        themeLabel.textContent = isEn ? (isDark ? 'Dark Mode' : 'Light Mode') : (isDark ? 'Modo Oscuro' : 'Modo Claro');
+    }
 
-    // 5. Update HTML lang and title
+    // 6. Update HTML lang and title
     document.documentElement.lang = window.APP_LANG;
     if (isEn) {
         document.title = 'Practical Solar Planning — Solar Photovoltaic Energy';
@@ -358,17 +453,26 @@ function updateUITexts() {
     }
 }
 
+let lastToggleTime = 0;
+
 function toggleLanguage() {
+    const now = Date.now();
+    if (now - lastToggleTime < 300) {
+        return; // Guard against rapid duplicate clicks
+    }
+    lastToggleTime = now;
+
     window.APP_LANG = window.APP_LANG === 'es' ? 'en' : 'es';
     localStorage.setItem('app_lang', window.APP_LANG);
 
-    updateUITexts();
-
-    // Re-render dynamic elements
+    // Re-render dynamic elements first so their updated structures exist in DOM
     if (typeof updateFrequencyHints === 'function') updateFrequencyHints();
     if (typeof renderLoads === 'function') renderLoads();
     if (typeof recalculateAll === 'function') recalculateAll();
     if (typeof updateSizing === 'function') updateSizing();
+
+    // Now update all UI texts across the entire DOM
+    updateUITexts();
 
     if (typeof showToast === 'function') {
         const msg = window.APP_LANG === 'en' ? 'Language switched to English' : 'Idioma cambiado a Español';
@@ -377,18 +481,22 @@ function toggleLanguage() {
 }
 
 function initI18n() {
+    const langBtn = document.getElementById('btn-lang');
+    if (langBtn) {
+        langBtn.onclick = (e) => {
+            if (e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+            toggleLanguage();
+        };
+    }
+
     // If language was saved as 'en', apply it immediately
     const savedLang = localStorage.getItem('app_lang');
     if (savedLang === 'en') {
         window.APP_LANG = 'en';
         updateUITexts();
-    }
-
-    const langBtn = document.getElementById('btn-lang');
-    if (langBtn) {
-        // Remove duplicate listeners if any
-        langBtn.removeEventListener('click', toggleLanguage);
-        langBtn.addEventListener('click', toggleLanguage);
     }
 }
 
