@@ -512,7 +512,7 @@ function generateReport() {
                         &nbsp;|&nbsp; Tasa Carga: <strong>${conv.batteryBank.cRateCharge.toFixed(2)}C</strong>
                         &nbsp;|&nbsp; Tasa Descarga: <strong>${conv.batteryBank.cRateDischarge.toFixed(2)}C</strong>
                         &nbsp;|&nbsp; Autonomía: <strong>${conv.batteryBank.autonomyDays} días</strong>
-                        &nbsp;|&nbsp; Tiempo de Recuperación: <strong>${conv.batteryBank.canRecover ? conv.batteryBank.trecDays.toFixed(2) + ' días' : 'No recupera (Déficit solar)'}</strong>
+                        &nbsp;|&nbsp; Tiempo de recarga de batería: <strong>${conv.batteryBank.canRecover ? conv.batteryBank.trecDays.toFixed(2) + ' días' : 'No se recupera energía: el balance diario es nulo o negativo'}</strong>
                     </div>
                 </div>
                 ` : ''}
@@ -571,10 +571,10 @@ function generateReport() {
 
                 ${isStorage && conv.balance ? `
                 <div style="padding: 6px 10px; background: #f8fafc; border-left: 3px solid ${conv.balance.recoversInTarget ? '#16a34a' : '#f59e0b'}; border-radius: 4px; font-size: 0.75rem; margin-top: 6px;">
-                    <strong>Balance de Cierre Energético:</strong>
+                    <strong>Balance de Cierre Energético y Recarga:</strong>
                     ${conv.balance.recoversInTarget
-                        ? `El sistema recupera el banco de baterías en ${conv.balance.trecCurrent.toFixed(1)} días (Meta: &le; 3.0 días).`
-                        : `Déficit solar detectado para recuperación (${conv.balance.trecCurrent.toFixed(1)} días). Se recomienda adicionar <strong>+${conv.balance.deltaN} módulos</strong> para alcanzar la tasa de recarga.`
+                        ? `El sistema recarga el banco de baterías en ${conv.balance.trecCurrent.toFixed(1)} días (Meta: &le; 3.0 días).`
+                        : `Tiempo de recarga de batería prolongado (${Number.isFinite(conv.balance.trecCurrent) ? conv.balance.trecCurrent.toFixed(1) + ' días' : 'saldo diario insuficiente'}). Se recomienda adicionar <strong>+${conv.balance.deltaN} módulos</strong> para acelerar la recarga.`
                     }
                 </div>
                 ` : ''}

@@ -179,10 +179,13 @@ function switchStage(stageId) {
                 selectDimensioningCase('custom', { silent: true });
             }
         }
+        if (typeof updateCalculations === 'function') updateCalculations();
         if (typeof updateSizing === 'function') updateSizing();
     }
 
     if (stageId === 'conversion') {
+        if (typeof updateCalculations === 'function') updateCalculations();
+        if (typeof updateSizing === 'function') updateSizing();
         if (typeof updateConversion === 'function') updateConversion();
     }
 
@@ -215,6 +218,24 @@ function switchTab(tabId) {
         if (APP.chart) APP.chart.resize();
     }
 }
+
+// ───── CONVERSION STAGE UPDATE ─────
+function updateConversion() {
+    if (window.CONVERSION_UI) {
+        const sysType = window.APP?.state?.project?.systemType || 'off-grid';
+        if (!window.APP?.state?.conversion?.explicitBranchOverride) {
+            const targetBranch = (sysType === 'on-grid') ? 'grid' : 'storage';
+            if (window.APP?.state?.conversion?.branch !== targetBranch) {
+                window.CONVERSION_UI.setBranch(targetBranch, false);
+                return;
+            }
+        }
+        if (typeof window.CONVERSION_UI.render === 'function') {
+            window.CONVERSION_UI.render();
+        }
+    }
+}
+window.updateConversion = updateConversion;
 
 // ───── CENTRAL RECALCULATE ─────
 function recalculateAll() {

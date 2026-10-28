@@ -4,6 +4,45 @@ Todas las modificaciones notables realizadas en la **Plataforma Integral de Plan
 
 ---
 
+## [v1.2.0] — 2026-10-28
+### Ajustes en Balance y Recarga de Batería, Gráfica de Áreas 24h y Reactividad Total de Datos Heredados
+- **Reactividad e Integración Plena de Datos Heredados (RF-26):**
+  - Corrección en la extracción de métricas solares desde `solarResource`: lectura de `annualHsp`, `criticalMonthHsp`, `maxMonthHsp` y `monthlyHsp`, superando la desconexión que dejaba los valores en valores fijos (5,80 h / 4,80 h).
+  - Normalización reactiva del Performance Ratio (PR) y sincronización con el campo `#sizing-pr`.
+  - Lectura directa del número real de módulos dimensionados (`finalModCount`) y potencia pico del generador, reflejando fielmente el arreglo calculado en Reto 02.
+  - Notificación reactiva inmediata: cada modificación en Reto 02 (PR, HSP, mes suspendido/reactivado o cambio de módulo) dispara automáticamente `updateConversion()`, actualizando en tiempo real la tarjeta de datos heredados, la evaluación técnica y el balance de recarga.
+- **Tiempo de Recarga de Batería (Mejor y Peor Mes):**
+  - Desglose explícito del tiempo de recarga en un día del **mejor mes** ($HSP_{max}$) y del **peor mes** ($HSP_{min}$ / mes crítico), complementando el régimen promedio anual.
+  - Eliminación total del término *"superávit"* en alertas, etiquetas y diagnósticos técnicos.
+  - Actualización del mensaje de déficit / alerta a la redacción exacta solicitada: `"No se recupera energía: el balance diario es nulo o negativo"`.
+  - Supresión del botón interactivo de añadir paneles (`+3 mód`); en su lugar, se presenta un diagnóstico cuantitativo indicando cuántos paneles extra en serie son necesarios para alcanzar el balance de recarga.
+- **Gráfica de Áreas Superpuestas 24h en el Simulador Visual:**
+  - Rediseño de la gráfica 24h inferior: transición de diagrama de barras simple a **gráfica de áreas superpuestas**, permitiendo visualizar tanto el consumo como la generación solar en un mismo plano con una curva por delante de la otra mediante rellenos translúcidos con gradientes (#6366f1 para demanda y #f59e0b para generación) y trazos nítidos.
+  - Corrección en la lectura de propiedades del generador (`finalModCount` e `installedPowerKwp`), resolviendo el error donde la generación aparecía plana o imperceptible frente a altas demandas.
+- **Sincronización Inmediata en Proyectos Aislados (Off-Grid / Híbridos):**
+  - Corrección del flujo de inicialización y cambio de escenario: al cargar o trabajar en un proyecto aislado (`off-grid` o `hybrid`), la rama se configura automáticamente en `storage`, visibilizando inmediatamente el banco de baterías, KPIs, circuito SVG y balance sin necesidad de conmutar a red y volver.
+  - Definición global de `updateConversion()` en `js/app.js` para asegurar reactividad total en la navegación entre etapas.
+
+---
+
+## [v1.1.0] — 2026-10-28
+### Ajuste de Balance Energético, Tiempo de Recarga de Batería, Visualizador Interactivo y Catálogos JSON
+- **Ajuste Físico del Balance de Cierre Energético (RF-34, RF-35):**
+  - Desacoplamiento de la energía diurna directa ($E_{in,CC}$) respecto a la energía nocturna ciclada por batería ($E_{out,CC}$), eliminando la doble penalización del 20% en la producción solar total.
+  - Corrección del superávit neto diario para régimen anual y mes crítico: $Surplus = E_{prod} - E_{req}$, evitando falsas alertas de "Banco no recupera" cuando el arreglo FV está correctamente dimensionado.
+  - Actualización del indicador y título a **"Tiempo de recarga de batería"**, con evaluación dual para régimen promedio anual y mes crítico.
+- **Panel Visual Interactivo del Generador FV (Reto 02):**
+  - Incorporación del módulo interactivo con 4 figuras SVG animadas en tiempo real:
+    - *Un día de energía:* Simulación orbital 24h (sol/luna, iluminación diurna/nocturna, flujo animado de potencia a cargas y almacenamiento, y sincronización con la curva horaria).
+    - *Módulos y área:* Distribución física $N_s \times N_p$, ocupación superficial vs área disponible y comparativa con canchas de tenis.
+    - *Inclinación y orientación:* Vista lateral con transportador angular e inclinación real $\beta$, y brújula 360° con vector de azimut.
+    - *Voltaje y corriente:* Esquema eléctrico en serie/paralelo, indicador de $V_{oc}(T_{min})$ vs límite de seguridad $V_{max}$, y corrientes NTC 2050 (Art. 690-8).
+- **Importación y Exportación de Catálogos en Formato JSON:**
+  - Botones dedicados en la Etapa 3 y en el modal de gestión para exportar e importar el catálogo completo de equipos de conversión (controladores MPPT, inversores y baterías) y módulos FV.
+  - Compatibilidad completa de persistencia para proyectos locales.
+
+---
+
 ## [v1.0.0] — 2026-10-27 (Lanzamiento Definitivo Reto 04)
 ### Universidad del Magdalena — Periodo 2026-II — Grupo A (San Andrés)
 

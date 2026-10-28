@@ -398,9 +398,9 @@
                         <div style="font-size: 0.78rem; color: var(--text-secondary); margin-top: 0.2rem;">${(activeBat?.kwhInst || 12.0).toFixed(2)} kWh brutos instalados</div>
                     </div>
                     <div class="info-box-subtle">
-                        <span style="font-size: 0.72rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700; display: block;">DoD y Tiempo Recuperación</span>
+                        <span style="font-size: 0.72rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700; display: block;">DoD y Tiempo de Recarga de Batería</span>
                         <strong style="font-size: 0.95rem; color: #f59e0b;">${((activeBat?.dodFin || 0.45) * 100).toFixed(1)}% DoD</strong>
-                        <div style="font-size: 0.78rem; color: var(--text-secondary); margin-top: 0.2rem;">Trec: ${activeBat?.tRecoverDays && Number.isFinite(activeBat.tRecoverDays) ? activeBat.tRecoverDays.toFixed(1) + ' días' : 'Recupera con solar'}</div>
+                        <div style="font-size: 0.78rem; color: var(--text-secondary); margin-top: 0.2rem;">Recarga: ${activeBat?.tRecoverDays && Number.isFinite(activeBat.tRecoverDays) ? activeBat.tRecoverDays.toFixed(1) + ' días' : 'No se recarga'}</div>
                     </div>
                 </div>
                 ` : `

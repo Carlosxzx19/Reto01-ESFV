@@ -196,6 +196,29 @@ const MODULES_DB = {
     addModule(newMod) {
         if (!newMod.id) newMod.id = 'mod-' + Date.now();
         this.modules.push(newMod);
+    },
+
+    exportJSON() {
+        return JSON.stringify(this.modules, null, 2);
+    },
+
+    importJSON(jsonString) {
+        try {
+            const parsed = typeof jsonString === 'string' ? JSON.parse(jsonString) : jsonString;
+            const list = Array.isArray(parsed) ? parsed : (parsed.modules || []);
+            if (!Array.isArray(list) || !list.length) {
+                throw new Error('El JSON no contiene una lista válida de módulos.');
+            }
+            list.forEach(m => {
+                if (m.id && m.pmax && m.voc) {
+                    this.updateModule(m.id, m);
+                }
+            });
+            return true;
+        } catch (e) {
+            console.error('Error importing modules catalog:', e);
+            throw e;
+        }
     }
 };
 

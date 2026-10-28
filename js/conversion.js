@@ -13,13 +13,22 @@ const CONVERSION_CALC = {
         const config = state.config || {};
         const conv = state.conversion || {};
         const sizing = state.sizing || {};
-        const selectedRes = sizing.selectedResult || null;
+        let selectedRes = sizing.selectedResult || null;
+        if (!selectedRes && Array.isArray(sizing.evaluatedModules) && sizing.evaluatedModules.length > 0) {
+            selectedRes = sizing.evaluatedModules.find(r => r.module?.id === sizing.selectedModuleId) || sizing.evaluatedModules[0];
+        }
 
         // Heredados del Reto 01
-        const profile = typeof calcHourlyProfile === 'function' ? calcHourlyProfile() : new Array(24).fill(0);
-        const ed = typeof calcDailyEnergy === 'function' ? calcDailyEnergy(profile) : 0; // kWh/día
-        const pmax = typeof calcMaxDemand === 'function' ? calcMaxDemand(profile) : 0;   // W
-        const hpmax = profile.indexOf(pmax);
+        const profile = typeof calcHourlyProfile === 'function' ? calcHourlyProfile() : (sizing.profile || new Array(24).fill(0));
+        let ed = typeof calcDailyEnergy === 'function' ? calcDailyEnergy(profile) : 0; // kWh/día
+        if ((!ed || ed <= 0) && Number.isFinite(sizing.edKwh) && sizing.edKwh > 0) {
+            ed = sizing.edKwh;
+        }
+        let pmax = typeof calcMaxDemand === 'function' ? calcMaxDemand(profile) : 0;   // W
+        if ((!pmax || pmax <= 0) && Number.isFinite(sizing.pmax) && sizing.pmax > 0) {
+            pmax = sizing.pmax;
+        }
+        const hpmax = profile.indexOf(pmax) >= 0 ? profile.indexOf(pmax) : (sizing.hpmax || 12);
 
         // Ventana solar 06-18h
         let insideWindowKWh = 0;
@@ -29,12 +38,14 @@ const CONVERSION_CALC = {
         const outsideWindowKWh = Math.max(0, ed - insideWindowKWh);
 
         // Heredados del Reto 02
-        const mod = selectedRes?.module || (window.MODULES_DB ? MODULES_DB.getModule('panel-550w') : null) || {
+        const mod = selectedRes?.module || (window.MODULES_DB ? MODULES_DB.getModule(sizing.selectedModuleId || 'panel-550w') : null) || {
             pmax: 550, voc: 49.5, isc: 14.0, vmp: 41.5, imp: 13.3, tempCoefVoc: -0.27, noct: 45, area: 2.58
         };
-        const totalModulesDefault = selectedRes?.modulesCount || 4;
-        const nsDefault = selectedRes?.ns || totalModulesDefault;
-        const npDefault = selectedRes?.np || 1;
+        const totalModulesDefault = (selectedRes?.finalModCount && selectedRes.finalModCount > 0)
+            ? selectedRes.finalModCount
+            : (selectedRes?.totalModules || selectedRes?.modulesCount || 4);
+        const nsDefault = (selectedRes?.ns && selectedRes.ns > 0) ? selectedRes.ns : totalModulesDefault;
+        const npDefault = (selectedRes?.np && selectedRes.np > 0) ? selectedRes.np : 1;
 
         // Comprobación de reconfiguración manual / activa
         let ns = conv.customStringNs && conv.customStringNs > 0 ? conv.customStringNs : nsDefault;
@@ -52,15 +63,56 @@ const CONVERSION_CALC = {
 
         const tmin = Number.isFinite(sizing.tmin) ? sizing.tmin : 20; // °C
         const tambOp = Number.isFinite(sizing.tambOp) ? sizing.tambOp : 32; // °C
-        const tcell = Number.isFinite(selectedRes?.tcell) ? selectedRes.tcell : (tambOp + ((mod.noct || 45) - 20) * 1.25); // °C
+        const tcell = Number.isFinite(selectedRes?.tCellOp)
+            ? selectedRes.tCellOp
+            : (Number.isFinite(selectedRes?.tcell) ? selectedRes.tcell : (tambOp + ((mod.noct || 45) - 20) * 1.25)); // °C
 
         const solarRes = sizing.solarResource || {};
-        const hspAnnual = Number.isFinite(solarRes.annual) && solarRes.annual > 0 ? solarRes.annual : 5.8;
-        const hspCritical = Number.isFinite(solarRes.critical) && solarRes.critical > 0 ? solarRes.critical : 5.2;
-        const pr = Number.isFinite(sizing.pr) && sizing.pr > 0 ? sizing.pr : 0.70;
+        const monthly = (Array.isArray(solarRes.monthlyHsp) && solarRes.monthlyHsp.length === 12)
+            ? solarRes.monthlyHsp
+            : ((Array.isArray(solarRes.monthly) && solarRes.monthly.length === 12) ? solarRes.monthly : [5.9, 6.3, 6.4, 5.9, 5.3, 5.3, 5.6, 5.4, 5.0, 4.8, 4.9, 5.4]);
 
-        const ppkReq = selectedRes?.ppk || (hspAnnual * pr > 0 ? ed / (hspAnnual * pr) : 0);
-        const ppkInst = (totalModules * mod.pmax) / 1000; // kWp
+        const hspAnnual = Number.isFinite(solarRes.annualHsp) && solarRes.annualHsp > 0
+            ? solarRes.annualHsp
+            : (Number.isFinite(sizing.hspAnnual) && sizing.hspAnnual > 0
+                ? sizing.hspAnnual
+                : (Number.isFinite(solarRes.annual) && solarRes.annual > 0 ? solarRes.annual : (monthly.reduce((a, b) => a + b, 0) / 12)));
+
+        const hspCritical = Number.isFinite(solarRes.criticalMonthHsp) && solarRes.criticalMonthHsp > 0
+            ? solarRes.criticalMonthHsp
+            : (Number.isFinite(sizing.hspCritical) && sizing.hspCritical > 0
+                ? sizing.hspCritical
+                : (Number.isFinite(solarRes.critical) && solarRes.critical > 0 ? solarRes.critical : Math.min(...monthly)));
+
+        const hspBest = Number.isFinite(solarRes.maxMonthHsp) && solarRes.maxMonthHsp > 0
+            ? solarRes.maxMonthHsp
+            : (Number.isFinite(sizing.hspBest) && sizing.hspBest > 0
+                ? sizing.hspBest
+                : Math.max(...monthly));
+
+        const monthNames = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+        const bestMonthName = (solarRes.maxMonthName && solarRes.maxMonthName.length > 0)
+            ? (solarRes.maxMonthName.length > 3 ? solarRes.maxMonthName.slice(0, 3) : solarRes.maxMonthName)
+            : monthNames[monthly.indexOf(hspBest)];
+        const worstMonthName = (solarRes.criticalMonthName && solarRes.criticalMonthName.length > 0)
+            ? (solarRes.criticalMonthName.length > 3 ? solarRes.criticalMonthName.slice(0, 3) : solarRes.criticalMonthName)
+            : monthNames[monthly.indexOf(hspCritical)];
+
+        const criterion = sizing.criterion || 'anual';
+        const hspActive = criterion === 'critico' ? hspCritical : hspAnnual;
+
+        let pr = Number.isFinite(sizing.pr) && sizing.pr > 0 ? sizing.pr : 0.80;
+        if (pr > 1) pr = pr / 100;
+
+        const ppkReq = (Number.isFinite(selectedRes?.peakPowerKwp) && selectedRes.peakPowerKwp > 0)
+            ? selectedRes.peakPowerKwp
+            : ((Number.isFinite(sizing.peakPowerKwp) && sizing.peakPowerKwp > 0)
+                ? sizing.peakPowerKwp
+                : ((hspActive * pr > 0) ? (ed / (hspActive * pr)) : 0));
+
+        const ppkInst = (Number.isFinite(selectedRes?.installedPowerKwp) && selectedRes.installedPowerKwp > 0 && !conv.balanceAdjusted)
+            ? selectedRes.installedPowerKwp
+            : ((totalModules * mod.pmax) / 1000); // kWp
 
         // Identificar cargas de bombas / motores
         const loads = state.loads || [];
@@ -71,6 +123,12 @@ const CONVERSION_CALC = {
                 pumpTotalW += (Number(l.quantity) || 1) * (Number(l.power) || 0) * (Number(l.duty) || 1);
             }
         });
+
+        const sysType = state.project?.systemType || 'off-grid';
+        let branch = conv.branch;
+        if (!branch || (sysType !== 'on-grid' && branch === 'grid' && !conv.explicitBranchOverride)) {
+            branch = sysType === 'on-grid' ? 'grid' : 'storage';
+        }
 
         return {
             edKWh: ed,
@@ -89,14 +147,19 @@ const CONVERSION_CALC = {
             tcell,
             hspAnnual,
             hspCritical,
+            hspBest,
+            hspActive,
+            criterion,
+            bestMonthName,
+            worstMonthName,
             pr,
             ppkReqKW: ppkReq,
             ppkInstKW: ppkInst,
             ppkInstW: ppkInst * 1000,
             pumpTotalW,
-            systemType: state.project?.systemType || 'off-grid',
+            systemType: sysType,
             // Conversión
-            branch: conv.branch || 'storage',
+            branch,
             inverterEfficiency: Number.isFinite(conv.inverterEfficiency) ? conv.inverterEfficiency : 0.90,
             busVoltage: Number(conv.busVoltage) || 48,
             autonomyDays: Number(conv.autonomyDays) || 2.0,
@@ -396,9 +459,14 @@ const CONVERSION_CALC = {
         const cDischarge = ahInst > 0 ? (iDescargaMax / ahInst) : 0;
         const dischargeRateOk = cDischarge <= (bat.maxDischargeC || 0.50);
 
-        // Balance de cierre (RF-34)
+        // Balance de cierre (RF-34) y Tiempo de recarga de batería (RF-35)
         const roundTripEff = bat.roundTrip || 0.80;
-        const egenWh = edCCWh / roundTripEff; // Wh/día que debe generar el campo
+        // La energía diurna se consume directamente de los paneles en CC (no sufre pérdidas de batería).
+        // Solo la fracción fuera de la ventana solar cicla a través del banco con eficiencia round-trip.
+        const edInCCWh = (inputs.insideWindowKWh * 1000) / effInv;
+        const edOutCCWh = Math.max(0, edCCWh - edInCCWh);
+        const egenWh = edInCCWh + (edOutCCWh / roundTripEff); // Wh/día que debe generar el campo FV
+
         const preqAnnualW = (inputs.hspAnnual * inputs.pr > 0) ? (egenWh / (inputs.hspAnnual * inputs.pr)) : 0;
         const preqCriticalW = (inputs.hspCritical * inputs.pr > 0) ? (egenWh / (inputs.hspCritical * inputs.pr)) : 0;
 
@@ -408,16 +476,32 @@ const CONVERSION_CALC = {
         const deltaModulesAnnual = Math.max(0, Math.ceil(deltaPAnnualW / (inputs.module.pmax || 550)));
         const deltaModulesCritical = Math.max(0, Math.ceil(deltaPCriticalW / (inputs.module.pmax || 550)));
 
-        // Tiempo de recuperación tras autonomía (RF-35 - Fórmula Oficial TdR)
-        // t_rec = (N * E_CC) / (E_prod * eta_bat - E_CC)
+        // Producción diaria real del arreglo FV instalado (Wh/día)
         const eprodWh = inputs.ppkInstW * inputs.hspAnnual * inputs.pr;
-        const netDailySurplusWh = (eprodWh * roundTripEff) - edCCWh;
+        const eprodCriticalWh = inputs.ppkInstW * inputs.hspCritical * inputs.pr;
+        const eprodBestWh = inputs.ppkInstW * (inputs.hspBest || inputs.hspAnnual) * inputs.pr;
+
+        // Saldo neto diario disponible para recarga de batería
+        const netDailySurplusWh = eprodWh - egenWh;
+        const netDailySurplusCriticalWh = eprodCriticalWh - egenWh;
+        const netDailySurplusBestWh = eprodBestWh - egenWh;
+
+        // Energía necesaria para recargar el banco tras los días de autonomía
+        const recoveryEnergyWh = (days * edCCWh) / roundTripEff;
         let tRecoverDays = Infinity;
+        let tRecoverCriticalDays = Infinity;
+        let tRecoverBestDays = Infinity;
         let recovers = false;
 
         if (netDailySurplusWh > 0) {
-            tRecoverDays = (days * edCCWh) / netDailySurplusWh;
-            recovers = true;
+            tRecoverDays = recoveryEnergyWh / netDailySurplusWh;
+            recovers = Number.isFinite(tRecoverDays);
+        }
+        if (netDailySurplusCriticalWh > 0) {
+            tRecoverCriticalDays = recoveryEnergyWh / netDailySurplusCriticalWh;
+        }
+        if (netDailySurplusBestWh > 0) {
+            tRecoverBestDays = recoveryEnergyWh / netDailySurplusBestWh;
         }
 
         // Veredicto técnico del banco de baterías
@@ -446,7 +530,7 @@ const CONVERSION_CALC = {
         }
         if (!recovers) {
             if (verdict === 'cumple') verdict = 'alerta';
-            failureReasons.push('Generador FV no recupera el banco en insolación promedio');
+            failureReasons.push('Generador FV sin saldo diario suficiente para recargar el banco en régimen promedio');
         }
 
         // Energía nominal anualizada (RF-35)
@@ -478,6 +562,8 @@ const CONVERSION_CALC = {
             cDischarge,
             dischargeRateOk,
             roundTripEff,
+            edInCCWh,
+            edOutCCWh,
             egenWh,
             preqAnnualW,
             preqCriticalW,
@@ -487,8 +573,17 @@ const CONVERSION_CALC = {
             deltaModulesAnnual,
             deltaModulesCritical,
             eprodWh,
+            eprodCriticalWh,
+            eprodBestWh,
             netDailySurplusWh,
+            netDailySurplusCriticalWh,
+            netDailySurplusBestWh,
+            recoveryEnergyWh,
             tRecoverDays,
+            tRecoverCriticalDays,
+            tRecoverBestDays,
+            bestMonthName: inputs.bestMonthName,
+            worstMonthName: inputs.worstMonthName,
             recovers,
             lifeYears,
             annualizedKWhPerYear
@@ -507,12 +602,25 @@ const CONVERSION_CALC = {
         const inverterResults = CONVERSION_CALC.evaluateInverters(inputs, thermal);
 
         // Baterías
-        const allBatteries = window.CONVERSION_DB ? CONVERSION_DB.getBatteries() : [];
-        const batteryEvaluations = allBatteries.map(b => CONVERSION_CALC.sizeBatteryBank(b, inputs, thermal));
+        let allBatteries = (window.CONVERSION_DB && typeof CONVERSION_DB.getBatteries === 'function')
+            ? CONVERSION_DB.getBatteries()
+            : [];
+        if ((!allBatteries || allBatteries.length === 0) && window.CONVERSION_DB && typeof CONVERSION_DB.init === 'function') {
+            CONVERSION_DB.init();
+            allBatteries = CONVERSION_DB.getBatteries() || [];
+        }
 
-        const activeBattery = batteryEvaluations.find(be => be.battery.id === inputs.selectedBatteryId) || batteryEvaluations[0];
-        const activeController = controllerResults.find(cr => cr.device.id === inputs.selectedControllerId) || controllerResults[0];
-        const activeInverter = inverterResults.find(ir => ir.device.id === inputs.selectedInverterId) || inverterResults[0];
+        let batteryEvaluations = allBatteries.map(b => CONVERSION_CALC.sizeBatteryBank(b, inputs, thermal));
+        let activeBattery = batteryEvaluations.find(be => be.battery.id === inputs.selectedBatteryId) || batteryEvaluations[0];
+
+        if (!activeBattery) {
+            const defaultBat = { id: 'AGM', name: 'Batería AGM 12V 200Ah', voltage: 12, capacityAh: 200, dod: 0.50, roundTrip: 0.85, maxChargeC: 0.20, maxDischargeC: 0.50, lifeYears: 4 };
+            activeBattery = CONVERSION_CALC.sizeBatteryBank(defaultBat, inputs, thermal);
+            batteryEvaluations = [activeBattery];
+        }
+
+        const activeController = controllerResults.find(cr => cr.device.id === inputs.selectedControllerId) || controllerResults[0] || null;
+        const activeInverter = inverterResults.find(ir => ir.device.id === inputs.selectedInverterId) || inverterResults[0] || null;
 
         return {
             inputs,
@@ -553,7 +661,8 @@ window.CONVERSION = {
                 cRateDischarge: b.cDischarge,
                 autonomyDays: inp.autonomyDays,
                 canRecover: b.recovers,
-                trecDays: b.tRecoverDays
+                trecDays: b.tRecoverDays,
+                trecCriticalDays: b.tRecoverCriticalDays
             } : null,
             controllerVerification: c ? {
                 device: c.device,
@@ -576,6 +685,7 @@ window.CONVERSION = {
             balance: b ? {
                 recoversInTarget: b.recovers && b.tRecoverDays <= 3.0,
                 trecCurrent: b.tRecoverDays,
+                trecCritical: b.tRecoverCriticalDays,
                 deltaN: b.deltaModulesAnnual
             } : null,
             raw: res

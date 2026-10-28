@@ -1685,9 +1685,6 @@ function loadCase(rawCaseId, options = {}) {
         if (typeof renderLoads === 'function') {
             renderLoads();
         }
-        if (typeof recalculateAll === 'function') {
-            recalculateAll();
-        }
     }
 
     // D. Cargar Datos del Reto 02: Dimensionamiento y Recurso Solar Fijo
@@ -1758,27 +1755,40 @@ function loadCase(rawCaseId, options = {}) {
 
         // Mostrar banner explicativo
         updateCaseBanner(caseData);
+    }
 
-        // E. Cargar Datos del Reto 03: Conversión y Almacenamiento
-        if (caseData.conversion && window.APP && APP.state.conversion) {
-            APP.state.conversion.branch = caseData.conversion.branch || 'grid';
-            if (caseData.conversion.vbus) APP.state.conversion.vbus = caseData.conversion.vbus;
+    // E. Cargar Datos del Reto 03: Conversión y Almacenamiento
+    const isGrid = (caseData.project?.systemType === 'on-grid');
+    const defaultBranch = isGrid ? 'grid' : 'storage';
+    if (window.APP && APP.state.conversion) {
+        APP.state.conversion.explicitBranchOverride = false;
+        if (caseData.conversion) {
+            APP.state.conversion.branch = caseData.conversion.branch || defaultBranch;
+            if (caseData.conversion.vbus) APP.state.conversion.busVoltage = caseData.conversion.vbus;
             if (caseData.conversion.selectedBatteryId) APP.state.conversion.selectedBatteryId = caseData.conversion.selectedBatteryId;
             if (caseData.conversion.selectedControllerId) APP.state.conversion.selectedControllerId = caseData.conversion.selectedControllerId;
             if (caseData.conversion.selectedInverterId) APP.state.conversion.selectedInverterId = caseData.conversion.selectedInverterId;
-            if (typeof window.CONVERSION_UI !== 'undefined' && typeof window.CONVERSION_UI.render === 'function') {
-                try { window.CONVERSION_UI.render(); } catch(e){}
+        } else {
+            APP.state.conversion.branch = defaultBranch;
+        }
+        if (typeof window.CONVERSION_UI !== 'undefined') {
+            if (typeof window.CONVERSION_UI.setBranch === 'function') {
+                window.CONVERSION_UI.setBranch(APP.state.conversion.branch, false);
             }
         }
+    }
 
-        // Ejecutar dimensionamiento de inmediato con datos certificados
-        if (typeof updateSizing === 'function') {
-            updateSizing();
-        }
+    // F. Ejecutar dimensionamiento y sincronización centralizada completa
+    if (typeof recalculateAll === 'function') {
+        recalculateAll();
+    } else {
+        if (typeof updateCalculations === 'function') updateCalculations();
+        if (typeof updateSizing === 'function') updateSizing();
+        if (typeof updateConversion === 'function') updateConversion();
+    }
 
-        if (!options.silent && typeof showToast === 'function') {
-            showToast(`${caseData.shortName} cargado: Demanda (Reto 01), Solar (Reto 02) y Conversión (Reto 03).`, 'success');
-        }
+    if (!options.silent && typeof showToast === 'function') {
+        showToast(`${caseData.shortName} cargado: Demanda (Reto 01), Solar (Reto 02) y Conversión (Reto 03).`, 'success');
     }
 }
 

@@ -34,7 +34,9 @@
 
     function initConversionUI() {
         bindControls();
-        renderConversion();
+        const sysType = window.APP?.state?.project?.systemType || 'off-grid';
+        const initialBranch = sysType === 'on-grid' ? 'grid' : 'storage';
+        setBranch(initialBranch, false);
     }
 
     function bindControls() {
@@ -81,6 +83,7 @@
         APP.state.conversion.branch = branch;
 
         if (syncProject) {
+            APP.state.conversion.explicitBranchOverride = true;
             const sysTypeEl = $('system-type');
             if (branch === 'grid') {
                 APP.state.project.systemType = 'on-grid';
@@ -197,6 +200,13 @@
         storageEls.forEach(el => el.style.display = isStorage ? '' : 'none');
         gridEls.forEach(el => el.style.display = isStorage ? 'none' : '');
 
+        const branchStorageBtn = $('conv-branch-storage');
+        const branchGridBtn = $('conv-branch-grid');
+        if (branchStorageBtn && branchGridBtn) {
+            branchStorageBtn.classList.toggle('active', isStorage);
+            branchGridBtn.classList.toggle('active', !isStorage);
+        }
+
         // 1. Renderizar Banner de Datos Heredados (con Tipo de Aplicación sincronizado)
         renderInheritedBanner(inputs, thermal);
 
@@ -233,16 +243,16 @@
             </div>
             <div class="kpi-card">
                 <div class="kpi-info">
-                    <span class="kpi-label">Generador Instalado</span>
+                    <span class="kpi-label">Generador FV (Instalado / Requerido)</span>
                     <span class="kpi-value">${num(inputs.ppkInstKW, 2)} kWp</span>
-                    <small>${inputs.totalModules} módulos (${inputs.ns}S × ${inputs.np}P)</small>
+                    <small>Req: <strong>${num(inputs.ppkReqKW, 2)} kWp</strong> · ${inputs.totalModules} módulos (${inputs.ns}S × ${inputs.np}P) · ${esc(inputs.module?.name || 'Módulo FV')}</small>
                 </div>
             </div>
             <div class="kpi-card">
                 <div class="kpi-info">
-                    <span class="kpi-label">Recurso y Desempeño</span>
-                    <span class="kpi-value">${num(inputs.hspAnnual, 2)} h / PR ${num(inputs.pr, 2)}</span>
-                    <small>HSP crítico: ${num(inputs.hspCritical, 2)} h</small>
+                    <span class="kpi-label">Recurso y Desempeño (HSP / PR)</span>
+                    <span class="kpi-value">${num(inputs.hspAnnual, 2)} h/día / PR ${num(inputs.pr, 2)}</span>
+                    <small>HSP Activo: <strong>${num(inputs.hspActive, 2)} h/día</strong> (${inputs.criterion === 'critico' ? 'Mes Crítico' : 'Prom. Anual'}) · Crítico: ${num(inputs.hspCritical, 2)} h (${esc(inputs.worstMonthName)})</small>
                 </div>
             </div>
             <div class="kpi-card" style="border-left: 3px solid var(--accent);">
@@ -565,6 +575,7 @@
     function renderBatteryBankSection(calc) {
         const active = calc.activeBattery;
         const inputs = calc.inputs;
+        if (!active) return;
 
         // 1. Renderizar la tabla interactiva de baterías
         renderBatteriesTable(calc.batteryEvaluations, inputs);
@@ -681,15 +692,14 @@
         const host = $('conv-balance-card');
         if (!host) return;
 
-        const isAdjusted = !!window.APP?.state?.conversion?.balanceAdjusted;
         const deficitPercent = active.deficitPercentAnnual;
 
         host.innerHTML = `
             <div class="card" style="background: var(--bg-card); border: 1px solid var(--border-subtle); margin-top: 1.25rem;">
                 <div class="card-header">
-                    <h2>Balance de Cierre Energético y Recuperación</h2>
+                    <h2>Balance de Cierre Energético y Tiempo de Recarga de Batería</h2>
                     <span class="badge" style="background: ${active.recovers ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)'}; color: ${active.recovers ? 'var(--success)' : 'var(--error)'}; font-weight: 700;">
-                        ${active.recovers ? 'Banco Recuperable' : 'Banco No Recupera'}
+                        ${active.recovers ? 'Banco con Recarga Asegurada' : 'No se recupera energía: el balance diario es nulo o negativo'}
                     </span>
                 </div>
                 <div class="card-body">
@@ -698,7 +708,7 @@
                             <div class="kpi-info">
                                 <span class="kpi-label">Generación Requerida (Egen)</span>
                                 <span class="kpi-value">${num(active.egenWh / 1000, 2)} kWh/día</span>
-                                <small>Incluye pérdidas de inversor y batería (ηbat=${active.roundTripEff})</small>
+                                <small>Diurno directo (${num((active.edInCCWh || 0) / 1000, 2)} kWh) + nocturno con ηbat=${active.roundTripEff} (${num((active.edOutCCWh || 0) / 1000, 2)} kWh)</small>
                             </div>
                         </div>
                         <div class="kpi-card">
@@ -710,11 +720,27 @@
                         </div>
                         <div class="kpi-card">
                             <div class="kpi-info">
-                                <span class="kpi-label">Tiempo de Recuperación (trec)</span>
-                                <span class="kpi-value" style="color: ${active.recovers ? 'var(--text-primary)' : 'var(--error)'};">
-                                    ${active.recovers ? `${num(active.tRecoverDays, 1)} días` : 'Infinito (Sin superávit)'}
-                                </span>
-                                <small>${active.recovers ? 'Tras agotar los días de autonomía' : 'Producción neta diaria insuficiente'}</small>
+                                <span class="kpi-label">Tiempo de recarga de batería</span>
+                                ${active.recovers ? `
+                                    <div style="display: flex; gap: 0.9rem; align-items: baseline; margin-top: 0.35rem; flex-wrap: wrap;">
+                                        <div>
+                                            <span style="font-size: 0.76rem; color: var(--text-muted); display: block; font-weight: 600;">Mejor mes (${active.bestMonthName || 'Máx'}):</span>
+                                            <span class="kpi-value" style="font-size: 1.25rem; color: var(--success);">${Number.isFinite(active.tRecoverBestDays) ? num(active.tRecoverBestDays, 1) + ' d' : '—'}</span>
+                                        </div>
+                                        <div style="border-left: 1px solid var(--border-subtle); padding-left: 0.9rem;">
+                                            <span style="font-size: 0.76rem; color: var(--text-muted); display: block; font-weight: 600;">Peor mes (${active.worstMonthName || 'Mín'}):</span>
+                                            <span class="kpi-value" style="font-size: 1.25rem; color: ${Number.isFinite(active.tRecoverCriticalDays) ? 'var(--accent)' : 'var(--error)'};">${Number.isFinite(active.tRecoverCriticalDays) ? num(active.tRecoverCriticalDays, 1) + ' d' : 'No recupera'}</span>
+                                        </div>
+                                    </div>
+                                    <small style="display: block; margin-top: 0.35rem;">Régimen promedio anual: <strong>${num(active.tRecoverDays, 1)} días</strong> (${inputs.autonomyDays} d de autonomía)</small>
+                                ` : `
+                                    <span class="kpi-value" style="color: var(--error); font-size: 1.05rem; line-height: 1.3; margin-top: 0.3rem; display: block; font-weight: 700;">
+                                        No se recupera energía: el balance diario es nulo o negativo
+                                    </span>
+                                    <small style="display: block; margin-top: 0.35rem;">
+                                        Mejor mes (${active.bestMonthName || 'Máx'}): ${Number.isFinite(active.tRecoverBestDays) ? num(active.tRecoverBestDays, 1) + ' d' : 'No recupera'} · Peor mes (${active.worstMonthName || 'Mín'}): ${Number.isFinite(active.tRecoverCriticalDays) ? num(active.tRecoverCriticalDays, 1) + ' d' : 'No recupera'}
+                                    </small>
+                                `}
                             </div>
                         </div>
                     </div>
@@ -726,32 +752,15 @@
                             </div>
                             <div class="conv-balance-summary-text">
                                 ${deficitPercent > 0 
-                                    ? `Déficit de ${num(active.deltaPAnnualW, 0)} W (${num(deficitPercent, 1)}%). Se requieren +${active.deltaModulesAnnual} módulo(s) para satisfacer el balance anual (+${active.deltaModulesCritical} para mes crítico).`
-                                    : `Margen positivo de ${num(Math.abs(active.deltaPAnnualW), 0)} W (${num(Math.abs(deficitPercent), 1)}%). El generador satisface la demanda con las pérdidas acumuladas.`
+                                    ? `Déficit de ${num(active.deltaPAnnualW, 0)} W (${num(deficitPercent, 1)}%). Serían necesarios <strong>+${active.deltaModulesAnnual} paneles extra</strong> en ramas en serie compatibles para que el banco cargue en régimen anual (+${active.deltaModulesCritical} paneles en el peor mes).`
+                                    : `Margen favorable de ${num(Math.abs(active.deltaPAnnualW), 0)} W (${num(Math.abs(deficitPercent), 1)}%). El generador satisface la demanda con las pérdidas acumuladas y garantiza la recarga del banco.`
                                 }
                             </div>
-                        </div>
-                        <div style="display: flex; gap: 0.6rem;">
-                            ${deficitPercent > 0 && !isAdjusted ? `
-                                <button type="button" class="btn btn-primary btn-sm" id="conv-btn-apply-adjust">
-                                    ${ICONS.zap} Aplicar Ajuste (+${active.deltaModulesAnnual} mód)
-                                </button>
-                            ` : ''}
-                            ${isAdjusted ? `
-                                <button type="button" class="btn btn-secondary btn-sm" id="conv-btn-revert-adjust">
-                                    ${ICONS.refresh} Revertir al Generador Original
-                                </button>
-                            ` : ''}
                         </div>
                     </div>
                 </div>
             </div>
         `;
-
-        const btnApply = $('conv-btn-apply-adjust');
-        if (btnApply) btnApply.addEventListener('click', applyModuleAdjustment);
-        const btnRevert = $('conv-btn-revert-adjust');
-        if (btnRevert) btnRevert.addEventListener('click', revertModuleAdjustment);
     }
 
     /**
@@ -1523,8 +1532,64 @@
         startEditItem,
         cancelEditItem,
         saveItemEdit,
-        resetItemToDefault
+        resetItemToDefault,
+        exportCatalogJSON,
+        importCatalogJSON
     };
+
+    function exportCatalogJSON() {
+        const data = {
+            app: 'SolarCalc FV',
+            version: '1.2',
+            exportDate: new Date().toISOString(),
+            conversion: window.CONVERSION_DB ? CONVERSION_DB.devices : null,
+            modules: window.MODULES_DB ? MODULES_DB.getAll() : null
+        };
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `catalogo_solarcalc_${new Date().toISOString().slice(0, 10)}.json`;
+        a.click();
+        setTimeout(() => URL.revokeObjectURL(url), 500);
+        if (typeof showToast === 'function') showToast('Catálogo exportado en formato JSON.', 'success');
+    }
+
+    function importCatalogJSON(event) {
+        const file = event.target.files?.[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = () => {
+            try {
+                const data = JSON.parse(reader.result);
+                let importedAny = false;
+                if (data.conversion && window.CONVERSION_DB) {
+                    CONVERSION_DB.importJSON(data.conversion);
+                    importedAny = true;
+                } else if ((data.controllers || data.inverters || data.batteries) && window.CONVERSION_DB) {
+                    CONVERSION_DB.importJSON(data);
+                    importedAny = true;
+                }
+                if (data.modules && Array.isArray(data.modules) && window.MODULES_DB) {
+                    data.modules.forEach(m => MODULES_DB.updateModule(m.id, m));
+                    importedAny = true;
+                }
+                if (!importedAny) throw new Error('El archivo JSON no contiene listas válidas de equipos o módulos.');
+                
+                renderConversion();
+                renderCatalogModalTabs();
+                if (window.SIZING_UI?.render) {
+                    try { SIZING_UI.render(); } catch(e){}
+                }
+                if (typeof showToast === 'function') showToast('Catálogo JSON importado y aplicado correctamente.', 'success');
+            } catch (err) {
+                console.error(err);
+                if (typeof showToast === 'function') showToast('Error al importar catálogo: ' + err.message, 'error');
+            }
+        };
+        reader.readAsText(file);
+        event.target.value = '';
+    }
 
     // Auto-inicializar cuando el DOM esté listo
     document.addEventListener('DOMContentLoaded', () => {

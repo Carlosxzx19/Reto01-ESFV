@@ -131,7 +131,7 @@ function bindSizingInputs() {
         const el = document.getElementById(id);
         if (!el) return;
         el.value = (s[prop] !== null && s[prop] !== undefined) ? s[prop] : '';
-        el.addEventListener('input', () => {
+        const handle = () => {
             if (el.value === '') {
                 s[prop] = null;
                 if (callback) callback();
@@ -144,7 +144,9 @@ function bindSizingInputs() {
                 if (callback) callback();
                 else updateSizing();
             }
-        });
+        };
+        el.addEventListener('input', handle);
+        el.addEventListener('change', handle);
     };
 
     bindNumber('sizing-area', 'availableArea');
@@ -636,6 +638,11 @@ function updateSizing() {
     const edKwh = calcDailyEnergy(profile);
     const pmax = calcMaxDemand(profile);
 
+    // Guardar métricas centralizadas en APP.state.sizing para máxima coherencia entre etapas
+    s.profile = profile;
+    s.edKwh = edKwh;
+    s.pmax = pmax;
+
     // 1. Update Inherited Data Banner (RF-13)
     const inheritedEd = document.getElementById('inh-ed');
     const inheritedPmax = document.getElementById('inh-pmax');
@@ -708,6 +715,8 @@ function updateSizing() {
 
     // 4. Calculate Peak Power (RF-18)
     const peakPowerKwp = (hasResource && activeHsp > 0) ? PV_SIZING.calcPeakPower(edKwh, activeHsp, s.pr) : 0;
+    s.activeHsp = activeHsp;
+    s.peakPowerKwp = peakPowerKwp;
     const dispPpeak = document.getElementById('disp-ppeak-kwp');
     const dispPpeakFormula = document.getElementById('disp-ppeak-formula');
 
@@ -777,6 +786,16 @@ function updateSizing() {
 
     // 7. Render Generation projections
     renderGenerationSection();
+
+    // 8. Render Visualizador Interactivo del Generador (Reto 02)
+    if (typeof window.pvVisualUpdate === 'function') {
+        window.pvVisualUpdate();
+    }
+
+    // 9. Actualizar reactivamente Conversión y Almacenamiento (Reto 03)
+    if (typeof window.updateConversion === 'function') {
+        window.updateConversion();
+    }
 }
 
 /** Render the module summary cards (1 for Caso Estándar, 3 for general cases) */
