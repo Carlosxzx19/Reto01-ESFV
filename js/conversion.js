@@ -47,16 +47,17 @@ const CONVERSION_CALC = {
         const nsDefault = (selectedRes?.ns && selectedRes.ns > 0) ? selectedRes.ns : totalModulesDefault;
         const npDefault = (selectedRes?.np && selectedRes.np > 0) ? selectedRes.np : 1;
 
-        // Comprobación de reconfiguración manual / activa
-        let ns = conv.customStringNs && conv.customStringNs > 0 ? conv.customStringNs : nsDefault;
+        // Comprobación de reconfiguración manual / activa (sincronizada con Reto 02 y Reto 03)
+        const customNs = (conv.customStringNs && conv.customStringNs > 0) ? conv.customStringNs : (sizing.customStringNs || null);
+        const customNp = (conv.customStringNp && conv.customStringNp > 0) ? conv.customStringNp : (sizing.customStringNp || null);
+
+        let ns = customNs || nsDefault;
         const totalModules = conv.balanceAdjusted && conv.additionalModules
             ? totalModulesDefault + conv.additionalModules
             : totalModulesDefault;
         
-        // Ajustar Np coherente con divisibilidad
-        let np = Math.max(1, Math.round(totalModules / ns));
-        if (ns * np !== totalModules) {
-            // Si la combinación no es exacta, recalcular Ns y Np al divisor más cercano
+        let np = customNp || Math.max(1, Math.round(totalModules / ns));
+        if (ns * np !== totalModules && !customNs) {
             ns = nsDefault;
             np = Math.max(1, Math.round(totalModules / ns));
         }
@@ -170,7 +171,12 @@ const CONVERSION_CALC = {
             pumpStartFactor: Number(conv.pumpStartFactor) || 3.0,
             selectedBatteryId: conv.selectedBatteryId || 'AGM',
             selectedControllerId: conv.selectedControllerId || 'CTRL-A',
-            selectedInverterId: conv.selectedInverterId || 'INV-B'
+            selectedInverterId: conv.selectedInverterId || 'INV-B',
+            isCustomConfig: !!(customNs && customNp),
+            originalNs: nsDefault,
+            originalNp: npDefault,
+            customNs: customNs || null,
+            customNp: customNp || null
         };
     },
 
@@ -221,21 +227,133 @@ const CONVERSION_CALC = {
     },
 
     /**
-     * Encuentra posibles reconfiguraciones de cadenas (Ns x Np) que cumplan con la tensión de un equipo.
+     * Busca reconfiguraciones alternativas de cadenas (Ns x Np) que garanticen
+     * el CUMPLIMIENTO TOTAL de un regulador MPPT o inversor híbrido.
+     * Si la potencia o corriente total excede la capacidad del equipo, o si ninguna
+     * combinación Ns x Np cumple todos los límites técnicos, retorna lista vacía [].
      */
-    findAlternativeStrings(totalModules, vocColdMod, maxVoc, vmpHotMod, minVmp) {
-        const alternatives = [];
+    findValidStringsForStorageDevice(dev, inputs, thermal) {
+        const isHybrid = !!(dev.isHybrid || dev.type === 'hybrid');
+        const maxVoc = dev.maxPVVoc;
+        const vmpMinRequired = Math.max(dev.minPVVmp || dev.mpptMin || 0, inputs.busVoltage + 5);
+        const maxCharge = dev.maxChargeA || 60;
+        const maxPVInput = dev.maxPVInputA || dev.maxIscA || 50;
+        const maxImp = dev.maxImpA || Infinity;
+        const mpptMax = dev.mpptMax || Infinity;
+
+        // 1. Si el voltaje de bus del inversor híbrido no coincide con el del sistema, es incompatible
+        if (isHybrid && dev.busVoltage && dev.busVoltage !== inputs.busVoltage) {
+            return [];
+        }
+
+        // 2. Si la corriente de salida hacia el banco de baterías excede la capacidad máxima del equipo,
+        // ninguna reconfiguración de cadenas podrá resolverlo (depende de Pinst / Vbus)
+        if (thermal.iSalidaBanco > maxCharge) {
+            return [];
+        }
+
+        const m = inputs.module;
+        const totalModules = inputs.totalModules;
+        const validConfigs = [];
+
+        // Evaluar todos los pares (s, p) divisores del total de módulos
         for (let s = 1; s <= totalModules; s++) {
             if (totalModules % s === 0) {
                 const p = totalModules / s;
-                const vocArr = s * vocColdMod;
-                const vmpArr = s * vmpHotMod;
-                if (vocArr <= maxVoc && vmpArr >= minVmp) {
-                    alternatives.push({ ns: s, np: p, vocCold: vocArr, vmpHot: vmpArr });
+
+                // Omitir la configuración actual si ya tiene s y p
+                if (s === inputs.ns && p === inputs.np) continue;
+
+                const vocColdArr = s * thermal.vocColdMod;
+                const vmpHotArr = s * thermal.vmpHotMod;
+                const vmpColdArr = s * thermal.vmpColdMod;
+                const iscArr = p * m.isc;
+                const impArr = p * m.imp;
+
+                // Verificar TODOS los criterios técnicos:
+                const vocOk = vocColdArr <= maxVoc;
+                const vmpHotOk = vmpHotArr >= vmpMinRequired;
+                const vmpColdOk = vmpColdArr <= mpptMax;
+                const iscOk = iscArr <= maxPVInput;
+                const impOk = impArr <= maxImp;
+
+                if (vocOk && vmpHotOk && vmpColdOk && iscOk && impOk) {
+                    validConfigs.push({
+                        ns: s,
+                        np: p,
+                        vocCold: vocColdArr,
+                        vmpHot: vmpHotArr,
+                        vmpCold: vmpColdArr,
+                        isc: iscArr,
+                        imp: impArr
+                    });
                 }
             }
         }
-        return alternatives;
+
+        // Ordenar con prioridad al mayor Ns posible (reduce pérdidas por efecto Joule e Isc en DC)
+        validConfigs.sort((a, b) => b.ns - a.ns);
+        return validConfigs;
+    },
+
+    /**
+     * Busca reconfiguraciones alternativas de cadenas (Ns x Np) que garanticen
+     * el CUMPLIMIENTO TOTAL de un inversor conectado a red.
+     * Si la potencia pico del generador excede con creces la capacidad del inversor,
+     * o si ninguna combinación Ns x Np cumple todos los límites de tensión y corriente, retorna [].
+     */
+    findValidStringsForInverter(inv, inputs, thermal) {
+        const maxVoc = inv.maxPVVoc;
+        const mpptMin = inv.mpptMin || 80;
+        const mpptMax = inv.mpptMax || 500;
+        const maxImp = inv.maxImpA || 16;
+        const maxIsc = inv.maxIscA || 20;
+
+        // Si la potencia instalada sobrepasa en exceso la potencia del inversor (relación DC/AC muy superior a dcacMax),
+        // ninguna reconfiguración serie-paralelo puede corregir la sobrepotencia en CA
+        const dcacRatio = inv.pac > 0 ? (inputs.ppkInstW / inv.pac) : 0;
+        if (dcacRatio > inputs.dcacMax * 1.05) {
+            return [];
+        }
+
+        const m = inputs.module;
+        const totalModules = inputs.totalModules;
+        const validConfigs = [];
+
+        for (let s = 1; s <= totalModules; s++) {
+            if (totalModules % s === 0) {
+                const p = totalModules / s;
+
+                if (s === inputs.ns && p === inputs.np) continue;
+
+                const vocColdArr = s * thermal.vocColdMod;
+                const vmpHotArr = s * thermal.vmpHotMod;
+                const vmpColdArr = s * thermal.vmpColdMod;
+                const iscArr = p * m.isc;
+                const impArr = p * m.imp;
+
+                const vocOk = vocColdArr <= maxVoc;
+                const vmpMinOk = vmpHotArr >= mpptMin;
+                const vmpMaxOk = vmpColdArr <= mpptMax;
+                const impOk = impArr <= maxImp;
+                const iscOk = iscArr <= maxIsc;
+
+                if (vocOk && vmpMinOk && vmpMaxOk && impOk && iscOk) {
+                    validConfigs.push({
+                        ns: s,
+                        np: p,
+                        vocCold: vocColdArr,
+                        vmpHot: vmpHotArr,
+                        vmpCold: vmpColdArr,
+                        isc: iscArr,
+                        imp: impArr
+                    });
+                }
+            }
+        }
+
+        validConfigs.sort((a, b) => b.ns - a.ns);
+        return validConfigs;
     },
 
     /**
@@ -294,18 +412,12 @@ const CONVERSION_CALC = {
                 failureReasons.push(`Isc entrada (${thermal.iscArray.toFixed(1)} A) excede máx. admitido (${maxPVInput} A)`);
             }
 
-            // Propuesta de reconfiguración automática si no cumple por Voc o Vmp
+            // Propuesta de reconfiguración SOLO si no cumple pero EXISTE una alternativa que SÍ cumpla todo
             let proposedConfig = null;
-            if (!vocOk || !vmpHotOk) {
-                const alts = CONVERSION_CALC.findAlternativeStrings(
-                    inputs.totalModules,
-                    thermal.vocColdMod,
-                    maxVoc,
-                    thermal.vmpHotMod,
-                    vmpMinRequired
-                );
+            if (verdict !== 'cumple') {
+                const alts = CONVERSION_CALC.findValidStringsForStorageDevice(dev, inputs, thermal);
                 if (alts.length > 0) {
-                    proposedConfig = alts[alts.length - 1]; // Mayor Ns posible dentro del límite
+                    proposedConfig = alts[0]; // La de mayor Ns que sí garantiza cumplimiento total
                 }
             }
 
@@ -379,16 +491,13 @@ const CONVERSION_CALC = {
                 failureReasons.push(`Relación DC/AC ${dcacRatio.toFixed(2)} < ${inputs.dcacMin} (Inversor sobredimensionado)`);
             }
 
+            // Propuesta de reconfiguración SOLO si no cumple pero EXISTE una alternativa que SÍ cumpla todo
             let proposedConfig = null;
-            if (!vocOk || !vmpMinOk || !vmpMaxOk) {
-                const alts = CONVERSION_CALC.findAlternativeStrings(
-                    inputs.totalModules,
-                    thermal.vocColdMod,
-                    maxVoc,
-                    thermal.vmpHotMod,
-                    inv.mpptMin
-                );
-                if (alts.length > 0) proposedConfig = alts[alts.length - 1];
+            if (verdict !== 'cumple') {
+                const alts = CONVERSION_CALC.findValidStringsForInverter(inv, inputs, thermal);
+                if (alts.length > 0) {
+                    proposedConfig = alts[0];
+                }
             }
 
             results.push({
@@ -648,6 +757,7 @@ window.CONVERSION = {
             branch: inp.branch,
             vbus: inp.busVoltage,
             invEff: Math.round(inp.inverterEfficiency * 100),
+            thermal: res.thermal,
             batteryBank: b ? {
                 battery: b.battery,
                 ns: b.nsBat,
@@ -666,21 +776,33 @@ window.CONVERSION = {
             } : null,
             controllerVerification: c ? {
                 device: c.device,
+                isHybrid: !!(c.isHybrid || c.device?.isHybrid || c.device?.type === 'hybrid'),
+                pnom: c.device?.pac || c.device?.nominalPowerW || c.device?.powerW || (c.device?.maxChargeA ? c.device.maxChargeA * (inp.busVoltage || 48) : 3000),
+                peakPowerW: c.device?.peakW || c.device?.surgePower || ((c.device?.pac || 3000) * 2),
                 vocGenTmin: res.thermal.vocColdArray,
                 vocLimit: c.device.maxPVVoc,
                 mpptComplies: c.vmpHotOk,
                 vmpHot: res.thermal.vmpHotArray,
                 vmpCold: res.thermal.vmpColdArray,
                 currentComplies: c.chargeCurrentOk,
-                iOutDesign: res.thermal.iDisenoSalida,
-                iMaxController: c.device.maxChargeA || 60
+                iOutDesign: res.thermal.iSalidaBanco,
+                iMaxController: c.device.maxChargeA || 60,
+                verdict: c.verdict,
+                failureReasons: c.failureReasons || []
             } : null,
             inverterVerification: inv ? {
                 device: inv.device,
-                pnomInv: inv.device.nominalPowerW,
+                pnomInv: inv.device?.pac || inv.device?.nominalPowerW || inv.device?.powerW || 3000,
+                peakPowerW: inv.device?.peakW || inv.device?.surgePower || ((inv.device?.pac || 3000) * 2),
                 dcacComplies: inv.dcacVerdict === 'ok' || inv.dcacVerdict === 'cumple',
                 dcacRatio: inv.dcacRatio,
-                dcacStatus: inv.dcacVerdict
+                dcacStatus: inv.dcacVerdict,
+                mpptMin: inv.device?.mpptMin || inv.device?.minPVVmp || 90,
+                mpptMax: inv.device?.mpptMax || 550,
+                maxPVVoc: inv.device?.maxPVVoc || 600,
+                maxIscA: inv.device?.maxIscA || inv.device?.maxPVInputA || 20,
+                verdict: inv.verdict,
+                failureReasons: inv.failureReasons || []
             } : null,
             balance: b ? {
                 recoversInTarget: b.recovers && b.tRecoverDays <= 3.0,

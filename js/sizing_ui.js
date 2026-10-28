@@ -755,6 +755,48 @@ function updateSizing() {
         availableArea: s.availableArea
     });
 
+    // Sincronizar con reconfiguración personalizada (probada desde Reto 03)
+    const customNs = s.customStringNs || window.APP?.state?.conversion?.customStringNs || null;
+    const customNp = s.customStringNp || window.APP?.state?.conversion?.customStringNp || null;
+
+    if (customNs && customNp) {
+        evaluated.forEach(item => {
+            item.originalNs = item.ns;
+            item.originalNp = item.np;
+            item.originalFinalModCount = item.finalModCount;
+
+            // La conexión adaptada aplica al módulo seleccionado (o en caso de referencia única)
+            if (item.module.id === s.selectedModuleId || isEstandar || evaluated.length === 1) {
+                item.isCustomConfig = true;
+                item.ns = customNs;
+                item.np = customNp;
+                item.finalModCount = customNs * customNp;
+                item.installedPowerW = item.finalModCount * item.module.pmax;
+                item.installedPowerKwp = item.installedPowerW / 1000;
+
+                // Recalcular tensiones Voc y Vmp del generador con la nueva conexión en serie
+                item.vocGeneratorTmin = item.ns * item.vocTmin;
+                item.vmpGeneratorOp = item.ns * item.vmpModOp;
+
+                // Recalcular corrientes Isc, Idesign e Imp con la nueva conexión en paralelo
+                item.iscGenerator = item.np * item.module.isc;
+                item.idesign = 1.25 * 1.25 * item.iscGenerator;
+                item.impGenerator = item.np * item.module.imp;
+
+                // Recalcular superficie y energía diaria estimada
+                item.totalArea = item.finalModCount * item.module.area;
+                item.fitsArea = item.totalArea <= item.availableArea;
+                item.areaMargin = item.availableArea - item.totalArea;
+                item.estimatedDailyKwh = item.installedPowerKwp * activeHsp * s.pr;
+
+                const peakPowerW = item.peakPowerKwp * 1000;
+                const excedentW = item.installedPowerW - peakPowerW;
+                item.excedentW = Math.round(excedentW);
+                item.excedentPercent = peakPowerW > 0 ? (excedentW / peakPowerW) * 100 : 0;
+            }
+        });
+    }
+
     s.evaluatedModules = evaluated;
     s.selectedResult = evaluated.find(r => r.module.id === s.selectedModuleId) || evaluated[0];
 
@@ -864,9 +906,22 @@ function renderModuleCards(evaluated) {
             </button>
         `;
 
+        const customConfigBanner = item.isCustomConfig ? `
+            <div class="custom-string-banner" style="background: rgba(245, 158, 11, 0.14); border: 1px dashed var(--accent); border-radius: 8px; padding: 0.45rem 0.65rem; margin: 0.6rem 0; display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+                <div style="font-size: 0.78rem; color: var(--accent); font-weight: 700; display: flex; align-items: center; gap: 0.35rem;">
+                    <svg class="lucide-icon" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                    <span>${isEn ? 'Adapted connection' : 'Conexión adaptada'}: <strong>${item.ns}S × ${item.np}P</strong> <small style="opacity: 0.85; font-weight: 400;">(${isEn ? 'Original' : 'Original'}: ${item.originalNs}S × ${item.originalNp}P)</small></span>
+                </div>
+                <button type="button" class="btn btn-xs btn-secondary" onclick="event.stopPropagation(); window.resetStringConfig();" style="padding: 0.2rem 0.55rem; font-size: 0.72rem; border-color: var(--accent); color: var(--accent); background: transparent; cursor: pointer; white-space: nowrap;" title="${isEn ? 'Restore original calculated configuration' : 'Restablecer conexión calculada por defecto'}">
+                    ↺ ${isEn ? 'Restore original' : 'Restablecer original'}
+                </button>
+            </div>
+        ` : '';
+
         return `
         <div class="module-card ${isSelected ? 'selected' : ''}" onclick="selectModule('${item.module.id}')">
             ${badgeLockedHtml}
+            ${customConfigBanner}
             <div class="module-card-header" style="justify-content: flex-end;">
                 <span class="module-pmax">${item.module.pmax} Wp</span>
             </div>
@@ -880,7 +935,7 @@ function renderModuleCards(evaluated) {
                 </div>
                 <div class="voc-details-row" style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px; font-size: 0.8rem; font-weight: 700; white-space: nowrap; gap: 0.35rem;">
                     <span>Voc: ${vocMod.toFixed(2)} V</span>
-                    <span style="font-size: 0.86rem; font-weight: 800; background: rgba(245, 158, 11, 0.15); padding: 2px 6px; border-radius: 4px;">${displayStrings}</span>
+                    <span style="font-size: 0.86rem; font-weight: 800; background: rgba(245, 158, 11, 0.15); padding: 2px 6px; border-radius: 4px; ${item.isCustomConfig ? 'border: 1px solid var(--accent); color: var(--accent);' : ''}">${displayStrings}</span>
                     <span>${isEn ? 'Max Ns' : 'Ns máx'}: ${item.nsMax}</span>
                 </div>
             </div>
@@ -1610,6 +1665,7 @@ function updateSolarMonthlyChartColors() {
 
 window.initSizingUI = initSizingUI;
 window.updateSizing = updateSizing;
+window.SIZING_UI = { render: updateSizing };
 window.selectModule = selectModule;
 window.restoreSizingUI = restoreSizingUI;
 window.updateSolarMonthlyDisplay = updateSolarMonthlyDisplay;
@@ -1617,4 +1673,29 @@ window.updateSolarMonthlyChartColors = updateSolarMonthlyChartColors;
 window.setSolarProvider = setSolarProvider;
 window.toggleOperatingMonth = toggleOperatingMonth;
 window.recomputeHspMetrics = recomputeHspMetrics;
+
+if (!window.resetStringConfig) {
+    window.resetStringConfig = function() {
+        if (window.APP?.state) {
+            if (window.APP.state.sizing) {
+                delete window.APP.state.sizing.customStringNs;
+                delete window.APP.state.sizing.customStringNp;
+                window.APP.state.sizing.isCustomConfig = false;
+            }
+            if (window.APP.state.conversion) {
+                delete window.APP.state.conversion.customStringNs;
+                delete window.APP.state.conversion.customStringNp;
+            }
+        }
+        if (typeof updateSizing === 'function') updateSizing();
+        if (window.CONVERSION_UI?.render) window.CONVERSION_UI.render();
+        if (typeof window.pvVisualUpdate === 'function') {
+            try { window.pvVisualUpdate(); } catch(e) {}
+        }
+        if (typeof showToast === 'function') {
+            showToast('Conexión original del generador restablecida.', 'info');
+        }
+    };
+}
+
 

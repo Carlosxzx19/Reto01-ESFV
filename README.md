@@ -457,7 +457,9 @@ La Etapa 4 presenta la matriz final de componentes seleccionados:
 
 ### 5.6 Informe Técnico Ejecutivo en PDF
 Presione el botón **`📄 Descargar Informe PDF`** en la cabecera de la Etapa 4:
-- Se genera un documento ejecutivo de dos páginas de alta calidad gráfica.
+- Se genera un documento ejecutivo de alta calidad gráfica adaptado al régimen del proyecto:
+  - **En sistemas Conectados a Red (On-Grid):** Excluye baterías y reguladores de carga, presentando exclusivamente el inversor de inyección seleccionado, su potencia nominal/pico, relación DC/AC, rango MPPT y compatibilidad térmica.
+  - **En sistemas Con Almacenamiento (Off-Grid / Aislados):** Presenta el banco de baterías, el inversor/regulador activo y el balance con tiempos de recarga en el mejor mes y en el peor mes.
 - Contiene: membrete institucional de la Universidad del Magdalena, identificación del proyecto y autores, resumen ejecutivo de KPIs, tabla detallada de cargas, balance de ventana solar, parámetros del generador, especificaciones de los equipos seleccionados, verificación normativa de seguridad eléctrica según NTC 2050 y firmas de responsabilidad técnica.
 
 ---

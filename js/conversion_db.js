@@ -304,6 +304,7 @@ const CONVERSION_DB = {
             const savedList = Array.isArray(saved[category]) ? saved[category] : [];
             // Preserve user customized or added devices
             savedList.forEach(savedItem => {
+                if (!savedItem || typeof savedItem !== 'object' || !savedItem.id) return;
                 const existingIdx = merged[category].findIndex(d => d.id === savedItem.id);
                 if (existingIdx !== -1) {
                     // Correcciones de integridad técnica para especificaciones oficiales
@@ -335,16 +336,16 @@ const CONVERSION_DB = {
 
     getControllers() {
         if (!this.devices) this.init();
-        return this.devices.controllers || [];
+        return Array.isArray(this.devices?.controllers) ? this.devices.controllers : (DEFAULT_CONVERSION_DEVICES.controllers || []);
     },
 
     getInverters() {
         if (!this.devices) this.init();
-        return this.devices.inverters || [];
+        return Array.isArray(this.devices?.inverters) ? this.devices.inverters : (DEFAULT_CONVERSION_DEVICES.inverters || []);
     },
 
     getHybridInverters() {
-        return this.getInverters().filter(inv => inv.isHybrid || inv.type === 'hybrid');
+        return this.getInverters().filter(inv => inv && (inv.isHybrid || inv.type === 'hybrid'));
     },
 
     getStorageDevices() {
@@ -355,7 +356,7 @@ const CONVERSION_DB = {
 
     getBatteries() {
         if (!this.devices) this.init();
-        return this.devices.batteries || [];
+        return Array.isArray(this.devices?.batteries) ? this.devices.batteries : (DEFAULT_CONVERSION_DEVICES.batteries || []);
     },
 
     getController(id) {

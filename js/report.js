@@ -488,17 +488,87 @@ function generateReport() {
             if (typeof CONVERSION === 'undefined' || typeof CONVERSION_DB === 'undefined') return '';
             const conv = CONVERSION.calculate();
             const isStorage = conv.branch === 'storage';
+            const thermal = conv.thermal || {};
+
+            if (!isStorage) {
+                // ─── RAMA CONECTADA A RED (ON-GRID) ───
+                // Un sistema On-Grid no usa batería ni regulador de carga: solo inversor de conexión a red.
+                const inv = conv.inverterVerification;
+                if (!inv) return '';
+
+                return `
+            <div class="section" style="page-break-before: always; margin-top: 15px;">
+                <div class="section-title">3. Sistema de Conversión de Potencia — Conectado a Red (On-Grid)</div>
+                <div style="font-size:0.8rem; color:#64748b; margin-bottom:8px;">
+                    Régimen Operativo: <strong>Conectado a Red (On-Grid / Interactivo)</strong>
+                    &nbsp;|&nbsp; Inyección Directa a Red en CA
+                    &nbsp;|&nbsp; Eficiencia Inversor: <strong>${conv.invEff}%</strong>
+                </div>
+
+                <div style="margin-bottom: 10px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; margin-bottom:4px;">
+                        <strong style="font-size:0.85rem; color:#0f172a;">Inversor Solar Conectado a Red (Seleccionado)</strong>
+                        <span style="font-size:0.75rem; color:#2563eb;">
+                            ${inv.device.url ? `<a href="${inv.device.url}" target="_blank" style="color:#2563eb; text-decoration:none;">📄 Ficha Técnica Oficial ↗</a>` : '<em>(Equipo Certificado)</em>'}
+                        </span>
+                    </div>
+                    <div style="font-size:0.75rem; color:#475569; margin-bottom:6px;">
+                        Modelo: <strong>${inv.device.name}</strong> (${inv.device.model || inv.device.id}) &nbsp;|&nbsp; Fabricante: <strong>${inv.device.manufacturer || 'AutoSolar'}</strong>
+                    </div>
+                    <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 4px;">
+                        <div class="kpi-box">
+                            <div class="kpi-label">Potencia Nominal / Pico</div>
+                            <div class="kpi-val">${inv.pnomInv} W / ${inv.peakPowerW} W</div>
+                        </div>
+                        <div class="kpi-box">
+                            <div class="kpi-label">Relación DC/AC</div>
+                            <div class="kpi-val" style="color:${inv.dcacComplies ? '#16a34a' : '#f59e0b'};">
+                                ${inv.dcacRatio.toFixed(2)} (${inv.dcacStatus === 'ok' ? 'Óptimo' : inv.dcacStatus})
+                            </div>
+                        </div>
+                        <div class="kpi-box">
+                            <div class="kpi-label">Rango MPPT [Vmin - Vmax]</div>
+                            <div class="kpi-val" style="color:#16a34a;">
+                                ${inv.mpptMin} - ${inv.mpptMax} V
+                            </div>
+                        </div>
+                        <div class="kpi-box">
+                            <div class="kpi-label">Voc Gen @ Tmin vs Máx</div>
+                            <div class="kpi-val" style="color:${(thermal.vocColdArray || 0) <= inv.maxPVVoc ? '#16a34a' : '#dc2626'};">
+                                ${(thermal.vocColdArray || 0).toFixed(1)} V / ${inv.maxPVVoc} V
+                            </div>
+                        </div>
+                    </div>
+                    <div style="font-size:0.75rem; color:#475569; margin-top: 5px;">
+                        Isc Arreglo: <strong>${(thermal.iscArray || 0).toFixed(1)} A</strong> (Máx. Inversor: <strong>${inv.maxIscA} A</strong>)
+                        &nbsp;|&nbsp; Vmp Generador en Operación: <strong>${(thermal.vmpHotArray || 0).toFixed(1)} - ${(thermal.vmpColdArray || 0).toFixed(1)} V</strong>
+                        &nbsp;|&nbsp; Veredicto Eléctrico: <strong style="color:${inv.verdict === 'cumple' ? '#16a34a' : '#f59e0b'};">${inv.verdict === 'cumple' ? '✓ Cumple y Compatible' : '⚠ Revisar Parámetros'}</strong>
+                    </div>
+                </div>
+
+                <div style="padding: 8px 12px; background: #f0fdf4; border-left: 3px solid #16a34a; border-radius: 4px; font-size: 0.75rem; margin-top: 8px;">
+                    <strong>Condición de Operación Sin Baterías (On-Grid):</strong>
+                    El sistema está configurado para operar en sincronía directa con la red eléctrica pública convencional (120/240 V CA). La energía fotovoltaica generada se consume instantáneamente en el predio y los excedentes se inyectan a la red. Durante la noche o periodos sin sol, el consumo se abastece desde la red sin necesidad de un banco de almacenamiento electroquímico.
+                </div>
+            </div>
+                `;
+            }
+
+            // ─── RAMA CON ALMACENAMIENTO (OFF-GRID / AISLADO / HÍBRIDO) ───
+            const activeCtrl = conv.controllerVerification;
+            const isHybrid = activeCtrl?.isHybrid;
+            const activeInv = conv.inverterVerification;
 
             return `
             <div class="section" style="page-break-before: always; margin-top: 15px;">
-                <div class="section-title">3. Sistema de Conversión y Almacenamiento (Reto 03)</div>
+                <div class="section-title">3. Sistema de Conversión y Almacenamiento (Off-Grid / Aislado)</div>
                 <div style="font-size:0.8rem; color:#64748b; margin-bottom:8px;">
-                    Rama seleccionada: <strong>${isStorage ? 'Con Almacenamiento (Off-Grid / Aislado)' : 'Sin Almacenamiento (On-Grid / Red)'}</strong>
+                    Régimen Operativo: <strong>Con Almacenamiento (Off-Grid / Aislado / Híbrido)</strong>
                     &nbsp;|&nbsp; Tensión Bus DC: <strong>${conv.vbus} V</strong>
                     &nbsp;|&nbsp; Eficiencia Inversor: <strong>${conv.invEff}%</strong>
                 </div>
 
-                ${isStorage && conv.batteryBank ? `
+                ${conv.batteryBank ? `
                 <div style="margin-bottom: 10px;">
                     <strong style="font-size:0.85rem; color:#0f172a;">Banco de Baterías</strong>
                     <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 4px;">
@@ -512,69 +582,93 @@ function generateReport() {
                         &nbsp;|&nbsp; Tasa Carga: <strong>${conv.batteryBank.cRateCharge.toFixed(2)}C</strong>
                         &nbsp;|&nbsp; Tasa Descarga: <strong>${conv.batteryBank.cRateDischarge.toFixed(2)}C</strong>
                         &nbsp;|&nbsp; Autonomía: <strong>${conv.batteryBank.autonomyDays} días</strong>
-                        &nbsp;|&nbsp; Tiempo de recarga de batería: <strong>${conv.batteryBank.canRecover ? conv.batteryBank.trecDays.toFixed(2) + ' días' : 'No se recupera energía: el balance diario es nulo o negativo'}</strong>
                     </div>
                 </div>
                 ` : ''}
 
-                ${conv.controllerVerification ? `
+                ${isHybrid && activeCtrl ? `
+                <!-- Caso Inversor Híbrido Seleccionado -->
                 <div style="margin-bottom: 10px;">
-                    <strong style="font-size:0.85rem; color:#0f172a;">Regulador de Carga MPPT</strong>
-                    <div style="font-size:0.75rem; color:#475569; margin-top:2px;">
-                        Modelo: <strong>${conv.controllerVerification.device.name}</strong> (${conv.controllerVerification.device.model})
-                        ${conv.controllerVerification.device.url ? ` - <a href="${conv.controllerVerification.device.url}" target="_blank" style="color:#2563eb;">Ficha Técnica</a>` : ' <em>(Referencia TdR)</em>'}
+                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; margin-bottom:4px;">
+                        <strong style="font-size:0.85rem; color:#0f172a;">Inversor Solar Híbrido MPPT (Seleccionado)</strong>
+                        <span style="font-size:0.75rem; color:#2563eb;">
+                            ${activeCtrl.device.url ? `<a href="${activeCtrl.device.url}" target="_blank" style="color:#2563eb; text-decoration:none;">📄 Ficha Técnica ↗</a>` : '<em>(Equipo Certificado)</em>'}
+                        </span>
                     </div>
-                    <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 4px;">
+                    <div style="font-size:0.75rem; color:#475569; margin-bottom:4px;">
+                        Modelo: <strong>${activeCtrl.device.name}</strong> (${activeCtrl.device.model || activeCtrl.device.id}) &nbsp;|&nbsp; Fabricante: <strong>${activeCtrl.device.manufacturer || 'AutoSolar'}</strong>
+                    </div>
+                    <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 4px;">
+                        <div class="kpi-box">
+                            <div class="kpi-label">Potencia Nominal / Pico</div>
+                            <div class="kpi-val">${activeCtrl.pnom} W / ${activeCtrl.peakPowerW} W</div>
+                        </div>
                         <div class="kpi-box">
                             <div class="kpi-label">Voc Gen @ Tmin vs Límite</div>
-                            <div class="kpi-val" style="color:${conv.controllerVerification.vocGenTmin <= conv.controllerVerification.vocLimit ? '#16a34a' : '#dc2626'};">
-                                ${conv.controllerVerification.vocGenTmin.toFixed(1)} V / ${conv.controllerVerification.vocLimit} V
+                            <div class="kpi-val" style="color:${activeCtrl.vocGenTmin <= activeCtrl.vocLimit ? '#16a34a' : '#dc2626'};">
+                                ${activeCtrl.vocGenTmin.toFixed(1)} V / ${activeCtrl.vocLimit} V
                             </div>
                         </div>
                         <div class="kpi-box">
                             <div class="kpi-label">Ventana MPPT [Vmin - Vmax]</div>
-                            <div class="kpi-val" style="color:${conv.controllerVerification.mpptComplies ? '#16a34a' : '#dc2626'};">
-                                ${conv.controllerVerification.vmpHot.toFixed(1)} - ${conv.controllerVerification.vmpCold.toFixed(1)} V
+                            <div class="kpi-val" style="color:${activeCtrl.mpptComplies ? '#16a34a' : '#dc2626'};">
+                                ${activeCtrl.vmpHot.toFixed(1)} - ${activeCtrl.vmpCold.toFixed(1)} V
                             </div>
                         </div>
                         <div class="kpi-box">
                             <div class="kpi-label">Corriente Salida (1.25x NTC)</div>
-                            <div class="kpi-val" style="color:${conv.controllerVerification.currentComplies ? '#16a34a' : '#dc2626'};">
-                                ${conv.controllerVerification.iOutDesign.toFixed(1)} A / ${conv.controllerVerification.iMaxController} A
+                            <div class="kpi-val" style="color:${activeCtrl.currentComplies ? '#16a34a' : '#dc2626'};">
+                                ${activeCtrl.iOutDesign.toFixed(1)} A / ${activeCtrl.iMaxController} A
                             </div>
                         </div>
                     </div>
                 </div>
-                ` : ''}
-
-                ${conv.inverterVerification ? `
+                ` : (activeCtrl ? `
+                <!-- Caso Regulador MPPT + Inversor Off-Grid -->
                 <div style="margin-bottom: 10px;">
-                    <strong style="font-size:0.85rem; color:#0f172a;">Inversor Solar MPPT</strong>
-                    <div style="font-size:0.75rem; color:#475569; margin-top:2px;">
-                        Modelo: <strong>${conv.inverterVerification.device.name}</strong> (${conv.inverterVerification.device.model})
-                        ${conv.inverterVerification.device.url ? ` - <a href="${conv.inverterVerification.device.url}" target="_blank" style="color:#2563eb;">Ficha Técnica</a>` : ' <em>(Referencia TdR)</em>'}
+                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; margin-bottom:4px;">
+                        <strong style="font-size:0.85rem; color:#0f172a;">Inversor y Acondicionamiento de Potencia (Seleccionados)</strong>
+                        <span style="font-size:0.75rem; color:#2563eb;">
+                            ${activeCtrl.device.url ? `<a href="${activeCtrl.device.url}" target="_blank" style="color:#2563eb; text-decoration:none;">📄 Ficha Técnica ↗</a>` : ''}
+                        </span>
                     </div>
-                    <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap: 6px; margin-top: 4px;">
+                    <div style="font-size:0.75rem; color:#475569; margin-bottom:4px;">
+                        Regulador: <strong>${activeCtrl.device.name}</strong> (${activeCtrl.device.model || ''}) &nbsp;|&nbsp; Inversor: <strong>${activeInv ? activeInv.device.name : 'Inversor Off-Grid'}</strong>
+                    </div>
+                    <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 4px;">
                         <div class="kpi-box">
-                            <div class="kpi-label">Potencia Nominal / Pico</div>
-                            <div class="kpi-val">${conv.inverterVerification.pnomInv} W / ${conv.inverterVerification.device.surgePower ?? conv.inverterVerification.pnomInv * 2} W</div>
+                            <div class="kpi-label">Potencia Inversor (Nom/Pico)</div>
+                            <div class="kpi-val">${activeInv ? activeInv.pnomInv : 3000} W / ${activeInv ? activeInv.peakPowerW : 6000} W</div>
                         </div>
                         <div class="kpi-box">
-                            <div class="kpi-label">Relación DC/AC</div>
-                            <div class="kpi-val" style="color:${conv.inverterVerification.dcacComplies ? '#16a34a' : '#dc2626'};">
-                                ${conv.inverterVerification.dcacRatio.toFixed(2)} (${conv.inverterVerification.dcacStatus})
+                            <div class="kpi-label">Voc Gen @ Tmin vs Límite</div>
+                            <div class="kpi-val" style="color:${activeCtrl.vocGenTmin <= activeCtrl.vocLimit ? '#16a34a' : '#dc2626'};">
+                                ${activeCtrl.vocGenTmin.toFixed(1)} V / ${activeCtrl.vocLimit} V
+                            </div>
+                        </div>
+                        <div class="kpi-box">
+                            <div class="kpi-label">Ventana MPPT [Vmin - Vmax]</div>
+                            <div class="kpi-val" style="color:${activeCtrl.mpptComplies ? '#16a34a' : '#dc2626'};">
+                                ${activeCtrl.vmpHot.toFixed(1)} - ${activeCtrl.vmpCold.toFixed(1)} V
+                            </div>
+                        </div>
+                        <div class="kpi-box">
+                            <div class="kpi-label">Corriente Salida Regulador</div>
+                            <div class="kpi-val" style="color:${activeCtrl.currentComplies ? '#16a34a' : '#dc2626'};">
+                                ${activeCtrl.iOutDesign.toFixed(1)} A / ${activeCtrl.iMaxController} A
                             </div>
                         </div>
                     </div>
                 </div>
-                ` : ''}
+                ` : '')}
 
-                ${isStorage && conv.balance ? `
-                <div style="padding: 6px 10px; background: #f8fafc; border-left: 3px solid ${conv.balance.recoversInTarget ? '#16a34a' : '#f59e0b'}; border-radius: 4px; font-size: 0.75rem; margin-top: 6px;">
-                    <strong>Balance de Cierre Energético y Recarga:</strong>
-                    ${conv.balance.recoversInTarget
-                        ? `El sistema recarga el banco de baterías en ${conv.balance.trecCurrent.toFixed(1)} días (Meta: &le; 3.0 días).`
-                        : `Tiempo de recarga de batería prolongado (${Number.isFinite(conv.balance.trecCurrent) ? conv.balance.trecCurrent.toFixed(1) + ' días' : 'saldo diario insuficiente'}). Se recomienda adicionar <strong>+${conv.balance.deltaN} módulos</strong> para acelerar la recarga.`
+                <!-- Balance de Cierre Energético y Tiempos de Recarga -->
+                ${conv.batteryBank ? `
+                <div style="padding: 8px 12px; background: ${conv.batteryBank.canRecover ? '#f0fdf4' : '#fef2f2'}; border-left: 3px solid ${conv.batteryBank.canRecover ? '#16a34a' : '#dc2626'}; border-radius: 4px; font-size: 0.75rem; margin-top: 6px;">
+                    <strong>Balance de Cierre Energético y Tiempo de Recarga de Batería:</strong><br>
+                    ${conv.batteryBank.canRecover
+                        ? `El generador fotovoltaico recarga el banco tras la autonomía en <strong>${conv.batteryBank.trecDays.toFixed(1)} días</strong> (en el mes de mayor radiación solar) y en <strong>${conv.batteryBank.trecCriticalDays ? conv.batteryBank.trecCriticalDays.toFixed(1) + ' días' : conv.batteryBank.trecDays.toFixed(1) + ' días'}</strong> (en el mes crítico de menor recurso).`
+                        : `<span style="color: #dc2626; font-weight: 700;">No se recupera energía: el balance diario es nulo o negativo.</span> La producción neta no alcanza a recargar el banco. Se requieren <strong>+${conv.balance?.deltaN || 1} módulo(s)</strong> en serie adicionales para satisfacer el balance y recargar la batería.`
                     }
                 </div>
                 ` : ''}
@@ -594,7 +688,7 @@ function generateReport() {
                 const selMod = sz.selectedResult || null;
                 const activeMod = selMod?.module || (window.MODULES_DB ? MODULES_DB.getModule(sz.selectedModuleId || 'panel-550w') : null) || { name: 'Módulo Tier-1 550W', pmax: 550, voc: 49.5, vmp: 41.5, isc: 14.0, area: 2.58 };
                 const convRes = (typeof window.CONVERSION_CALC !== 'undefined') ? CONVERSION_CALC.calculateAll() : null;
-                const activeInv = convRes?.activeInverter?.device || { name: 'Inversor Conectado a Red 3 kW', model: 'INV-OG-3000', nominalPowerW: 3000, mpptMin: 90, mpptMax: 450, maxPVVoc: 500 };
+                const activeInv = convRes?.activeInverter?.device || { name: 'Inversor Conectado a Red 3 kW', model: 'INV-OG-3000', pac: 3000, nominalPowerW: 3000, mpptMin: 90, mpptMax: 450, maxPVVoc: 500 };
                 const activeBat = convRes?.activeBattery || null;
                 const isStorage = convRes?.inputs?.branch === 'storage';
                 const nTotalMod = (selMod?.ns && selMod?.np) ? (selMod.ns * selMod.np) : (convRes?.inputs?.totalModules || 4);
@@ -621,7 +715,7 @@ function generateReport() {
                         <tr>
                             <td><strong>${isStorage ? 'Inversor / MPPT' : 'Inversor Red (On-Grid)'}</strong></td>
                             <td>${activeInv.name} (${activeInv.model || 'AutoSolar'})</td>
-                            <td style="text-align:center;">${activeInv.nominalPowerW} W (MPPT: ${activeInv.mpptMin}–${activeInv.mpptMax}V, Máx: ${activeInv.maxPVVoc}V)</td>
+                            <td style="text-align:center;">${activeInv.pac || activeInv.nominalPowerW || 3000} W (MPPT: ${activeInv.mpptMin}–${activeInv.mpptMax}V, Máx: ${activeInv.maxPVVoc}V)</td>
                             <td style="text-align:center;">DC/AC: ${convRes?.activeInverter ? convRes.activeInverter.dcacRatio.toFixed(2) : '1.00'}</td>
                             <td style="text-align:center;"><a href="${activeInv.url || 'https://autosolar.co/inversores-red'}" target="_blank" style="color:#2563eb;">AutoSolar ↗</a></td>
                         </tr>

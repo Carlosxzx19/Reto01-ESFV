@@ -282,9 +282,9 @@
             <div class="card-body">
                 ${(() => {
                     const dev = isStorage ? (activeCtrl?.device || { name: 'Regulador MPPT 150/60', model: 'MPPT-60A', maxPVVoc: 150, mpptMin: 65, mpptMax: 145, maxChargeA: 60 }) 
-                                           : (activeInv?.device || { name: 'Inversor Red 3.0 kW', model: 'INV-OG-3000', nominalPowerW: 3000, maxPVVoc: 500, mpptMin: 90, mpptMax: 450, maxPVInputA: 16 });
+                                           : (activeInv?.device || { name: 'Inversor Red 3.0 kW', model: 'INV-OG-3000', pac: 3000, nominalPowerW: 3000, maxPVVoc: 500, mpptMin: 90, mpptMax: 450, maxPVInputA: 16 });
                     
-                    const pnom = dev.nominalPowerW || (dev.maxChargeA ? dev.maxChargeA * (convInp.busVoltage || 48) : 3000);
+                    const pnom = dev.pac || dev.nominalPowerW || dev.powerW || (dev.maxChargeA ? dev.maxChargeA * (convInp.busVoltage || 48) : 3000);
                     const dcacRatio = pnom > 0 ? (ppkInstKW * 1000) / pnom : 1.0;
                     const dcacColor = (dcacRatio >= 0.8 && dcacRatio <= 1.35) ? '#22c55e' : '#f59e0b';
 
@@ -298,7 +298,7 @@
                         <div class="info-box-subtle">
                             <span style="font-size: 0.72rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700; display: block;">Potencia Nominal de Salida</span>
                             <strong style="font-size: 0.95rem; color: var(--text-primary);">${pnom.toLocaleString('es-CO')} W</strong>
-                            <div style="font-size: 0.78rem; color: var(--text-secondary); margin-top: 0.2rem;">Capacidad Pico: ${(dev.surgePower || pnom * 2).toLocaleString('es-CO')} W</div>
+                            <div style="font-size: 0.78rem; color: var(--text-secondary); margin-top: 0.2rem;">Capacidad Pico: ${(dev.peakW || dev.surgePower || pnom * 2).toLocaleString('es-CO')} W</div>
                         </div>
                         <div class="info-box-subtle">
                             <span style="font-size: 0.72rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700; display: block;">Rango de Tensión MPPT</span>
@@ -606,7 +606,7 @@
         if (convRes?.activeInverter) {
             const inv = convRes.activeInverter.device;
             csv += `Inversor Seleccionado${sep}${inv.name} (${inv.model})\n`;
-            csv += `Potencia Inversor${sep}${inv.nominalPowerW} W\n`;
+            csv += `Potencia Inversor${sep}${inv.pac || inv.nominalPowerW || 3000} W\n`;
             csv += `Rango MPPT Inversor${sep}${inv.mpptMin} V - ${inv.mpptMax} V\n`;
             csv += `Relación DC/AC${sep}${convRes.activeInverter.dcacRatio.toFixed(2)}\n`;
         }

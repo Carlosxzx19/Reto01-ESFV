@@ -63,10 +63,14 @@
             }
         });
 
-        // Botón de gestión de catálogo
+        // Botón de gestión de catálogo (RF-27)
         const btnCatalogModal = $('conv-btn-manage-catalog');
-        if (btnCatalogModal) {
-            btnCatalogModal.addEventListener('click', openCatalogModal);
+        if (btnCatalogModal && !btnCatalogModal._catalogBound) {
+            btnCatalogModal._catalogBound = true;
+            btnCatalogModal.addEventListener('click', e => {
+                e.preventDefault();
+                openCatalogModal();
+            });
         }
 
         // Click en fondo de modal para cerrar
@@ -175,13 +179,53 @@
     }
 
     function applyStringReconfig(ns, np) {
-        if (!window.APP?.state?.conversion) return;
+        if (!window.APP?.state) return;
+        if (!window.APP.state.conversion) window.APP.state.conversion = {};
+        if (!window.APP.state.sizing) window.APP.state.sizing = {};
+
         APP.state.conversion.customStringNs = ns;
+        APP.state.conversion.customStringNp = np;
+        APP.state.sizing.customStringNs = ns;
+        APP.state.sizing.customStringNp = np;
+        APP.state.sizing.isCustomConfig = true;
+
         if (typeof showToast === 'function') {
-            showToast(`Configuración de cadenas actualizada a ${ns}S × ${np}P para el equipo seleccionado.`, 'success');
+            showToast(`Configuración de cadenas adaptada a ${ns}S × ${np}P. Valores del generador actualizados en Reto 02 y Reto 03.`, 'success');
+        }
+
+        renderConversion();
+        if (typeof updateSizing === 'function') {
+            try { updateSizing(); } catch(e) { console.warn(e); }
+        }
+        if (typeof pvVisualUpdate === 'function') {
+            try { pvVisualUpdate(); } catch(e) {}
+        }
+    }
+
+    function resetStringConfig() {
+        if (window.APP?.state) {
+            if (window.APP.state.sizing) {
+                delete window.APP.state.sizing.customStringNs;
+                delete window.APP.state.sizing.customStringNp;
+                window.APP.state.sizing.isCustomConfig = false;
+            }
+            if (window.APP.state.conversion) {
+                delete window.APP.state.conversion.customStringNs;
+                delete window.APP.state.conversion.customStringNp;
+            }
+        }
+        if (typeof showToast === 'function') {
+            showToast('Conexión original del generador restablecida.', 'info');
         }
         renderConversion();
+        if (typeof updateSizing === 'function') {
+            try { updateSizing(); } catch(e) { console.warn(e); }
+        }
+        if (typeof pvVisualUpdate === 'function') {
+            try { pvVisualUpdate(); } catch(e) {}
+        }
     }
+    window.resetStringConfig = resetStringConfig;
 
     /**
      * Renderizado principal del panel de Conversión y Baterías.
@@ -241,11 +285,21 @@
                     <small>A las ${String(inputs.hpmax).padStart(2, '0')}:00 h</small>
                 </div>
             </div>
-            <div class="kpi-card">
+            <div class="kpi-card" ${inputs.isCustomConfig ? 'style="border: 1px solid var(--accent);"' : ''}>
                 <div class="kpi-info">
                     <span class="kpi-label">Generador FV (Instalado / Requerido)</span>
                     <span class="kpi-value">${num(inputs.ppkInstKW, 2)} kWp</span>
                     <small>Req: <strong>${num(inputs.ppkReqKW, 2)} kWp</strong> · ${inputs.totalModules} módulos (${inputs.ns}S × ${inputs.np}P) · ${esc(inputs.module?.name || 'Módulo FV')}</small>
+                    ${inputs.isCustomConfig ? `
+                        <div style="margin-top: 0.35rem; display: flex; align-items: center; justify-content: space-between; gap: 0.35rem; flex-wrap: wrap;">
+                            <span class="badge" style="background: rgba(245, 158, 11, 0.15); color: var(--accent); font-weight: 700; font-size: 0.72rem; padding: 2px 6px; border: 1px solid var(--accent);">
+                                Conexión adaptada (Orig: ${inputs.originalNs}S × ${inputs.originalNp}P)
+                            </span>
+                            <button type="button" class="btn btn-xs btn-secondary" onclick="event.stopPropagation(); window.resetStringConfig();" style="padding: 0.15rem 0.45rem; font-size: 0.7rem; border-color: var(--accent); color: var(--accent); background: transparent; cursor: pointer;" title="Restablecer conexión original">
+                                ↺ Restablecer
+                            </button>
+                        </div>
+                    ` : ''}
                 </div>
             </div>
             <div class="kpi-card">
@@ -623,50 +677,136 @@
     }
 
     /**
-     * Dibuja el circuito serie y paralelo de baterías en SVG con alta nitidez y contraste.
+     * Dibuja el circuito serie y paralelo de baterías en SVG con alta nitidez y correspondencia fiel.
+     * Refleja exactamente Ns en serie x Np en paralelo calculados.
      */
     function renderBatteryVisual(active) {
         const host = $('conv-battery-visual');
         if (!host) return;
 
-        const maxSeriesShown = Math.min(active.nsBat, 6);
-        const maxParallelShown = Math.min(active.npBat, 4);
+        const ns = Math.max(1, parseInt(active.nsBat, 10) || 1);
+        const np = Math.max(1, parseInt(active.npBat, 10) || 1);
+
+        // Si np <= 10, dibujamos todas las ramas en paralelo con fidelidad 1:1
+        // Si np > 10, dibujamos P1..P3, indicador esquemático de ramas intermedias, y P{np}
+        const abbreviateParallel = np > 10;
+        const branchesToDraw = abbreviateParallel
+            ? [
+                { index: 0, label: 'P1' },
+                { index: 1, label: 'P2' },
+                { index: 2, label: 'P3' },
+                { isEllipsis: true, count: np - 4 },
+                { index: np - 1, label: `P${np}` }
+            ]
+            : Array.from({ length: np }, (_, i) => ({ index: i, label: `P${i + 1}` }));
+
+        // Si ns <= 8, dibujamos todas las unidades en serie con fidelidad 1:1
+        // Si ns > 8, dibujamos S1..S3, ..., S{ns}
+        const abbreviateSeries = ns > 8;
+        const seriesToDraw = abbreviateSeries
+            ? [
+                { index: 0 },
+                { index: 1 },
+                { index: 2 },
+                { isEllipsis: true, count: ns - 4 },
+                { index: ns - 1 }
+            ]
+            : Array.from({ length: ns }, (_, i) => ({ index: i }));
 
         const batWidth = 52;
         const batHeight = 32;
-        const spacingX = 66; // 52 + 14 puente
-        const startX = 26;
+        const startX = 38;
+        const leftBusX = 26;
 
         let svgContent = '';
-        for (let p = 0; p < maxParallelShown; p++) {
-            const yPos = 16 + p * 44;
+        let currentY = 24;
+        let firstRowY = currentY;
+        let lastRowY = currentY;
+        let maxEndX = startX;
+
+        branchesToDraw.forEach((branch) => {
+            const rowY = currentY;
+            if (!branch.isEllipsis) {
+                lastRowY = rowY;
+            }
+
+            if (branch.isEllipsis) {
+                svgContent += `
+                    <g transform="translate(${startX + 10}, ${rowY + 12})">
+                        <text x="0" y="0" font-size="11" font-weight="800" fill="var(--accent)" letter-spacing="2">⋮ ⋮ ⋮</text>
+                        <text x="36" y="-1" font-size="9" font-weight="700" fill="var(--text-muted)">+ ${branch.count} ramas intermedias en paralelo (${esc(active.battery.voltage)}V / ${esc(active.battery.ah)}Ah)</text>
+                    </g>
+                `;
+                currentY += 28;
+                return;
+            }
+
             let rowUnits = '';
-            for (let s = 0; s < maxSeriesShown; s++) {
-                const xPos = startX + s * spacingX;
+            let currentX = startX;
+
+            // Conexión al bus negativo (izquierda)
+            rowUnits += `<line x1="${leftBusX}" y1="${rowY + 16}" x2="${startX}" y2="${rowY + 16}" stroke="#38bdf8" stroke-width="2"/>`;
+
+            seriesToDraw.forEach((sUnit, sIdx) => {
+                if (sUnit.isEllipsis) {
+                    rowUnits += `
+                        <text x="${currentX + 12}" y="${rowY + 19}" font-size="11" font-weight="800" fill="var(--accent)" text-anchor="middle">···</text>
+                    `;
+                    currentX += 28;
+                    return;
+                }
+
                 rowUnits += `
                     <g>
                         <!-- Cuerpo compacto de batería -->
-                        <rect x="${xPos}" y="${yPos}" width="${batWidth}" height="${batHeight}" rx="4" fill="#0f172a" stroke="#38bdf8" stroke-width="1.8"/>
+                        <rect x="${currentX}" y="${rowY}" width="${batWidth}" height="${batHeight}" rx="4" fill="#0f172a" stroke="#38bdf8" stroke-width="1.8"/>
                         <!-- Terminal superior -->
-                        <rect x="${xPos + 19}" y="${yPos - 4}" width="14" height="4" rx="1.5" fill="#94a3b8"/>
+                        <rect x="${currentX + 19}" y="${rowY - 4}" width="14" height="4" rx="1.5" fill="#94a3b8"/>
                         <!-- Textos nítidos -->
-                        <text x="${xPos + batWidth / 2}" y="${yPos + 14}" font-size="10.5" font-weight="900" fill="#ffffff" text-anchor="middle" letter-spacing="0.3">${active.battery.voltage}V</text>
-                        <text x="${xPos + batWidth / 2}" y="${yPos + 26}" font-size="9" font-weight="800" fill="#38bdf8" text-anchor="middle">${active.battery.ah}Ah</text>
+                        <text x="${currentX + batWidth / 2}" y="${rowY + 14}" font-size="10.5" font-weight="900" fill="#ffffff" text-anchor="middle" letter-spacing="0.3">${active.battery.voltage}V</text>
+                        <text x="${currentX + batWidth / 2}" y="${rowY + 26}" font-size="9" font-weight="800" fill="#38bdf8" text-anchor="middle">${active.battery.ah}Ah</text>
                     </g>
                 `;
-                // Conexión serie
-                if (s < maxSeriesShown - 1) {
-                    rowUnits += `<line x1="${xPos + batWidth}" y1="${yPos + 16}" x2="${xPos + spacingX}" y2="${yPos + 16}" stroke="#f59e0b" stroke-width="2.2"/>`;
+
+                if (sIdx < seriesToDraw.length - 1) {
+                    const nextIsEllipsis = seriesToDraw[sIdx + 1]?.isEllipsis;
+                    const bridgeLen = nextIsEllipsis ? 8 : 14;
+                    rowUnits += `<line x1="${currentX + batWidth}" y1="${rowY + 16}" x2="${currentX + batWidth + bridgeLen}" y2="${rowY + 16}" stroke="#f59e0b" stroke-width="2.2"/>`;
+                    currentX += batWidth + bridgeLen;
+                } else {
+                    currentX += batWidth;
                 }
-            }
+            });
+
+            if (currentX > maxEndX) maxEndX = currentX;
+
+            // Conexión al bus positivo (derecha)
+            rowUnits += `<line x1="${currentX}" y1="${rowY + 16}" x2="${currentX + 10}" y2="${rowY + 16}" stroke="#ef4444" stroke-width="2"/>`;
+
             svgContent += `
-                <text x="6" y="${yPos + 20}" font-size="10" fill="var(--text-primary)" font-weight="800">P${p + 1}</text>
+                <text x="6" y="${rowY + 20}" font-size="10" fill="var(--text-primary)" font-weight="800">${branch.label}</text>
                 ${rowUnits}
             `;
-        }
+            currentY += 44;
+        });
 
-        const svgWidth = Math.max(260, startX + maxSeriesShown * spacingX + 8);
-        const svgHeight = 10 + maxParallelShown * 44;
+        const rightBusX = maxEndX + 10;
+
+        // Barra de bus vertical DC- (Izquierda) y DC+ (Derecha)
+        const busBars = `
+            <!-- Barra Bus DC- (Negativo común) -->
+            <line x1="${leftBusX}" y1="${firstRowY + 6}" x2="${leftBusX}" y2="${lastRowY + 16}" stroke="#38bdf8" stroke-width="2.5" stroke-linecap="round"/>
+            <circle cx="${leftBusX}" cy="${firstRowY + 6}" r="3.5" fill="#38bdf8"/>
+            <text x="${leftBusX}" y="${firstRowY - 6}" font-size="8.5" font-weight="800" fill="#38bdf8" text-anchor="middle">DC -</text>
+
+            <!-- Barra Bus DC+ (Positivo común) -->
+            <line x1="${rightBusX}" y1="${firstRowY + 6}" x2="${rightBusX}" y2="${lastRowY + 16}" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round"/>
+            <circle cx="${rightBusX}" cy="${firstRowY + 6}" r="3.5" fill="#ef4444"/>
+            <text x="${rightBusX}" y="${firstRowY - 6}" font-size="8.5" font-weight="800" fill="#ef4444" text-anchor="middle">DC +</text>
+        `;
+
+        const svgWidth = Math.max(260, rightBusX + 24);
+        const svgHeight = currentY + 6;
 
         host.innerHTML = `
             <div style="background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 0.85rem 1.15rem; margin-top: 0.65rem;">
@@ -674,15 +814,16 @@
                     <h4 style="margin: 0; font-size: 0.92rem; color: var(--text-primary); font-weight: 700;">
                         Disposición del Banco: ${active.nsBat} en serie × ${active.npBat} en paralelo (${active.totalBatteries} baterías) — ${esc(active.battery.name)}
                     </h4>
-                    <span class="badge" style="background: rgba(56, 189, 248, 0.15); color: #38bdf8; font-weight: 700; font-size: 0.75rem;">${active.vBancoReal.toFixed(1)} V nominales</span>
+                    <span class="badge" style="background: rgba(56, 189, 248, 0.15); color: #38bdf8; font-weight: 700; font-size: 0.75rem;">${active.vBancoReal.toFixed(1)} V nominales · ${active.ahInst} Ah</span>
                 </div>
-                <div style="text-align: center; padding: 0.25rem 0;">
-                    <svg viewBox="0 0 ${svgWidth} ${svgHeight}" style="max-width: 380px; width: 100%; height: auto; display: inline-block;">
+                <div style="text-align: center; padding: 0.25rem 0; overflow-x: auto;">
+                    <svg viewBox="0 0 ${svgWidth} ${svgHeight}" style="max-width: ${Math.min(520, Math.max(280, svgWidth + 20))}px; width: 100%; height: auto; display: inline-block;">
+                        ${busBars}
                         ${svgContent}
                     </svg>
                 </div>
                 <p class="text-muted" style="font-size: 0.78rem; margin: 0.35rem 0 0 0; text-align: center; line-height: 1.4;">
-                    Cada fila suma voltaje en serie (${active.nsBat} × ${active.battery.voltage}V = <strong>${active.vBancoReal.toFixed(1)}V</strong>); las ${active.npBat} ramas en paralelo suman capacidad hasta alcanzar los <strong>${active.ahInst} Ah</strong> instalados.
+                    Cada fila suma voltaje en serie (${active.nsBat} × ${active.battery.voltage}V = <strong>${active.vBancoReal.toFixed(1)}V</strong>); las ${active.npBat} ramas en paralelo suman capacidad hasta alcanzar los <strong>${active.ahInst} Ah</strong> instalados (${active.totalBatteries} baterías en total).
                 </p>
             </div>
         `;
@@ -860,13 +1001,43 @@
         `;
     }
 
-    // Modal de gestión de catálogo
+    // Modal de gestión de catálogo (RF-27)
     function openCatalogModal() {
         const modal = $('conv-catalog-modal');
-        if (!modal) return;
-        renderCatalogModalTabs();
+        if (!modal) {
+            console.error('Modal conv-catalog-modal no encontrado en el DOM.');
+            return;
+        }
+
+        // 1. Mostrar el modal inmediatamente
         modal.style.display = 'flex';
         modal.classList.add('active');
+
+        // 2. Ajuste contextual según rama activa
+        const currentBranch = window.APP?.state?.conversion?.branch;
+        if (currentBranch === 'grid' && (currentCatalogTab === 'bats' || currentCatalogTab === 'ctrls')) {
+            currentCatalogTab = 'invs';
+        }
+
+        // 3. Renderizar contenido con bloque de protección contra fallos
+        try {
+            renderCatalogModalTabs();
+        } catch (err) {
+            console.error('Error renderizando catálogo:', err);
+            const body = $('conv-catalog-modal-body');
+            if (body) {
+                body.innerHTML = `
+                    <div style="padding: 1.5rem; text-align: center;">
+                        <p style="color: var(--error); font-weight: 700; margin-bottom: 0.8rem;">
+                            Error al cargar el catálogo de equipos (${esc(err.message)}).
+                        </p>
+                        <button type="button" class="btn btn-primary btn-sm" onclick="CONVERSION_DB.resetDefaults(); if(window.MODULES_DB) MODULES_DB.resetDefaults(); if(window.openCatalogModal) window.openCatalogModal();">
+                            🔄 Restablecer Catálogo de Fábrica
+                        </button>
+                    </div>
+                `;
+            }
+        }
     }
 
     function closeCatalogModal() {
@@ -884,23 +1055,23 @@
         const body = $('conv-catalog-modal-body');
         if (!body || !window.CONVERSION_DB) return;
 
-        const controllers = CONVERSION_DB.getControllers();
-        const inverters = CONVERSION_DB.getInverters();
-        const batteries = CONVERSION_DB.getBatteries();
+        const controllers = CONVERSION_DB.getControllers() || [];
+        const inverters = CONVERSION_DB.getInverters() || [];
+        const batteries = CONVERSION_DB.getBatteries() || [];
         const modules = window.MODULES_DB ? MODULES_DB.getAll() : [];
 
         body.innerHTML = `
             <div style="display: flex; gap: 0.5rem; margin-bottom: 1.1rem; border-bottom: 1px solid var(--border-subtle); padding-bottom: 0.6rem; flex-wrap: wrap;">
-                <button type="button" class="btn btn-sm btn-secondary ${currentCatalogTab === 'bats' ? 'active' : ''}" id="modal-tab-bats" onclick="window.CONVERSION_UI.switchModalTab('bats')">
+                <button type="button" class="btn btn-sm btn-secondary ${currentCatalogTab === 'bats' ? 'active' : ''}" id="modal-tab-bats" onclick="window.switchModalTab ? window.switchModalTab('bats') : window.CONVERSION_UI.switchModalTab('bats')">
                     🔋 Baterías (${batteries.length})
                 </button>
-                <button type="button" class="btn btn-sm btn-secondary ${currentCatalogTab === 'mods' ? 'active' : ''}" id="modal-tab-mods" onclick="window.CONVERSION_UI.switchModalTab('mods')">
+                <button type="button" class="btn btn-sm btn-secondary ${currentCatalogTab === 'mods' ? 'active' : ''}" id="modal-tab-mods" onclick="window.switchModalTab ? window.switchModalTab('mods') : window.CONVERSION_UI.switchModalTab('mods')">
                     ☀️ Módulos FV (${modules.length})
                 </button>
-                <button type="button" class="btn btn-sm btn-secondary ${currentCatalogTab === 'ctrls' ? 'active' : ''}" id="modal-tab-ctrls" onclick="window.CONVERSION_UI.switchModalTab('ctrls')">
+                <button type="button" class="btn btn-sm btn-secondary ${currentCatalogTab === 'ctrls' ? 'active' : ''}" id="modal-tab-ctrls" onclick="window.switchModalTab ? window.switchModalTab('ctrls') : window.CONVERSION_UI.switchModalTab('ctrls')">
                     ⚡ Reguladores MPPT (${controllers.length})
                 </button>
-                <button type="button" class="btn btn-sm btn-secondary ${currentCatalogTab === 'invs' ? 'active' : ''}" id="modal-tab-invs" onclick="window.CONVERSION_UI.switchModalTab('invs')">
+                <button type="button" class="btn btn-sm btn-secondary ${currentCatalogTab === 'invs' ? 'active' : ''}" id="modal-tab-invs" onclick="window.switchModalTab ? window.switchModalTab('invs') : window.CONVERSION_UI.switchModalTab('invs')">
                     🔄 Inversores MPPT (${inverters.length})
                 </button>
             </div>
@@ -1537,6 +1708,27 @@
         importCatalogJSON
     };
 
+    // Exponer accesos directos en window para invocar desde onclick HTML o consola
+    window.openCatalogModal = openCatalogModal;
+    window.closeCatalogModal = closeCatalogModal;
+    window.switchModalTab = switchModalTab;
+    window.startEditItem = startEditItem;
+    window.cancelEditItem = cancelEditItem;
+    window.saveItemEdit = saveItemEdit;
+    window.resetItemToDefault = resetItemToDefault;
+    window.exportCatalogJSON = exportCatalogJSON;
+    window.importCatalogJSON = importCatalogJSON;
+
+    // Cerrar modal con la tecla Escape
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') {
+            const modal = $('conv-catalog-modal');
+            if (modal && (modal.style.display === 'flex' || modal.classList.contains('active'))) {
+                closeCatalogModal();
+            }
+        }
+    });
+
     function exportCatalogJSON() {
         const data = {
             app: 'SolarCalc FV',
@@ -1591,10 +1783,15 @@
         event.target.value = '';
     }
 
-    // Auto-inicializar cuando el DOM esté listo
-    document.addEventListener('DOMContentLoaded', () => {
+    // Auto-inicializar cuando el DOM esté listo o inmediatamente si ya cargó
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => {
+            if (window.CONVERSION_DB) CONVERSION_DB.init();
+            initConversionUI();
+        });
+    } else {
         if (window.CONVERSION_DB) CONVERSION_DB.init();
         initConversionUI();
-    });
+    }
 
 })();

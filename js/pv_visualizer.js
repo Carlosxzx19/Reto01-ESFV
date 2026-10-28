@@ -482,8 +482,9 @@
 
     /* ── Vista 2: módulos, cadenas y comparación de área ── */
     function pvvLayout(ctx) {
-        const cells = Math.min(ctx.ns, 20);
-        const rows = Math.min(ctx.np, 8);
+        const cells = Math.min(ctx.ns, 24);
+        const maxRowsAllowed = 16;
+        const rows = Math.min(ctx.np, maxRowsAllowed);
         const cw = 20, rh = 24;
 
         const grid = Array.from({ length: rows }, (_, r) =>
@@ -493,7 +494,8 @@
             ).join('')
         ).join('');
 
-        const H1 = 50 + rows * rh;
+        const extraChainsMsg = ctx.np > maxRowsAllowed ? `<text x="38" y="${40 + rows * rh + 14}" font-size="10" fill="var(--accent)" font-weight="700">⋮ (+ ${ctx.np - maxRowsAllowed} cadenas adicionales en paralelo no representadas a escala)</text>` : '';
+        const H1 = 50 + rows * rh + (ctx.np > maxRowsAllowed ? 22 : 0);
         const maxA = Math.max(ctx.area, ctx.availableArea, 1);
         const w = v => Math.max(8, 540 * v / maxA);
         const over = ctx.area > ctx.availableArea;
@@ -505,6 +507,7 @@
                     Distribución de los ${ctx.n} módulos: ${ctx.np} cadena(s) en paralelo de ${ctx.ns} en serie
                 </text>
                 ${grid}
+                ${extraChainsMsg}
                 <g transform="translate(0,${H1 + 10})">
                     <text x="8" y="16" font-size="13" font-weight="700" fill="var(--text-primary)">Comparación de Superficie vs Área Disponible</text>
                     <rect x="38" y="30" width="${w(ctx.availableArea)}" height="26" rx="6" fill="#64748b" opacity=".4"/>

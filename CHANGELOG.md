@@ -4,6 +4,65 @@ Todas las modificaciones notables realizadas en la **Plataforma Integral de Plan
 
 ---
 
+## [v1.2.3] — 2026-10-28
+### Filtrado Riguroso de Reconfiguraciones Eléctricas de Cadenas (Ns × Np) y Propagación Bidireccional hacia Reto 02
+- **Filtrado Estricto de Propuestas de Prueba ("Probar Ns × Np"):**
+  - **Validación Técnica Exhaustiva:** Las propuestas de prueba de reconfiguración de cadenas se generan única y exclusivamente si la combinación alternativa garantiza el **100% de cumplimiento técnico** para ese equipo específico:
+    1. Tensión de circuito abierto máxima: $N_s \times V_{oc@Tmin} \le V_{oc,max}$.
+    2. Rango de seguimiento MPPT: $N_s \times V_{mp@Tmax} \ge V_{mp,min}$ y $N_s \times V_{mp@Tmin} \le V_{mppt,max}$.
+    3. Corriente de cortocircuito máxima admisible: $N_p \times I_{sc} \le I_{sc,in,max}$.
+    4. Corriente de máxima potencia admisible: $N_p \times I_{mp} \le I_{mp,in,max}$.
+    5. Corriente máxima de salida hacia el banco de baterías: $I_{salidaBanco} = \frac{P_{inst}}{V_{bus}} \le I_{charge,max}$.
+    6. Relación DC/AC admisible en inversores de conexión a red: $DC/AC \le DC/AC_{max}$.
+  - **Supresión Total del Botón en Equipos Incompatibles:** Si la potencia instalada del generador o la corriente hacia el banco excede la capacidad del regulador/inversor (ej. $297.5\text{ A} > 80\text{ A}$), se elimina por completo el botón *"Probar Ns × Np"*, manteniéndose el veredicto *"No Cumple"* con sus causas detalladas sin falsas expectativas de solución por reconfiguración de cadenas.
+
+- **Propagación Reactiva Inmediata hacia el Dimensionamiento (Reto 02):**
+  - **Recálculo Eléctrico en Tiempo Real:** Al presionar *"Probar Ns × Np"* en cualquier equipo compatible de Reto 03, los cálculos del arreglo fotovoltaico en las tarjetas de módulos del Reto 02 se actualizan al instante con la nueva configuración:
+    - Nueva tensión $V_{mp}$ del generador ($N_s' \times V_{mp,op}$).
+    - Nueva tensión $V_{oc}$ a mínima temperatura ($N_s' \times V_{oc@Tmin}$).
+    - Nueva corriente $I_{mp}$ del generador ($N_p' \times I_{mp}$).
+    - Nueva corriente de diseño NTC 2050 Art. 690-8 ($1.25 \times 1.25 \times N_p' \times I_{sc}$).
+    - Rótulo de configuración de cadenas (ej. `2PX3S` con borde resaltado).
+  - **Banner Informativo y Botón de Restauración ("↺ Restablecer original"):**
+    - Se incorpora un distintivo visual destacado en la tarjeta del módulo de Reto 02: `Conexión adaptada: Ns'S × Np'P (Original: NsS × NpP)`.
+    - Se incluye un botón directo `↺ Restablecer original` tanto en la tarjeta de Reto 02 como en el banner de datos heredados de Reto 03 para revertir la configuración a los divisores óptimos por defecto con un solo clic.
+  - **Sincronización Global de Estado:** El estado modificado (`customStringNs`, `customStringNp`, `isCustomConfig`) se almacena de forma sincronizada en `APP.state.sizing` y `APP.state.conversion`, garantizando coherencia en informes, diagramas visuales y análisis de balance.
+
+---
+
+## [v1.2.2] — 2026-10-28
+### Corrección del Botón de Gestión de Catálogo y Correspondencia Fiel en el Diagrama Eléctrico Serie-Paralelo
+- **Resolución Integral del Botón de Catálogo (`#conv-btn-manage-catalog` - RF-27):**
+  - **Apertura Inmediata y Resiliente:** El modal de catálogo se activa y muestra en pantalla de forma prioritaria antes de invocar la renderización de pestañas, asegurando visibilidad instantánea.
+  - **Adaptabilidad Contextual:** Si el proyecto se encuentra en la rama *Conectado a Red (On-Grid)*, el modal abre automáticamente en la pestaña de **Inversores MPPT**, evitando estados inconsistentes al consultar baterías en proyectos sin almacenamiento.
+  - **Bloque de Protección contra Fallos (`try/catch`):** Si existe algún dato corrupto en el almacenamiento local (`localStorage`), el modal no se bloquea ni queda oculto; en su lugar, ofrece un botón de un clic para restablecer el catálogo de fábrica con los equipos oficiales.
+  - **Exportación Standalone y Compatibilidad Global:** Se expusieron las funciones `window.openCatalogModal`, `window.closeCatalogModal` y `window.switchModalTab` directamente en el ámbito global `window` además del objeto `CONVERSION_UI`.
+  - **Control por Teclado y Cierre:** Soporte nativo para cerrar el modal presionando la tecla `Escape` o haciendo clic fuera de la ventana modal.
+  - **Prevención de Condiciones de Carrera:** Soporte para entornos donde el DOM ya se encuentra en estado `complete` o `interactive` al momento de evaluar los scripts.
+
+- **Correspondencia Fiel del Diagrama de Baterías Serie × Paralelo (RF-33):**
+  - **Eliminación del Tope Artificial:** Se eliminó la restricción rígida `Math.min(active.npBat, 4)` que limitaba el dibujo a un máximo de 4 ramas en paralelo independientemente del cálculo real.
+  - **Renderizado Dinámico 1:1:** Para bancos de baterías de hasta 10 ramas en paralelo, el diagrama SVG dibuja con absoluta fidelidad **todas y cada una de las ramas** ($P_1, P_2, \dots, P_{N_p}$) con sus correspondientes módulos en serie. En el caso reportado (2 en serie × 7 en paralelo), ahora se grafican con claridad las 7 ramas completas ($P_1$ a $P_7$) con las 14 baterías físicas conectadas.
+  - **Esquema Abreviado para Bancos Extremos ($N_p > 10$):** Si el banco supera 10 ramas en paralelo, se dibuja un esquema con $P_1, P_2, P_3$, una fila esquemática con indicador cuantitativo de ramas intermedias y la rama final $P_{N_p}$, preservando la proporción visual sin saturar el lienzo.
+  - **Barras de Bus Eléctrico DC- y DC+:** Se incorporó el trazado explícito de las barras de bus común negativo (azul, DC-) y positivo (rojo, DC+) con bornes y rotulación técnica formal.
+  - **Ampliación en Vista de Módulos FV (`pv_visualizer.js`):** Se expandió el visualizador de distribución física de módulos hasta 16 cadenas en paralelo para generadores de gran escala.
+
+---
+
+## [v1.2.1] — 2026-10-28
+### Corrección de Acciones en Modo On-Grid, Adaptabilidad Contextual del Informe PDF y Resolución de Potencias de Inversores
+- **Visibilidad Permanente de Acciones en Red (On-Grid):**
+  - Desacoplamiento de la tarjeta de gestión del proyecto (Generar Informe PDF, Guardar/Cargar JSON, Presets de estudio y botón de continuación a Etapa 4) respecto al contenedor `.conv-storage-only`.
+  - Ahora, al seleccionar un sistema *Conectado a Red (On-Grid)*, las acciones de guardado y exportación de informe permanecen siempre accesibles y visibles.
+- **Adaptabilidad Contextual Estricta del Informe Ejecutivo PDF (Reto 03):**
+  - **Sistemas Conectados a Red (On-Grid):** Se eliminó por completo toda mención o bloque de banco de baterías, reguladores de carga o tiempos de recarga de batería. La sección presenta única y exclusivamente el **Inversor Solar Conectado a Red Seleccionado**, con su potencia nominal y pico, relación DC/AC ($P_{dc}/P_{ac}$), rango MPPT $[V_{min} - V_{max}]$, $V_{oc}$ en frío vs límite del equipo, corriente de entrada y nota formal de inyección a red en CA.
+  - **Sistemas Con Almacenamiento (Off-Grid / Aislado / Híbrido):** Presenta de forma ordenada el **Banco de Baterías** (tecnología, configuración $N_s \times N_p$, capacidad útil e instalada en Ah y kWh, DoD y tasas C), el **Equipo de Conversión Seleccionado** (Inversor Híbrido o Inversor + Regulador) y el **Balance de Cierre Energético** con tiempos de recarga en el mejor mes y en el peor mes.
+- **Corrección de Propiedades de Potencia de Inversores (`undefined W / NaN W`):**
+  - Homologación de propiedades de potencia en el catálogo: lectura unificada de `pac` / `nominalPowerW` / `powerW` y `peakW` / `surgePower` en `js/conversion.js`, `js/report.js` y `js/final_report_ui.js`.
+  - Eliminación de errores de formato en el informe PDF, en la tarjeta de componentes de la Etapa 4 y en la exportación tabular CSV.
+
+---
+
 ## [v1.2.0] — 2026-10-28
 ### Ajustes en Balance y Recarga de Batería, Gráfica de Áreas 24h y Reactividad Total de Datos Heredados
 - **Reactividad e Integración Plena de Datos Heredados (RF-26):**
